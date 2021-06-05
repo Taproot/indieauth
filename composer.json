@@ -1,0 +1,24 @@
+{
+    "name": "taproot/indieauth",
+    "description": "PHP PSR-7-compliant IndieAuth Server and Client implementation.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Barnaby Walters",
+            "email": "barnaby@waterpigs.co.uk"
+        }
+    ],
+    "require": {
+        "psr/http-message": "^1.0",
+        "psr/log": "^1.1",
+        "nyholm/psr7": "^1.4",
+        "indieauth/client": "^1.1",
+        "psr/http-client": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "dflydev/fig-cookies": "^3.0"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "^7.3"
+    }
+}
