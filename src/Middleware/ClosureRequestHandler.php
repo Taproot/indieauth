@@ -7,7 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class ClosureRequestHandler implements RequestHandlerInterface {
-	protected callable $callable;
+	protected $callable;
 
 	protected array $args;
 

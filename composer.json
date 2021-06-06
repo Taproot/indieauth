@@ -12,12 +12,12 @@
     "autoload": {
         "files": ["src/functions.php"],
         "psr-4": {
-            "Taproot\\IndieAuth": "src"
+            "Taproot\\IndieAuth\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Taproot\\IndieAuth\\Test": "tests"
+            "Taproot\\IndieAuth\\Test\\": "tests"
         }
     },
     "require": {
@@ -33,6 +33,7 @@
         "guzzlehttp/psr7": "^1.8"
     },
     "require-dev": {
-        "guzzlehttp/guzzle": "^7.3"
+        "guzzlehttp/guzzle": "^7.3",
+        "phpunit/phpunit": "^9.5"
     }
 }

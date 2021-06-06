@@ -23,20 +23,20 @@ function generateRandomString($numBytes) {
 
 function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
-		&& array_key_exists('grant_type', $request->getParsedBody())
-		&& $request->getParsedBody()['grant_type'] == 'authorization_code';
+			&& array_key_exists('grant_type', $request->getParsedBody())
+			&& $request->getParsedBody()['grant_type'] == 'authorization_code';
 }
 
 function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, $permittedMethods=['get']) {
 	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
-		&& array_key_exists('response_type', $request->getQueryParams())
-		&& $request->getQueryParams()['response_type'] == 'code';
+			&& array_key_exists('response_type', $request->getQueryParams())
+			&& $request->getQueryParams()['response_type'] == 'code';
 }
 
 function isAuthorizationApprovalRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
-		&& array_key_exists('taproot_indieauth_action', $request->getParsedBody())
-		&& $request->getParsedBody()['taproot_indieauth_action'] == 'approve';
+			&& array_key_exists('taproot_indieauth_action', $request->getParsedBody())
+			&& $request->getParsedBody()['taproot_indieauth_action'] == 'approve';
 }
 
 function buildQueryString(array $parameters) {
@@ -55,8 +55,13 @@ function buildQueryString(array $parameters) {
  * with either ? or & as appropriate.
  */
 function appendQueryParams(string $uri, array $queryParams) {
+	if (empty($queryParams)) {
+		return $uri;
+	}
+	
 	$queryString = buildQueryString($queryParams);
 	$separator = parse_url($uri, \PHP_URL_QUERY) ? '&' : '?';
+	$uri = rtrim($uri, '?&');
 	return "{$uri}{$separator}{$queryString}";
 }
 

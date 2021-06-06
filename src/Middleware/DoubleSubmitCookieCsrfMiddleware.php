@@ -24,16 +24,16 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 
 	public int $ttl;
 
-	public callable $errorResponse;
+	public $errorResponse;
 
 	public int $tokenLength;
 
 	public LoggerInterface $logger;
 
-	public function __construct(string $attribute=self::ATTRIBUTE, int $ttl=self::TTL, $errorResponse=self::DEFAULT_ERROR_RESPONSE_STRING, $tokenLength=self::CSRF_TOKEN_LENGTH, $logger=null) {
-		$this->attribute = $attribute;
-		$this->ttl = $ttl;
-		$this->tokenLength = $tokenLength;
+	public function __construct(?string $attribute=self::ATTRIBUTE, ?int $ttl=self::TTL, $errorResponse=self::DEFAULT_ERROR_RESPONSE_STRING, $tokenLength=self::CSRF_TOKEN_LENGTH, $logger=null) {
+		$this->attribute = $attribute ?? self::ATTRIBUTE;
+		$this->ttl = $ttl ?? self::TTL;
+		$this->tokenLength = $tokenLength ?? self::CSRF_TOKEN_LENGTH;
 
 		if (!is_callable($errorResponse)) {
 			if (!$errorResponse instanceof ResponseInterface) {
@@ -57,18 +57,16 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 	}
 
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
-		if (!in_array(strtoupper($request->getMethod()), self::READ_METHODS)) {
-			// This request is a write method and requires CSRF protection.
-			if (!$this->isValid($request)) {
-				return call_user_func($this->errorResponse, $request);
-			}
-		}
-
-		// Otherwise, generate a new CSRF token, add it to the request attributes, and as a cookie on the response.
+		// Generate a new CSRF token, add it to the request attributes, and as a cookie on the response.
 		$csrfToken = generateRandomString($this->tokenLength);
 		$request = $request->withAttribute($this->attribute, $csrfToken);
 
-		$response = $handler->handle($request);
+		if (!in_array(strtoupper($request->getMethod()), self::READ_METHODS) && !$this->isValid($request)) {
+			// This request is a write method with invalid CSRF parameters.
+			$response = call_user_func($this->errorResponse, $request);
+		} else {
+			$response = $handler->handle($request);
+		}
 
 		// Add the new CSRF cookie, restricting its scope to match the current request.
 		$response = FigCookies\FigResponseCookies::set($response, FigCookies\SetCookie::create($this->attribute)
@@ -82,8 +80,8 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 	}
 
 	protected function isValid(ServerRequestInterface $request) {
-		if (in_array($this->attribute, $request->getParsedBody())) {
-			if (in_array($this->attribute, $request->getCookieParams())) {
+		if (array_key_exists($this->attribute, $request->getParsedBody() ?? [])) {
+			if (array_key_exists($this->attribute, $request->getCookieParams() ?? [])) {
 				return hash_equals($request->getParsedBody()[$this->attribute], $request->getCookieParams()[$this->attribute]);
 			}
 		}

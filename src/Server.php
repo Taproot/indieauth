@@ -3,23 +3,18 @@
 namespace Taproot\IndieAuth;
 
 use Exception;
-use GuzzleHttp\Exception\ServerException;
 use IndieAuth\Client as IndieAuthClient;
 use Mf2;
 use BarnabyWalters\Mf2 as M;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use Nyholm\Psr7\Response;
-use Nyholm\Psr7\Request;
-use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface as HttpClientInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Client\RequestExceptionInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
