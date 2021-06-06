@@ -59,9 +59,36 @@ class Server {
 			'csrfKey' => self::DEFAULT_CSRF_KEY,
 			'logger' => null,
 			'callbacks' => [
-				self::CUSTOMIZE_AUTHORIZATION_CODE => function (array $code) { return $code; }, // Default to no-op.
+				self::CUSTOMIZE_AUTHORIZATION_CODE => function (array $code, ServerRequestInterface $request) {
+					// Configure the access code based on the authorization form parameters submitted in $request;
+					// TODO: that, based on the default authorization form.
+					return $code;
+				},
 				self::SHOW_AUTHORIZATION_PAGE => function (ServerRequestInterface $request, array $authenticationResult, string $authenticationRedirect, ?array $clientHApp) {
-					// TODO: Put the default implementation here.
+					// Default implementation: show an authorization page. List all requested scopes, as this default
+					// function has now way of knowing which scopes are supported by the consumer.
+					$scopes = [];
+					foreach(explode(' ', $request->getQueryParams()['scope'] ?? '') as $s) {
+						$scopes[$s] = null; // Ideally there would be a description of the scope here, we don’t have one though.
+					}
+					$templatePath = __DIR__ . '/templates/default_authorization_page.html.php';
+
+					$hApp = [
+						'name' => M\getProp($clientHApp, 'name'),
+						'url' => M\getProp($clientHApp, 'url'),
+						'photo' => M\getProp($clientHApp, 'photo')
+					];
+
+					return new Response(200, ['content-type' => 'text/html'], renderTemplate($templatePath, [
+						'scopes' => $scopes,
+						'user' => $authenticationResult,
+						'formAction' => $authenticationRedirect,
+						'request' => $request,
+						'clientHApp' => $hApp,
+						'clientId' => $request->getQueryParams()['client_id'],
+						'clientRedirectUri' => $request->getQueryParams()['redirect_uri'],
+						'csrfFormElement' => '<input type="hidden" name="' . htmlentities($this->csrfKey) . '" value="' . htmlentities($request->getAttribute($this->csrfKey)) . '" />'
+					]));
 				},
 				self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
 			],
