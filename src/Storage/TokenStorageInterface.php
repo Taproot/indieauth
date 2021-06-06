@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Taproot\IndieAuth;
+namespace Taproot\IndieAuth\Storage;
 
 // TODO: document.
 

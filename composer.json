@@ -9,6 +9,17 @@
             "email": "barnaby@waterpigs.co.uk"
         }
     ],
+    "autoload": {
+        "files": ["src/functions.php"],
+        "psr-4": {
+            "Taproot\\IndieAuth": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Taproot\\IndieAuth\\Test": "tests"
+        }
+    },
     "require": {
         "psr/http-message": "^1.0",
         "psr/log": "^1.1",

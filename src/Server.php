@@ -35,54 +35,6 @@ use function PHPSTORM_META\type;
  * Example CSRF protection cookie middleware: https://github.com/zakirullin/csrf-middleware/blob/master/src/CSRF.php
  */
 
-// TODO: maybe move these to a functions file so they’re usable by consumers even when the class isn’t loaded.
-// Alternatively, make them static methods so they can be autoloaded.
-function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request) {
-	return strtolower($request->getMethod()) == 'post'
-		&& array_key_exists('grant_type', $request->getParsedBody())
-		&& $request->getParsedBody()['grant_type'] == 'authorization_code';
-}
-
-function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, $permittedMethods=['get']) {
-	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
-		&& array_key_exists('response_type', $request->getQueryParams())
-		&& $request->getQueryParams()['response_type'] == 'code';
-}
-
-function isAuthorizationApprovalRequest(ServerRequestInterface $request) {
-	return strtolower($request->getMethod()) == 'post'
-		&& array_key_exists('taproot_indieauth_action', $request->getParsedBody())
-		&& $request->getParsedBody()['taproot_indieauth_action'] == 'approve';
-}
-
-function buildQueryString(array $parameters) {
-	$qs = [];
-	foreach ($parameters as $k => $v) {
-		$qs[] = urlencode($k) . '=' . urlencode($v);
-	}
-	return join('&', $qs);
-}
-
-/**
- * Append Query Parameters
- * 
- * Converts `$queryParams` into a query string, then checks `$uri` for an
- * existing query string. Then appends the newly generated query string
- * with either ? or & as appropriate.
- */
-function appendQueryParams(string $uri, array $queryParams) {
-	$queryString = buildQueryString($queryParams);
-	$separator = parse_url($uri, \PHP_URL_QUERY) ? '&' : '?';
-	return "{$uri}{$separator}{$queryString}";
-}
-
-function trySetLogger($target, LoggerInterface $logger) {
-	if ($target instanceof LoggerAwareInterface) {
-		$target->setLogger($logger);
-	}
-	return $target;
-}
-
 class Server {
 	const CUSTOMIZE_AUTHORIZATION_CODE = 'customise_authorization_code';
 	const SHOW_AUTHORIZATION_PAGE = 'show_authorization_page';
@@ -92,9 +44,9 @@ class Server {
 
 	public $callbacks;
 
-	public TokenStorageInterface $authorizationCodeStorage;
+	public Storage\TokenStorageInterface $authorizationCodeStorage;
 
-	public TokenStorageInterface $accessTokenStorage;
+	public Storage\TokenStorageInterface $accessTokenStorage;
 
 	public MiddlewareInterface $csrfMiddleware;
 
@@ -133,9 +85,9 @@ class Server {
 		$this->callbacks = $callbacks;
 		
 		$authorizationCodeStorage = $config['authorizationCodeStorage'];
-		if (!$authorizationCodeStorage instanceof TokenStorageInterface) {
+		if (!$authorizationCodeStorage instanceof Storage\TokenStorageInterface) {
 			if (is_string($authorizationCodeStorage)) {
-				$authorizationCodeStorage = new FilesystemJsonStorage($authorizationCodeStorage, 600, true);
+				$authorizationCodeStorage = new Storage\FilesystemJsonStorage($authorizationCodeStorage, 600, true);
 			} else {
 				throw new Exception('$authorizationCodeStorage parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.');
 			}
@@ -144,10 +96,10 @@ class Server {
 		$this->authorizationCodeStorage = $authorizationCodeStorage;
 
 		$accessTokenStorage = $config['accessTokenStorage'];
-		if (!$accessTokenStorage instanceof TokenStorageInterface) {
+		if (!$accessTokenStorage instanceof Storage\TokenStorageInterface) {
 			if (is_string($accessTokenStorage)) {
 				// Create a default access token storage with a TTL of 7 days.
-				$accessTokenStorage = new FilesystemJsonStorage($accessTokenStorage, 60 * 60 * 24 * 7, true);
+				$accessTokenStorage = new Storage\FilesystemJsonStorage($accessTokenStorage, 60 * 60 * 24 * 7, true);
 			} else {
 				throw new Exception('$accessTokenStorage parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.');
 			}
@@ -160,7 +112,7 @@ class Server {
 		$csrfMiddleware = $config['csrfMiddleware'];
 		if (!$csrfMiddleware instanceof MiddlewareInterface) {
 			// Default to the statless Double-Submit Cookie CSRF Middleware, with default settings.
-			$csrfMiddleware = new DoubleSubmitCookieCsrfMiddleware($this->csrfKey);
+			$csrfMiddleware = new Middleware\DoubleSubmitCookieCsrfMiddleware($this->csrfKey);
 		}
 		trySetLogger($csrfMiddleware, $this->logger);
 		$this->csrfMiddleware = $csrfMiddleware;
@@ -214,7 +166,7 @@ class Server {
 
 		// Because the special case above isn’t allowed to be CSRF-protected, we have to do some rather silly
 		// gymnastics here to selectively-CSRF-protect requests which do need it.
-		return $this->csrfMiddleware->process($request, new ClosureRequestHandler(function (ServerRequestInterface $request) {
+		return $this->csrfMiddleware->process($request, new Middleware\ClosureRequestHandler(function (ServerRequestInterface $request) {
 			// If this is an authorization or approval request (allowing POST requests as well to accommodate 
 			// approval requests and custom auth form submission.
 			if (isIndieAuthAuthorizationRequest($request, ['get', 'post'])) {

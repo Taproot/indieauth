@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Taproot\IndieAuth;
+namespace Taproot\IndieAuth\Middleware;
 
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
@@ -11,21 +11,7 @@ use Dflydev\FigCookies;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-
-// From https://github.com/indieweb/indieauth-client-php/blob/main/src/IndieAuth/Client.php, thanks aaronpk.
-function generateRandomString($numBytes) {
-	if (function_exists('random_bytes')) {
-		$bytes = random_bytes($numBytes);
-	} elseif (function_exists('openssl_random_pseudo_bytes')){
-		$bytes = openssl_random_pseudo_bytes($numBytes);
-	} else {
-		$bytes = '';
-		for($i=0, $bytes=''; $i < $numBytes; $i++) {
-			$bytes .= chr(mt_rand(0, 255));
-		}
-	}
-	return bin2hex($bytes);
-}
+use function Taproot\IndieAuth\generateRandomString;
 
 class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwareInterface {
 	const READ_METHODS = ['HEAD', 'GET', 'OPTIONS'];
