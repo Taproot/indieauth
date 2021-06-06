@@ -16,7 +16,10 @@
         "indieauth/client": "^1.1",
         "psr/http-client": "^1.0",
         "psr/http-server-middleware": "^1.0",
-        "dflydev/fig-cookies": "^3.0"
+        "dflydev/fig-cookies": "^3.0",
+        "mf2/mf2": "^0.4.6",
+        "barnabywalters/mf-cleaner": "^0.1.4",
+        "guzzlehttp/psr7": "^1.8"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^7.3"

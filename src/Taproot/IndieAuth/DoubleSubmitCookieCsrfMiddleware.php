@@ -8,6 +8,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Dflydev\FigCookies;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 // From https://github.com/indieweb/indieauth-client-php/blob/main/src/IndieAuth/Client.php, thanks aaronpk.
 function generateRandomString($numBytes) {
@@ -24,7 +27,7 @@ function generateRandomString($numBytes) {
 	return bin2hex($bytes);
 }
 
-class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface {
+class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwareInterface {
 	const READ_METHODS = ['HEAD', 'GET', 'OPTIONS'];
 	const TTL = 60 * 20;
 	const ATTRIBUTE = 'csrf';
@@ -39,7 +42,9 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface {
 
 	public int $tokenLength;
 
-	public function __construct(string $attribute=self::ATTRIBUTE, int $ttl=self::TTL, $errorResponse=self::DEFAULT_ERROR_RESPONSE_STRING, $tokenLength=self::CSRF_TOKEN_LENGTH) {
+	public LoggerInterface $logger;
+
+	public function __construct(string $attribute=self::ATTRIBUTE, int $ttl=self::TTL, $errorResponse=self::DEFAULT_ERROR_RESPONSE_STRING, $tokenLength=self::CSRF_TOKEN_LENGTH, $logger=null) {
 		$this->attribute = $attribute;
 		$this->ttl = $ttl;
 		$this->tokenLength = $tokenLength;
@@ -54,6 +59,15 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface {
 			$errorResponse = function (ServerRequestInterface $request) use ($errorResponse) { return $errorResponse; };
 		}
 		$this->errorResponse = $errorResponse;
+
+		if (!$logger instanceof LoggerInterface) {
+			$logger = new NullLogger();
+		}
+		$this->logger = $logger;
+	}
+
+	public function setLogger(LoggerInterface $logger) {
+		$this->logger = $logger;
 	}
 
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
