@@ -60,7 +60,9 @@ class Server {
 			'logger' => null,
 			'callbacks' => [
 				self::CUSTOMIZE_AUTHORIZATION_CODE => function (array $code) { return $code; }, // Default to no-op.
-				self::SHOW_AUTHORIZATION_PAGE => function (ServerRequestInterface $request, array $authenticationResult, string $authenticationRedirect) {  }, // TODO: Put the default implementation here.
+				self::SHOW_AUTHORIZATION_PAGE => function (ServerRequestInterface $request, array $authenticationResult, string $authenticationRedirect, ?array $clientHApp) {
+					// TODO: Put the default implementation here.
+				},
 				self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
 			],
 			'authorizationCodeStorage' => null,

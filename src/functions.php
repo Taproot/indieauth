@@ -77,3 +77,17 @@ function trySetLogger($target, LoggerInterface $logger) {
 	}
 	return $target;
 }
+
+function renderTemplate(string $template, array $context=[]) {
+	$render = function ($__template, $__templateData) {
+		$render = function ($template, $data){
+			return renderTemplate($template, $data);
+		};
+		ob_start();
+		extract($__templateData);
+		unset($__templateData);
+		include $__template;
+		return ob_get_clean();
+	};
+	return $render($template, $context);
+}

@@ -10,6 +10,7 @@ const TMP_DIR = __DIR__ . '/tmp';
 
 class FilesystemJsonStorageTest extends TestCase {
 	protected function setUp(): void {
+		@mkdir(TMP_DIR);
 		// Clean tmp dir.
 		foreach (new DirectoryIterator(TMP_DIR) as $fileInfo) {
 			if ($fileInfo->isFile()) {
@@ -31,7 +32,7 @@ class FilesystemJsonStorageTest extends TestCase {
 		$s = new FilesystemJsonStorage(TMP_DIR, 0, false);
 
 		$t1data = ['example' => 'data'];
-		$t1path = TMP_DIR . '/t1.json';
+		$t1path = $s->getPath('t1');
 
 		$this->assertTrue($s->put('t1', $t1data), "Saving t1 data failed");
 
