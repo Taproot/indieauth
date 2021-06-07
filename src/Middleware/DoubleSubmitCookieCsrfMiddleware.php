@@ -13,6 +13,13 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use function Taproot\IndieAuth\generateRandomString;
 
+/**
+ * Development reference
+ * 
+ * CSRF protection cheat sheet: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+ * Example CSRF protection cookie middleware: https://github.com/zakirullin/csrf-middleware/blob/master/src/CSRF.php
+ */
+
 class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwareInterface {
 	const READ_METHODS = ['HEAD', 'GET', 'OPTIONS'];
 	const TTL = 60 * 20;
@@ -70,11 +77,11 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 
 		// Add the new CSRF cookie, restricting its scope to match the current request.
 		$response = FigCookies\FigResponseCookies::set($response, FigCookies\SetCookie::create($this->attribute)
-			->withValue($csrfToken)
-			->withMaxAge($this->ttl)
-			->withSecure($request->getUri()->getScheme() == 'https')
-			->withDomain($request->getUri()->getHost())
-			->withPath($request->getUri()->getPath()));
+				->withValue($csrfToken)
+				->withMaxAge($this->ttl)
+				->withSecure($request->getUri()->getScheme() == 'https')
+				->withDomain($request->getUri()->getHost())
+				->withPath($request->getUri()->getPath()));
 
 		return $response;
 	}

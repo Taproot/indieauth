@@ -12,6 +12,8 @@ class FilesystemJsonStorage implements TokenStorageInterface {
 		$this->path = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 		$this->ttl = $ttl;
 
+		@mkdir($this->path, 0777, true);
+
 		if ($cleanUpNow) {
 			$this->cleanUp();
 		}
@@ -22,8 +24,8 @@ class FilesystemJsonStorage implements TokenStorageInterface {
 
 		$deleted = 0;
 
-		// A TTL of 0 means the token should live until deleted, and negative TTLs are invalid.
-		if ($ttl > 0) {
+		// A TTL of 0 means the token should live until deleted. A negative TTLs means “delete everything”.
+		if ($ttl !== 0) {
 			foreach (new DirectoryIterator($this->path) as $fileInfo) {
 				if ($fileInfo->isFile() && $fileInfo->getExtension() == 'json' && time() - max($fileInfo->getMTime(), $fileInfo->getCTime()) > $ttl) {
 					unlink($fileInfo->getPathname());

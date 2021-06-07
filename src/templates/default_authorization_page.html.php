@@ -77,6 +77,7 @@
 					<p>The app has requested the following scopes. You may choose which to grant it.</p>
 
 					<ul class="scope-list">
+						<!-- Loop through $scopes, which maps string $scope to ?string $description by default. -->
 						<?php foreach ($scopes as $scope => $description): ?>
 							<li class="scope-list-item">
 								<label>
@@ -94,14 +95,25 @@
 				<?php endif ?>
 			</div>
 
+			<!-- You’re welcome to add addition UI for the user to customise the properties of the granted
+			     access token (e.g. lifetime), just make sure you adapt the transformAuthorizationCode
+					 function to handle them. -->
+
 			<div class="submit-section">
 				<p>After approving, you will be redirected to <span class="inline-url"><?= htmlentities($clientRedirectUri) ?></span>.</p>
 
 				<p>
-					<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to app)</a>
+					<!-- Forms should give the user a chance to cancel the authorization. This usually involves linking them back to the app they came from. -->
+					<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= $clientHApp['name'] ?? 'app' ?>)</a>
+
+					<!-- Your form MUST be submitted with taproot_indieauth_action=approve for the approval submission to work. -->
 					<button type="submit" name="taproot_indieauth_action" value="approve">Authorize</button>
 				</p>
 			</div>
 		</form>
+
+		<footer>
+			<small>Powered by <a href="https://taprootproject.com">taproot/indieauth</a></small>
+		</footer>
 	</body>
 </html>

@@ -21,6 +21,21 @@ function generateRandomString($numBytes) {
 	return bin2hex($bytes);
 }
 
+function hashAuthorizationRequestParameters(ServerRequestInterface $request, string $secret, ?string $algo=null, ?array $hashedParameters=null): ?string {
+	$hashedParameters = $hashedParameters ?? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'];
+	$algo = $algo ?? 'sha256';
+
+	$queryParams = $request->getQueryParams();
+	$data = '';
+	foreach ($hashedParameters as $key) {
+		if (!array_key_exists($key, $queryParams)) {
+			return null;
+		}
+		$data .= $queryParams[$key];
+	}
+	return hash_hmac($algo, $data, $secret);
+}
+
 function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
 			&& array_key_exists('grant_type', $request->getParsedBody())

@@ -8,6 +8,7 @@ use Mf2;
 use BarnabyWalters\Mf2 as M;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Constraint\Callback;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface as HttpClientInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
@@ -17,8 +18,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-
-use function PHPSTORM_META\type;
+use Taproot\IndieAuth\Callback\AuthorizationFormInterface;
+use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
+use Taproot\IndieAuth\Middleware\ResponseRequestHandler;
 
 /**
  * Development Reference
@@ -26,15 +28,12 @@ use function PHPSTORM_META\type;
  * Specification: https://indieauth.spec.indieweb.org/
  * Error responses: https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
  * indieweb/indieauth-client: https://github.com/indieweb/indieauth-client-php
- * CSRF protection cheat sheet: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
- * Example CSRF protection cookie middleware: https://github.com/zakirullin/csrf-middleware/blob/master/src/CSRF.php
  */
 
 class Server {
-	const CUSTOMIZE_AUTHORIZATION_CODE = 'customise_authorization_code';
-	const SHOW_AUTHORIZATION_PAGE = 'show_authorization_page';
-	const HANDLE_NON_INDIEAUTH_REQUEST = 'handle_non_indieauth_request';
-	const HANDLE_AUTHENTICATION_REQUEST = 'handle_authentication_request';
+	const HANDLE_NON_INDIEAUTH_REQUEST = 'handleNonIndieAuthRequestCallback';
+	const HANDLE_AUTHENTICATION_REQUEST = 'handleAuthenticationRequestCallback';
+	const HASH_QUERY_STRING_KEY = 'taproot_indieauth_server_hash';
 	const DEFAULT_CSRF_KEY = 'taproot_indieauth_server_csrf';
 
 	public $callbacks;
@@ -43,77 +42,60 @@ class Server {
 
 	public Storage\TokenStorageInterface $accessTokenStorage;
 
+	public AuthorizationFormInterface $authorizationForm;
+
 	public MiddlewareInterface $csrfMiddleware;
 
 	public LoggerInterface $logger;
 
 	public HttpClientInterface $httpClient;
 
-	public callable $httpGetWithEffectiveUrl;
+	public $httpGetWithEffectiveUrl;
 
-	public string $csrfKey;
+	public $handleAuthenticationRequestCallback;
+
+	public $handleNonIndieAuthRequest;
+
+	protected string $secret;
 
 	public function __construct(array $config) {
-		$config = array_merge_recursive([
+		$config = array_merge([
 			'csrfMiddleware' => null,
-			'csrfKey' => self::DEFAULT_CSRF_KEY,
 			'logger' => null,
-			'callbacks' => [
-				self::CUSTOMIZE_AUTHORIZATION_CODE => function (array $code, ServerRequestInterface $request) {
-					// Configure the access code based on the authorization form parameters submitted in $request;
-					// TODO: that, based on the default authorization form.
-					return $code;
-				},
-				self::SHOW_AUTHORIZATION_PAGE => function (ServerRequestInterface $request, array $authenticationResult, string $authenticationRedirect, ?array $clientHApp) {
-					// Default implementation: show an authorization page. List all requested scopes, as this default
-					// function has now way of knowing which scopes are supported by the consumer.
-					$scopes = [];
-					foreach(explode(' ', $request->getQueryParams()['scope'] ?? '') as $s) {
-						$scopes[$s] = null; // Ideally there would be a description of the scope here, we don’t have one though.
-					}
-					$templatePath = __DIR__ . '/templates/default_authorization_page.html.php';
-
-					$hApp = [
-						'name' => M\getProp($clientHApp, 'name'),
-						'url' => M\getProp($clientHApp, 'url'),
-						'photo' => M\getProp($clientHApp, 'photo')
-					];
-
-					return new Response(200, ['content-type' => 'text/html'], renderTemplate($templatePath, [
-						'scopes' => $scopes,
-						'user' => $authenticationResult,
-						'formAction' => $authenticationRedirect,
-						'request' => $request,
-						'clientHApp' => $hApp,
-						'clientId' => $request->getQueryParams()['client_id'],
-						'clientRedirectUri' => $request->getQueryParams()['redirect_uri'],
-						'csrfFormElement' => '<input type="hidden" name="' . htmlentities($this->csrfKey) . '" value="' . htmlentities($request->getAttribute($this->csrfKey)) . '" />'
-					]));
-				},
-				self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
-			],
+			self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
 			'authorizationCodeStorage' => null,
 			'accessTokenStorage' => null,
-			'httpGetWithEffectiveUrl' => null
+			'httpGetWithEffectiveUrl' => null,
+			'authorizationForm' => new DefaultAuthorizationForm(),
 		], $config);
 
-		if (!$config['logger'] instanceof LoggerInterface) {
+		$secret = $config['secret'] ?? '';
+		if (!is_string($secret) || strlen($secret) < 64) {
+			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters.");
+		}
+		$this->secret = $secret;
+
+		if (!is_null($config['logger']) && !$config['logger'] instanceof LoggerInterface) {
 			throw new Exception("\$config['logger'] must be an instance of \\Psr\\Log\\LoggerInterface or null.");
 		}
 		$this->logger = $config['logger'] ?? new NullLogger();
 
-		$callbacks = $config['callbacks'];
-		if (!(array_key_exists(self::HANDLE_AUTHENTICATION_REQUEST, $callbacks) and is_callable($callbacks[self::HANDLE_AUTHENTICATION_REQUEST]))) {
+		if (!(array_key_exists(self::HANDLE_AUTHENTICATION_REQUEST, $config) and is_callable($config[self::HANDLE_AUTHENTICATION_REQUEST]))) {
 			throw new Exception('$callbacks[\'' . self::HANDLE_AUTHENTICATION_REQUEST .'\'] must be present and callable.');
 		}
-		$this->callbacks = $callbacks;
+		$this->handleAuthenticationRequestCallback = $config[self::HANDLE_AUTHENTICATION_REQUEST];
 		
+		if (!is_callable($config[self::HANDLE_NON_INDIEAUTH_REQUEST])) {
+			throw new Exception("\$config['" . self::HANDLE_NON_INDIEAUTH_REQUEST . "'] must be callable");
+		}
+		$this->handleNonIndieAuthRequest = $config[self::HANDLE_NON_INDIEAUTH_REQUEST];
+
 		$authorizationCodeStorage = $config['authorizationCodeStorage'];
 		if (!$authorizationCodeStorage instanceof Storage\TokenStorageInterface) {
 			if (is_string($authorizationCodeStorage)) {
 				$authorizationCodeStorage = new Storage\FilesystemJsonStorage($authorizationCodeStorage, 600, true);
 			} else {
-				throw new Exception('$authorizationCodeStorage parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.');
+				throw new Exception("\$config['authorizationCodeStorage'] must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.");
 			}
 		}
 		trySetLogger($authorizationCodeStorage, $this->logger);
@@ -130,13 +112,11 @@ class Server {
 		}
 		trySetLogger($accessTokenStorage, $this->logger);
 		$this->accessTokenStorage = $accessTokenStorage;
-		
-		$this->csrfKey = $config['csrfKey'];
 
 		$csrfMiddleware = $config['csrfMiddleware'];
 		if (!$csrfMiddleware instanceof MiddlewareInterface) {
 			// Default to the statless Double-Submit Cookie CSRF Middleware, with default settings.
-			$csrfMiddleware = new Middleware\DoubleSubmitCookieCsrfMiddleware($this->csrfKey);
+			$csrfMiddleware = new Middleware\DoubleSubmitCookieCsrfMiddleware(self::DEFAULT_CSRF_KEY);
 		}
 		trySetLogger($csrfMiddleware, $this->logger);
 		$this->csrfMiddleware = $csrfMiddleware;
@@ -165,6 +145,12 @@ class Server {
 		}
 		trySetLogger($httpGetWithEffectiveUrl, $this->logger);
 		$this->httpGetWithEffectiveUrl = $httpGetWithEffectiveUrl;
+
+		if (!$config['authorizationForm'] instanceof AuthorizationFormInterface) {
+			throw new Exception("When provided, \$config['authorizationForm'] must implement Taproot\IndieAuth\Callback\AuthorizationForm.");
+		}
+		$this->authorizationForm = $config['authorizationForm'];
+		trySetLogger($this->authorizationForm, $this->logger);
 	}
 
 	public function handleAuthorizationEndpointRequest(ServerRequestInterface $request): ResponseInterface {
@@ -213,10 +199,15 @@ class Server {
 					$queryParams['me'] = IndieAuthClient::normalizeMeURL($queryParams['me']);
 				}
 
-				// Build a URL for the authentication flow to redirect to, if it needs to.
-				// TODO: perhaps filter queryParams to only include the indieauth-relevant params?
-				$authenticationRedirect = $request->getUri() . '?' . buildQueryString($queryParams);
+				// Build a URL containing the indieauth authorization request parameters, hashing them
+				// to protect them from being changed.
+				// Make a hash of the protected indieauth-specific parameters.
+				$hash = hashAuthorizationRequestParameters($request, $this->secret);
+				$queryParams[self::HASH_QUERY_STRING_KEY] = $hash;
 				
+				$authenticationRedirect = $request->getUri()->withQuery(buildQueryString($queryParams));
+				
+				// User-facing requests always start by calling the authentication request callback.
 				$this->logger->info('Calling handle_authentication_request callback');
 				$authenticationResult = call_user_func($this->callbacks[self::HANDLE_AUTHENTICATION_REQUEST], $request, $authenticationRedirect);
 
@@ -286,6 +277,22 @@ class Server {
 
 					// If this is a POST request sent from the authorization (i.e. scope-choosing) form:
 					if (isAuthorizationApprovalRequest($request)) {
+						// Authorization approval requests MUST include a hash protecting the sensitive IndieAuth
+						// authorization request parameters from being changed, e.g. by a malicious script which
+						// found its way onto the authorization form.
+						$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
+						if (is_null($expectedHash)) {
+							$this->logger->warning("An authorization approval request did not have a " . self::HASH_QUERY_STRING_KEY . " parameter.");
+							return new Response(400, ['content-type' => 'text/plain'], 'The ' . self::HASH_QUERY_STRING_KEY . ' parameter was missing!');
+						}
+						if (!hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+							$this->logger->warning("The hash provided in the URL was invalid!", [
+								'expected' => $expectedHash,
+								'actual' => $queryParams[self::HASH_QUERY_STRING_KEY]
+							]);
+							return new Response(400, ['content-type' => 'text/plain'], 'Invalid hash!');
+						}
+
 						// Assemble the data for the authorization code, store it somewhere persistent.
 						$code = array_merge($authenticationResult, [
 							'client_id' => $queryParams['client_id'],
@@ -298,8 +305,8 @@ class Server {
 						]);
 
 						// Pass it to the auth code customisation callback, if any.
-						$code = call_user_func($this->callbacks[self::CUSTOMIZE_AUTHORIZATION_CODE], $code, $request);
-
+						
+						$code = call_user_func($this->callbacks[self::HANDLE_AUTHORIZATION_FORM], $request, $code);
 						// Store the authorization code.
 						$this->authorizationCodeStorage->put($code['code'], $code);
 
@@ -313,19 +320,17 @@ class Server {
 					// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
 
 					// Present the authorization UI.
-					return call_user_func($this->callbacks[self::SHOW_AUTHORIZATION_PAGE], $request, $authenticationResult, $authenticationRedirect, $clientHApp);
+					return call_user_func($this->callbacks[self::SHOW_AUTHORIZATION_FORM], $request, $authenticationResult, $authenticationRedirect, $clientHApp);
 				}
 			}
 
 			// If the request isn’t an IndieAuth Authorization or Code-redeeming request, it’s either an invalid
 			// request or something to do with a custom auth handler (e.g. sending a one-time code in an email.)
-			$nonIndieAuthRequestResult = call_user_func($this->callbacks[self::HANDLE_NON_INDIEAUTH_REQUEST], $request);
+			$nonIndieAuthRequestResult = call_user_func($this->handleNonIndieAuthRequest, $request);
 			if ($nonIndieAuthRequestResult instanceof ResponseInterface) {
 				return $nonIndieAuthRequestResult;
 			} else {
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_request'
-				]));
+				return new Response(400, ['content-type' => 'text/plain'], 'Invalid request!');
 			}
 		}));
 	}
