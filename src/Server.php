@@ -9,8 +9,8 @@ use BarnabyWalters\Mf2 as M;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\Constraint\Callback;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface as HttpClientInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -204,15 +204,14 @@ class Server {
 				// Make a hash of the protected indieauth-specific parameters.
 				$hash = hashAuthorizationRequestParameters($request, $this->secret);
 				$queryParams[self::HASH_QUERY_STRING_KEY] = $hash;
-				
-				$authenticationRedirect = $request->getUri()->withQuery(buildQueryString($queryParams));
+				$authenticationRedirect = $request->getUri()->withQuery(buildQueryString($queryParams))->__toString();
 				
 				// User-facing requests always start by calling the authentication request callback.
 				$this->logger->info('Calling handle_authentication_request callback');
-				$authenticationResult = call_user_func($this->callbacks[self::HANDLE_AUTHENTICATION_REQUEST], $request, $authenticationRedirect);
-
+				$authenticationResult = call_user_func($this->handleAuthenticationRequestCallback, $request, $authenticationRedirect);
+				
 				// If the authentication handler returned a Response, return that as-is.
-				if ($authenticationResult instanceof Response) {
+				if ($authenticationResult instanceof ResponseInterface) {
 					return $authenticationResult;
 				} elseif (is_array($authenticationResult)) {
 					// Check the resulting array for errors.
@@ -225,7 +224,7 @@ class Server {
 					try {
 						/** @var ResponseInterface $clientIdResponse */
 						list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
-						$clientIdMf2 = Mf2\parse($clientIdResponse->getBody()->getContents(), $clientIdEffectiveUrl);
+						$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
 					} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
 						$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
 							'client_id' => $queryParams['client_id'],
@@ -306,7 +305,7 @@ class Server {
 
 						// Pass it to the auth code customisation callback, if any.
 						
-						$code = call_user_func($this->callbacks[self::HANDLE_AUTHORIZATION_FORM], $request, $code);
+						$code = $this->authorizationForm->transformAuthorizationCode($request, $code);
 						// Store the authorization code.
 						$this->authorizationCodeStorage->put($code['code'], $code);
 
@@ -320,7 +319,7 @@ class Server {
 					// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
 
 					// Present the authorization UI.
-					return call_user_func($this->callbacks[self::SHOW_AUTHORIZATION_FORM], $request, $authenticationResult, $authenticationRedirect, $clientHApp);
+					return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp);
 				}
 			}
 
