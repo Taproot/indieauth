@@ -3,17 +3,16 @@
 namespace Taproot\IndieAuth;
 
 use Exception;
-use IndieAuth\Client;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-
-use function BarnabyWalters\Mf2\parseUrl;
 
 // From https://github.com/indieweb/indieauth-client-php/blob/main/src/IndieAuth/Client.php, thanks aaronpk.
 function generateRandomString($numBytes) {
 	if (function_exists('random_bytes')) {
 		$bytes = random_bytes($numBytes);
+		// We can’t easily test the following code.
+		// @codeCoverageIgnoreStart
 	} elseif (function_exists('openssl_random_pseudo_bytes')){
 		$bytes = openssl_random_pseudo_bytes($numBytes);
 	} else {
@@ -21,6 +20,7 @@ function generateRandomString($numBytes) {
 		for($i=0, $bytes=''; $i < $numBytes; $i++) {
 			$bytes .= chr(mt_rand(0, 255));
 		}
+		// @codeCoverageIgnoreEnd
 	}
 	return bin2hex($bytes);
 }

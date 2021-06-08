@@ -6,15 +6,11 @@ use Exception;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Request;
-use PDO;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
 use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
 use Taproot\IndieAuth\IndieAuthException;
-use Taproot\IndieAuth\Middleware\NoOpMiddleware;
 use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
 

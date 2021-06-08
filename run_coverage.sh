@@ -1,0 +1,1 @@
+XDEBUG_MODE=coverage  ./vendor/bin/phpunit tests --coverage-filter src --coverage-html tests/coverage

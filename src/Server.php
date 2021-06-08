@@ -139,6 +139,8 @@ class Server {
 		if (!is_callable($httpGetWithEffectiveUrl)) {
 			if (class_exists('\GuzzleHttp\Client')) {
 				$httpGetWithEffectiveUrl = function (string $uri) {
+					// This code can’t be tested, ignore it for coverage purposes.
+					// @codeCoverageIgnoreStart
 					$resp = (new \GuzzleHttp\Client([
 						\GuzzleHttp\RequestOptions::ALLOW_REDIRECTS => [
 							'max' => 10,
@@ -152,6 +154,7 @@ class Server {
 					$effectiveUrl = empty($rdh) ? $uri : array_values($rdh)[count($rdh) - 1];
 
 					return [$resp, $effectiveUrl];
+					// @codeCoverageIgnoreEnd
 				};
 			} else {
 				throw new Exception('No valid $httpGetWithEffectiveUrl was provided, and guzzlehttp/guzzle was not installed. Either require guzzlehttp/guzzle, or provide a valid callable.');
@@ -255,8 +258,10 @@ class Server {
 								// In theory this code should never be reached, as we already checked the request for valid parameters.
 								// However, it’s possible for hashAuthorizationRequestParameters() to return null, and if for whatever
 								// reason it does, the library should handle that case as elegantly as possible.
+								// @codeCoverageIgnoreStart
 								$this->logger->warning("Calculating the expected hash for an authorization approval request failed. This SHOULD NOT happen; if you encounter this error please contact the maintainers of taproot/indieauth.");
 								throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
+								// @codeCoverageIgnoreEnd
 							}
 							
 							if (!array_key_exists(self::HASH_QUERY_STRING_KEY, $queryParams)) {
