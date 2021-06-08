@@ -8,8 +8,6 @@ use Mf2;
 use BarnabyWalters\Mf2 as M;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use Nyholm\Psr7\Response;
-use PHPUnit\Framework\Constraint\Callback;
-use Psr\Http\Client\ClientInterface as HttpClientInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Client\RequestExceptionInterface;
@@ -20,7 +18,6 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Taproot\IndieAuth\Callback\AuthorizationFormInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
-use Taproot\IndieAuth\Middleware\ResponseRequestHandler;
 
 /**
  * Development Reference
