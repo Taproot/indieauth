@@ -22,7 +22,7 @@ class SingleUserPasswordAuthenticationCallback {
 		}
 		$this->user = $user;
 		$this->hashedPassword = $hashedPassword;
-		$this->formTemplate = $formTemplate ?? __DIR__ . '/../templates/single_user_password_authentication_form.html.php';
+		$this->formTemplate = $formTemplate ?? __DIR__ . '/../../templates/single_user_password_authentication_form.html.php';
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 	}
 

@@ -20,7 +20,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 	public LoggerInterface $logger;
 
 	public function __construct(?string $formTemplatePath=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
-		$this->formTemplatePath = $formTemplatePath ?? __DIR__ . '/../templates/default_authorization_page.html.php';
+		$this->formTemplatePath = $formTemplatePath ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 		$this->logger = $logger ?? new NullLogger;
 	}

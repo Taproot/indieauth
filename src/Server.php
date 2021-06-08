@@ -69,7 +69,7 @@ class Server {
 			'accessTokenStorage' => null,
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
-			'exceptionTemplatePath' => __DIR__ . '/templates/default_exception_response.html.php',
+			'exceptionTemplatePath' => __DIR__ . '/../templates/default_exception_response.html.php',
 			'tokenLength' => 64
 		], $config);
 
