@@ -53,7 +53,7 @@ class FilesystemJsonStorage implements TokenStorageInterface {
 	public function put(string $key, array $data): bool {
 		// Ensure that the containing folder exists.
 		@mkdir($this->path, 0777, true);
-
+		
 		return file_put_contents($this->getPath($key), json_encode($data)) !== false;
 	}
 

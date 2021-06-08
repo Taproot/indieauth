@@ -2,9 +2,13 @@
 
 namespace Taproot\IndieAuth;
 
+use Exception;
+use IndieAuth\Client;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+
+use function BarnabyWalters\Mf2\parseUrl;
 
 // From https://github.com/indieweb/indieauth-client-php/blob/main/src/IndieAuth/Client.php, thanks aaronpk.
 function generateRandomString($numBytes) {
@@ -51,7 +55,7 @@ function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, $permi
 function isAuthorizationApprovalRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
 			&& array_key_exists('taproot_indieauth_action', $request->getParsedBody())
-			&& $request->getParsedBody()['taproot_indieauth_action'] == 'approve';
+			&& $request->getParsedBody()[Server::APPROVE_ACTION_KEY] == Server::APPROVE_ACTION_VALUE;
 }
 
 function buildQueryString(array $parameters) {
@@ -60,6 +64,23 @@ function buildQueryString(array $parameters) {
 		$qs[] = urlencode($k) . '=' . urlencode($v);
 	}
 	return join('&', $qs);
+}
+
+function urlComponentsMatch($url1, $url2, ?array $components=null): bool {
+	$validComponents = [PHP_URL_HOST, PHP_URL_PASS, PHP_URL_PATH, PHP_URL_PORT, PHP_URL_USER, PHP_URL_QUERY, PHP_URL_SCHEME, PHP_URL_FRAGMENT];
+	$components = $components ?? $validComponents;
+
+	foreach ($components as $cmp) {
+		if (!in_array($cmp, $validComponents)) {
+			throw new Exception("Invalid parse_url() component passed: $cmp");
+		}
+
+		if (parse_url($url1, $cmp) !== parse_url($url2, $cmp)) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /**

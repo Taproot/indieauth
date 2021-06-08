@@ -33,6 +33,13 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 			$scopes[$s] = null; // Ideally there would be a description of the scope here, we don’t have one though.
 		}
 
+		if (is_null($clientHApp)) {
+			$clientHApp = [
+				'type' => ['h-app'],
+				'properties' => []
+			];
+		}
+
 		$hApp = [
 			'name' => M\getProp($clientHApp, 'name'),
 			'url' => M\getProp($clientHApp, 'url'),
@@ -62,7 +69,6 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 		// You may wish to additionally make any other necessary changes to the the code based on
 		// the form submission, e.g. if the user set a custom token lifetime, or wanted extra data
 		// stored on the token to affect how it behaves.
-
 		return $code;
 	}
 

@@ -35,28 +35,30 @@ class Server {
 	const HANDLE_AUTHENTICATION_REQUEST = 'handleAuthenticationRequestCallback';
 	const HASH_QUERY_STRING_KEY = 'taproot_indieauth_server_hash';
 	const DEFAULT_CSRF_KEY = 'taproot_indieauth_server_csrf';
+	const APPROVE_ACTION_KEY = 'taproot_indieauth_action';
+	const APPROVE_ACTION_VALUE = 'approve';
 
-	public $callbacks;
+	protected Storage\TokenStorageInterface $authorizationCodeStorage;
 
-	public Storage\TokenStorageInterface $authorizationCodeStorage;
+	protected Storage\TokenStorageInterface $accessTokenStorage;
 
-	public Storage\TokenStorageInterface $accessTokenStorage;
+	protected AuthorizationFormInterface $authorizationForm;
 
-	public AuthorizationFormInterface $authorizationForm;
+	protected MiddlewareInterface $csrfMiddleware;
 
-	public MiddlewareInterface $csrfMiddleware;
+	protected LoggerInterface $logger;
 
-	public LoggerInterface $logger;
+	protected $httpGetWithEffectiveUrl;
 
-	public HttpClientInterface $httpClient;
+	protected $handleAuthenticationRequestCallback;
 
-	public $httpGetWithEffectiveUrl;
+	protected $handleNonIndieAuthRequest;
 
-	public $handleAuthenticationRequestCallback;
-
-	public $handleNonIndieAuthRequest;
+	protected string $exceptionTemplatePath;
 
 	protected string $secret;
+
+	protected int $tokenLength;
 
 	public function __construct(array $config) {
 		$config = array_merge([
@@ -67,7 +69,19 @@ class Server {
 			'accessTokenStorage' => null,
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
+			'exceptionTemplatePath' => __DIR__ . '/templates/default_exception_response.html.php',
+			'tokenLength' => 64
 		], $config);
+
+		if (!is_int($config['tokenLength'])) {
+			throw new Exception("\$config['tokenLength'] must be an int!");
+		}
+		$this->tokenLength = $config['tokenLength'];
+
+		if (!is_string($config['exceptionTemplatePath'])) {
+			throw new Exception("\$config['secret'] must be a string (path).");
+		}
+		$this->exceptionTemplatePath = $config['exceptionTemplatePath'];
 
 		$secret = $config['secret'] ?? '';
 		if (!is_string($secret) || strlen($secret) < 64) {
@@ -153,6 +167,12 @@ class Server {
 		trySetLogger($this->authorizationForm, $this->logger);
 	}
 
+	/**
+	 * Handle Authorization Endpoint Request
+	 * 
+	 * @param ServerRequestInterface $request
+	 * @return ResponseInterface
+	 */
 	public function handleAuthorizationEndpointRequest(ServerRequestInterface $request): ResponseInterface {
 		$this->logger->info('Handling an IndieAuth Authorization Endpoint request.');
 		
@@ -175,163 +195,188 @@ class Server {
 		}
 
 		// Because the special case above isn’t allowed to be CSRF-protected, we have to do some rather silly
-		// gymnastics here to selectively-CSRF-protect requests which do need it.
+		// closure gymnastics here to selectively-CSRF-protect requests which do need it.
 		return $this->csrfMiddleware->process($request, new Middleware\ClosureRequestHandler(function (ServerRequestInterface $request) {
-			// If this is an authorization or approval request (allowing POST requests as well to accommodate 
-			// approval requests and custom auth form submission.
-			if (isIndieAuthAuthorizationRequest($request, ['get', 'post'])) {
-				$this->logger->info('Handling an authorization request', ['method' => $request->getMethod()]);
+			// Wrap the entire user-facing handler in a try/catch block which catches any exception, converts it
+			// to IndieAuthException if necessary, then passes it to $this->handleException() to be turned into a
+			// response.
+			try {
+				// If this is an authorization or approval request (allowing POST requests as well to accommodate 
+				// approval requests and custom auth form submission.
+				if (isIndieAuthAuthorizationRequest($request, ['get', 'post'])) {
+					$this->logger->info('Handling an authorization request', ['method' => $request->getMethod()]);
 
-				$queryParams = $request->getQueryParams();
-				// Return an error if we’re missing required parameters.
-				$requiredParameters = ['client_id', 'redirect_uri', 'state', 'code_challenge', 'code_challenge_method'];
-				$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($queryParams) {
-					return !array_key_exists($p, $queryParams) || empty($queryParams[$p]);
-				});
-				if (!empty($missingRequiredParameters)) {
-					$this->logger->warning('The authorization request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
-					// TODO: return a better response, or at least allow the library consumer to configure a better response.
-					return new Response(400, ['content-type' => 'text/plain'], 'The IndieAuth request was missing the following parameters: ' . join("\n", $missingRequiredParameters));
-				}
-
-				// Normalise the me parameter, if it exists.
-				if (array_key_exists('me', $queryParams)) {
-					$queryParams['me'] = IndieAuthClient::normalizeMeURL($queryParams['me']);
-				}
-
-				// Build a URL containing the indieauth authorization request parameters, hashing them
-				// to protect them from being changed.
-				// Make a hash of the protected indieauth-specific parameters.
-				$hash = hashAuthorizationRequestParameters($request, $this->secret);
-				$queryParams[self::HASH_QUERY_STRING_KEY] = $hash;
-				$authenticationRedirect = $request->getUri()->withQuery(buildQueryString($queryParams))->__toString();
-				
-				// User-facing requests always start by calling the authentication request callback.
-				$this->logger->info('Calling handle_authentication_request callback');
-				$authenticationResult = call_user_func($this->handleAuthenticationRequestCallback, $request, $authenticationRedirect);
-				
-				// If the authentication handler returned a Response, return that as-is.
-				if ($authenticationResult instanceof ResponseInterface) {
-					return $authenticationResult;
-				} elseif (is_array($authenticationResult)) {
-					// Check the resulting array for errors.
-					if (!array_key_exists('me', $authenticationResult)) {
-						$this->logger->error('The handle_authentication_request callback returned an array with no me key.', ['array' => $authenticationResult]);
-						return new Response(500, ['content-type' => 'text/plain'], 'An internal error occurred.');
+					$queryParams = $request->getQueryParams();
+					// Return an error if we’re missing required parameters.
+					$requiredParameters = ['client_id', 'redirect_uri', 'state', 'code_challenge', 'code_challenge_method'];
+					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($queryParams) {
+						return !array_key_exists($p, $queryParams) || empty($queryParams[$p]);
+					});
+					if (!empty($missingRequiredParameters)) {
+						$this->logger->warning('The authorization request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+						throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
 					}
 
-					// Fetch the client_id URL to find information about the client to present to the user.
-					try {
-						/** @var ResponseInterface $clientIdResponse */
-						list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
-						$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
-					} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
-						$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
-							'client_id' => $queryParams['client_id'],
-							'exception' => $e->__toString()
-						]);
-
-						return new Response(500, ['content-type' => 'text/plain'], 'An internal error occurred.');
-					} catch (Exception $e) {
-						$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
-							'exception' => $e->__toString()
-						]);
-
-						return new Response(500, ['content-type' => 'text/plain'], 'An internal error occurred.');
+					// Normalise the me parameter, if it exists.
+					if (array_key_exists('me', $queryParams)) {
+						$queryParams['me'] = IndieAuthClient::normalizeMeURL($queryParams['me']);
 					}
+
+					// Build a URL containing the indieauth authorization request parameters, hashing them
+					// to protect them from being changed.
+					// Make a hash of the protected indieauth-specific parameters.
+					$hash = hashAuthorizationRequestParameters($request, $this->secret);
+					// Operate on a copy of $queryParams, otherwise requests will always have a valid hash!
+					$redirectQueryParams = $queryParams;
+					$redirectQueryParams[self::HASH_QUERY_STRING_KEY] = $hash;
+					$authenticationRedirect = $request->getUri()->withQuery(buildQueryString($redirectQueryParams))->__toString();
 					
-					// Search for an h-app with u-url matching the client_id.
-					$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client-id']);
-					$clientHApp = empty($clientHApps) ? null : $clientHApps[0];
-
-					// Search for all link@rel=redirect_uri at the client_id.
-					$clientIdRedirectUris = [];
-					if (array_key_exists('redirect_uri', $clientIdMf2['rels'])) {
-						$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMf2['rels']);
-					}
-					foreach (HeaderParser::parse($clientIdResponse->getHeader('Link')) as $link) {
-						if (array_key_exists('rel', $link) and str_contains(" {$link['rel']} ", " redirect_uri ")) {
-							// Strip off the < > which surround the link URL for some reason.
-							$clientIdRedirectUris[] = substr($link[0], 1, strlen($link[0]) - 2);
+					// User-facing requests always start by calling the authentication request callback.
+					$this->logger->info('Calling handle_authentication_request callback');
+					$authenticationResult = call_user_func($this->handleAuthenticationRequestCallback, $request, $authenticationRedirect);
+					
+					// If the authentication handler returned a Response, return that as-is.
+					if ($authenticationResult instanceof ResponseInterface) {
+						return $authenticationResult;
+					} elseif (is_array($authenticationResult)) {
+						// Check the resulting array for errors.
+						if (!array_key_exists('me', $authenticationResult)) {
+							$this->logger->error('The handle_authentication_request callback returned an array with no me key.', ['array' => $authenticationResult]);
+							throw IndieAuthException::create(IndieAuthException::AUTHENTICATION_CALLBACK_MISSING_ME_PARAM, $request);
 						}
-					}
 
-					// If the authority of the redirect_uri does not match the client_id, or exactly match one of their redirect URLs, return an error.
-					$cidComponents = M\parseUrl($queryParams['client_id']);
-					$ruriComponents = M\parseUrl($queryParams['redirect_uri']);
-					$clientIdMatchesRedirectUri = $cidComponents['scheme'] == $ruriComponents['scheme']
-							&& $cidComponents['host'] == $ruriComponents['host']
-							&& $cidComponents['port'] == $ruriComponents['port'];
-					$redirectUriValid = $clientIdMatchesRedirectUri || in_array($queryParams['redirect_uri'], $clientIdRedirectUris);
+						// If this is a POST request sent from the authorization (i.e. scope-choosing) form:
+						if (isAuthorizationApprovalRequest($request)) {
+							// Authorization approval requests MUST include a hash protecting the sensitive IndieAuth
+							// authorization request parameters from being changed, e.g. by a malicious script which
+							// found its way onto the authorization form.
+							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
+							if (is_null($expectedHash)) {
+								// In theory this code should never be reached, as we already checked the request for valid parameters.
+								// However, it’s possible for hashAuthorizationRequestParameters() to return null, and if for whatever
+								// reason it does, the library should handle that case as elegantly as possible.
+								$this->logger->warning("Calculating the expected hash for an authorization approval request failed. This SHOULD NOT happen; if you encounter this error please contact the maintainers of taproot/indieauth.");
+								throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
+							}
+							
+							if (!array_key_exists(self::HASH_QUERY_STRING_KEY, $queryParams)) {
+								$this->logger->warning("An authorization approval request did not have a " . self::HASH_QUERY_STRING_KEY . " parameter.");
+								throw IndieAuthException::create(IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, $request);
+							}
 
-					if (!$redirectUriValid) {
-						$this->logger->warning("The provided redirect_uri did not match either the client_id, nor the discovered redirect URIs.", [
-							'provided_redirect_uri' => $queryParams['redirect_uri'],
-							'provided_client_id' => $queryParams['client_id'],
-							'discovered_redirect_uris' => $clientIdRedirectUris
-						]);
-
-						return new Response(500, ['content-type' => 'text/plain'], 'An internal error occurred.');
-					}
-
-					// If this is a POST request sent from the authorization (i.e. scope-choosing) form:
-					if (isAuthorizationApprovalRequest($request)) {
-						// Authorization approval requests MUST include a hash protecting the sensitive IndieAuth
-						// authorization request parameters from being changed, e.g. by a malicious script which
-						// found its way onto the authorization form.
-						$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
-						if (is_null($expectedHash)) {
-							$this->logger->warning("An authorization approval request did not have a " . self::HASH_QUERY_STRING_KEY . " parameter.");
-							return new Response(400, ['content-type' => 'text/plain'], 'The ' . self::HASH_QUERY_STRING_KEY . ' parameter was missing!');
-						}
-						if (!hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
-							$this->logger->warning("The hash provided in the URL was invalid!", [
-								'expected' => $expectedHash,
-								'actual' => $queryParams[self::HASH_QUERY_STRING_KEY]
+							if (!hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+								$this->logger->warning("The hash provided in the URL was invalid!", [
+									'expected' => $expectedHash,
+									'actual' => $queryParams[self::HASH_QUERY_STRING_KEY]
+								]);
+								throw IndieAuthException::create(IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH, $request);
+							}
+							
+							// Assemble the data for the authorization code, store it somewhere persistent.
+							$code = array_merge($authenticationResult, [
+								'client_id' => $queryParams['client_id'],
+								'redirect_uri' => $queryParams['redirect_uri'],
+								'state' => $queryParams['state'],
+								'code_challenge' => $queryParams['code_challenge'],
+								'code_challenge_method' => $queryParams['code_challenge_method'],
+								'requested_scope' => $queryParams['scope'] ?? '',
+								'code' => generateRandomString($this->tokenLength)
 							]);
-							return new Response(400, ['content-type' => 'text/plain'], 'Invalid hash!');
+
+							// Pass it to the auth code customisation callback.
+							$code = $this->authorizationForm->transformAuthorizationCode($request, $code);
+
+							// Store the authorization code.
+							$success = $this->authorizationCodeStorage->put($code['code'], $code);
+							if (!$success) {
+								// If saving the authorization code failed silently, there isn’t much we can do about it,
+								// but should at least log and return an error.
+								$this->logger->error("Saving the authorization code failed and returned false without raising an exception.");
+								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR, $request);
+							}
+							
+							// Return a redirect to the client app.
+							return new Response(302, ['Location' => appendQueryParams($queryParams['redirect_uri'], [
+								'code' => $code['code'],
+								'state' => $code['state']
+							])]);
 						}
 
-						// Assemble the data for the authorization code, store it somewhere persistent.
-						$code = array_merge($authenticationResult, [
-							'client_id' => $queryParams['client_id'],
-							'redirect_uri' => $queryParams['redirect_uri'],
-							'state' => $queryParams['state'],
-							'code_challenge' => $queryParams['code_challenge'],
-							'code_challenge_method' => $queryParams['code_challenge_method'],
-							'requested_scope' => $queryParams['scope'] ?? '',
-							'code' => generateRandomString(256)
-						]);
+						// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
 
-						// Pass it to the auth code customisation callback, if any.
+						// Fetch the client_id URL to find information about the client to present to the user.
+						try {
+							/** @var ResponseInterface $clientIdResponse */
+							list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
+							$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+						} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
+							$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
+								'client_id' => $queryParams['client_id'],
+								'exception' => $e->__toString()
+							]);
+
+							throw IndieAuthException::create(IndieAuthException::HTTP_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
+						} catch (Exception $e) {
+							$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
+								'exception' => $e->__toString()
+							]);
+
+							throw IndieAuthException::create(IndieAuthException::INTERNAL_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
+						}
 						
-						$code = $this->authorizationForm->transformAuthorizationCode($request, $code);
-						// Store the authorization code.
-						$this->authorizationCodeStorage->put($code['code'], $code);
+						// Search for an h-app with u-url matching the client_id.
+						$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client_id']);
+						$clientHApp = empty($clientHApps) ? null : $clientHApps[0];
+						
+						// Search for all link@rel=redirect_uri at the client_id.
+						$clientIdRedirectUris = [];
+						if (array_key_exists('redirect_uri', $clientIdMf2['rels'])) {
+							$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMf2['rels']['redirect_uri']);
+						}
+						
+						foreach (HeaderParser::parse($clientIdResponse->getHeader('Link')) as $link) {
+							if (array_key_exists('rel', $link) && mb_strpos(" {$link['rel']} ", " redirect_uri ") !== false) {
+								// Strip off the < > which surround the link URL for some reason.
+								$clientIdRedirectUris[] = substr($link[0], 1, strlen($link[0]) - 2);
+							}
+						}
 
-						// Return a redirect to the client app.
-						return new Response(302, ['Location' => appendQueryParams($queryParams['redirect_uri'], [
-							'code' => $code['code'],
-							'state' => $code['state']
-						])]);
+						// If the authority of the redirect_uri does not match the client_id, or exactly match one of their redirect URLs, return an error.
+						$clientIdMatchesRedirectUri = urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT]);
+						$redirectUriValid = $clientIdMatchesRedirectUri || in_array($queryParams['redirect_uri'], $clientIdRedirectUris);
+
+						if (!$redirectUriValid) {
+							$this->logger->warning("The provided redirect_uri did not match either the client_id, nor the discovered redirect URIs.", [
+								'provided_redirect_uri' => $queryParams['redirect_uri'],
+								'provided_client_id' => $queryParams['client_id'],
+								'discovered_redirect_uris' => $clientIdRedirectUris
+							]);
+
+							throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
+						}
+
+						// Present the authorization UI.
+						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp);
 					}
-
-					// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
-
-					// Present the authorization UI.
-					return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp);
 				}
-			}
 
-			// If the request isn’t an IndieAuth Authorization or Code-redeeming request, it’s either an invalid
-			// request or something to do with a custom auth handler (e.g. sending a one-time code in an email.)
-			$nonIndieAuthRequestResult = call_user_func($this->handleNonIndieAuthRequest, $request);
-			if ($nonIndieAuthRequestResult instanceof ResponseInterface) {
-				return $nonIndieAuthRequestResult;
-			} else {
-				return new Response(400, ['content-type' => 'text/plain'], 'Invalid request!');
+				// If the request isn’t an IndieAuth Authorization or Code-redeeming request, it’s either an invalid
+				// request or something to do with a custom auth handler (e.g. sending a one-time code in an email.)
+				$nonIndieAuthRequestResult = call_user_func($this->handleNonIndieAuthRequest, $request);
+				if ($nonIndieAuthRequestResult instanceof ResponseInterface) {
+					return $nonIndieAuthRequestResult;
+				} else {
+					throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR, $request);
+				}
+			} catch (IndieAuthException $e) {
+				// All IndieAuthExceptions will already have been logged.
+				return $this->handleException($e);
+			} catch (Exception $e) {
+				// Unknown exceptions will not have been logged; do so now.
+				$this->logger->error("Caught unknown exception: {$e}");
+				return $this->handleException(IndieAuthException::create(0, $request, $e));
 			}
-		}));
+		}));	
 	}
 
 	public function handleTokenEndpointRequest(ServerRequestInterface $request): ResponseInterface {
@@ -346,5 +391,12 @@ class Server {
 		// If the auth code was issued with no scope, return an error.
 
 		// If everything checks out, generate an access token and return it.
+	}
+
+	protected function handleException(IndieAuthException $exception): ResponseInterface {
+		return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], renderTemplate($this->exceptionTemplatePath, [
+			'request' => $exception->getRequest(),
+			'exception' => $exception
+		]));
 	}
 }

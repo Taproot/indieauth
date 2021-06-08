@@ -1,4 +1,7 @@
 <?php
+
+use Taproot\IndieAuth\Server;
+
 /** @var string $formAction The URL to POST to to authorize the app, or to set as the redirect URL for a logout action if the user wants to continue as a different user. */
 /** @var Psr\Http\Message\ServerRequestInterface $request */
 /** @var array|null $clientHApp */
@@ -107,7 +110,7 @@
 					<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= $clientHApp['name'] ?? 'app' ?>)</a>
 
 					<!-- Your form MUST be submitted with taproot_indieauth_action=approve for the approval submission to work. -->
-					<button type="submit" name="taproot_indieauth_action" value="approve">Authorize</button>
+					<button type="submit" name="<?= Server::APPROVE_ACTION_KEY ?>" value="<?= Server::APPROVE_ACTION_VALUE ?>">Authorize</button>
 				</p>
 			</div>
 		</form>
