@@ -21,10 +21,11 @@ use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
 
 /**
  * Development Reference
- *
+ * 
  * Specification: https://indieauth.spec.indieweb.org/
  * Error responses: https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
  * indieweb/indieauth-client: https://github.com/indieweb/indieauth-client-php
+ * Existing implementation with various validation functions and links to relevant spec portions: https://github.com/Zegnat/php-mindee/blob/development/index.php
  */
 
 class Server {
@@ -55,8 +56,6 @@ class Server {
 
 	protected string $secret;
 
-	protected int $tokenLength;
-
 	public function __construct(array $config) {
 		$config = array_merge([
 			'csrfMiddleware' => null,
@@ -67,13 +66,7 @@ class Server {
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
 			'exceptionTemplatePath' => __DIR__ . '/../templates/default_exception_response.html.php',
-			'tokenLength' => 64
 		], $config);
-
-		if (!is_int($config['tokenLength'])) {
-			throw new Exception("\$config['tokenLength'] must be an int!");
-		}
-		$this->tokenLength = $config['tokenLength'];
 
 		if (!is_string($config['exceptionTemplatePath'])) {
 			throw new Exception("\$config['secret'] must be a string (path).");
@@ -282,7 +275,6 @@ class Server {
 								'code_challenge' => $queryParams['code_challenge'],
 								'code_challenge_method' => $queryParams['code_challenge_method'],
 								'requested_scope' => $queryParams['scope'] ?? '',
-								'code' => generateRandomString($this->tokenLength)
 							]);
 
 							// Pass it to the auth code customisation callback.

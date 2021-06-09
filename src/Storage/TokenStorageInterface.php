@@ -5,11 +5,11 @@ namespace Taproot\IndieAuth\Storage;
 // TODO: document.
 
 interface TokenStorageInterface {
-	public function cleanUp($ttl=null): int;
+	public function createAuthCode(array $data): ?Token;
 
-	public function get(string $key): ?array;
+	public function exchangeAuthCodeForAccessToken(string $code): ?Token;
 
-	public function put(string $key, array $data): bool;
+	public function revokeAccessToken(string $token);
 
-	public function delete(string $key): bool;
+	public function getAccessToken(string $token): ?Token;
 }
