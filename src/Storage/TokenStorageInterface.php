@@ -9,7 +9,7 @@ interface TokenStorageInterface {
 
 	public function exchangeAuthCodeForAccessToken(string $code): ?Token;
 
-	public function revokeAccessToken(string $token);
-
 	public function getAccessToken(string $token): ?Token;
+
+	public function revokeAccessToken(string $token): bool;
 }
