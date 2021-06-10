@@ -537,6 +537,7 @@ EOT
 		];
 
 		foreach ($testCases as $name => $params) {
+			// These cases apply to both endpoints, test against both.
 			foreach ([
 					[$s, 'handleAuthorizationEndpointRequest'],
 					[$s, 'handleTokenEndpointRequest'],
@@ -551,6 +552,7 @@ EOT
 					'code_challenge_method' => 'S256'
 				]);
 				
+				// Create what would by default be a successful request, then merge specific error-inducing params.
 				$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody(array_merge([
 					'grant_type' => 'authorization_code',
 					'code' => $authCode->getKey(),
@@ -565,6 +567,146 @@ EOT
 				$this->assertEquals('invalid_grant', $resJson['error']);
 			}
 		}
+	}
+
+	public function testAuthEndpointTokenExchangeFailsForTokensWithInvalidScope() {
+		$s = $this->getDefaultServer();
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+		// Create an auth code.
+		$codeVerifier = generateRandomString(32);
+		$authCode = $storage->createAuthCode([
+			'client_id' => 'https://client.example.com/',
+			'redirect_uri' => 'https://client.example.com/auth',
+			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+			'state' => '12345',
+			'code_challenge_method' => 'S256',
+			'scope' => 'create update'
+		]);
+		
+		// Create what would by default be a successful request, then merge specific error-inducing params.
+		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+			'grant_type' => 'authorization_code',
+			'code' => $authCode->getKey(),
+			'client_id' => $authCode->getData()['client_id'],
+			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code_verifier' => $codeVerifier
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals(400, $res->getStatusCode());
+		$resJson = json_decode((string) $res->getBody(), true);
+		$this->assertEquals('invalid_grant', $resJson['error']);
+	}
+
+	public function testAuthEndpointTokenExchangeReturnsCorrectResponseForValidRequest() {
+		$s = $this->getDefaultServer();
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+		// Create an auth code.
+		$codeVerifier = generateRandomString(32);
+		$authCode = $storage->createAuthCode([
+			'client_id' => 'https://client.example.com/',
+			'redirect_uri' => 'https://client.example.com/auth',
+			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+			'state' => '12345',
+			'code_challenge_method' => 'S256',
+			'scope' => 'profile',
+			'me' => 'https://me.example.com/',
+			'profile' => [
+				'name' => 'Me'
+			]
+		]);
+		
+		// Create what would by default be a successful request, then merge specific error-inducing params.
+		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+			'grant_type' => 'authorization_code',
+			'code' => $authCode->getKey(),
+			'client_id' => $authCode->getData()['client_id'],
+			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code_verifier' => $codeVerifier
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals(200, $res->getStatusCode());
+		$resJson = json_decode((string) $res->getBody(), true);
+		$this->assertEquals([
+			'me' => 'https://me.example.com/',
+			'profile' => [
+				'name' => 'Me'
+			]
+		], $resJson);
+	}
+
+	public function testTokenEndpointReturnsErrorIfAccessCodeGrantsNoScopes() {
+		$s = $this->getDefaultServer();
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+		// Create an auth code.
+		$codeVerifier = generateRandomString(32);
+		$authCode = $storage->createAuthCode([
+			'client_id' => 'https://client.example.com/',
+			'redirect_uri' => 'https://client.example.com/auth',
+			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+			'state' => '12345',
+			'code_challenge_method' => 'S256'
+		]);
+		
+		// Create what would by default be a successful request, then merge specific error-inducing params.
+		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+			'grant_type' => 'authorization_code',
+			'code' => $authCode->getKey(),
+			'client_id' => $authCode->getData()['client_id'],
+			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code_verifier' => $codeVerifier
+		]);
+
+		$res = $s->handleTokenEndpointRequest($req);
+
+		$this->assertEquals(400, $res->getStatusCode());
+		$resJson = json_decode((string) $res->getBody(), true);
+		$this->assertEquals('invalid_grant', $resJson['error']);
+	}
+
+	public function testTokenEndpointReturnsAccessTokenOnValidRequest() {
+		$s = $this->getDefaultServer();
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+		// Create an auth code.
+		$codeVerifier = generateRandomString(32);
+		$authCode = $storage->createAuthCode([
+			'client_id' => 'https://client.example.com/',
+			'redirect_uri' => 'https://client.example.com/auth',
+			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+			'state' => '12345',
+			'code_challenge_method' => 'S256',
+			'scope' => 'create update profile',
+			'me' => 'https://me.example.com/',
+			'profile' => [
+				'name' => 'Me'
+			]
+		]);
+		
+		// Create what would by default be a successful request, then merge specific error-inducing params.
+		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+			'grant_type' => 'authorization_code',
+			'code' => $authCode->getKey(),
+			'client_id' => $authCode->getData()['client_id'],
+			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code_verifier' => $codeVerifier
+		]);
+
+		$res = $s->handleTokenEndpointRequest($req);
+
+		$this->assertEquals(200, $res->getStatusCode());
+		$resJson = json_decode((string) $res->getBody(), true);
+		$this->assertEquals(hash_hmac('sha256', $authCode->getKey(), SERVER_SECRET), $resJson['access_token']);
+		$this->assertEquals('Bearer', $resJson['token_type']);
+		$this->assertEquals($authCode->getData()['me'], $resJson['me']);
+		$this->assertEquals($authCode->getData()['profile'], $resJson['profile']);
+		$this->assertTrue(scopeEquals($authCode->getData()['scope'], $resJson['scope']));
 	}
 
 	/**

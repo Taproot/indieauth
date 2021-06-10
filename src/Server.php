@@ -188,6 +188,7 @@ class Server {
 			// Verify that it was issued for the same client_id and redirect_uri
 			if ($token->getData()['client_id'] !== $bodyParams['client_id']
 				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
 				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
@@ -198,6 +199,7 @@ class Server {
 			// Check that the supplied code_verifier hashes to the stored code_challenge
 			// TODO: support method = plain as well as S256.
 			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
 				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
@@ -205,12 +207,23 @@ class Server {
 				]));
 			}
 
+			// Check that this token either grants at most the profile scope.
+			$requestedScopes = explode(' ', $token->getData()['scope'] ?? '');
+			if (!empty($requestedScopes) && $requestedScopes != ['profile']) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
+				$this->logger->error("An exchange request for a token granting scopes other than “profile” was sent to the authorization endpoint.");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
+
+			// TODO: return an error if the token doesn’t contain a me key.
+
 			// If everything checked out, return {"me": "https://example.com"} response
-			// (a response containing any additional information must contain a valid scope value, and 
-			// be handled by the token_endpoint).
-			// TODO: according to the spec, it is technically permitted for the authorization endpoint
-			// to additional provide profile information. Leave it up to the library consumer to decide
-			// whether to add it or not.
+			return new Response(200, ['content-type' => 'application/json'], json_encode(array_filter($token->getData(), function ($k) {
+				return in_array($k, ['me', 'profile']);
+			}, ARRAY_FILTER_USE_KEY)));
 		}
 
 		// Because the special case above isn’t allowed to be CSRF-protected, we have to do some rather silly
@@ -467,6 +480,7 @@ class Server {
 			// Verify that it was issued for the same client_id and redirect_uri
 			if ($token->getData()['client_id'] !== $bodyParams['client_id']
 				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
 				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
@@ -477,30 +491,37 @@ class Server {
 			// Check that the supplied code_verifier hashes to the stored code_challenge
 			// TODO: support method = plain as well as S256.
 			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
 				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
 					'error_description' => 'The provided credentials were not valid.'
 				]));
 			}
+
+			// If the auth code was issued with no scope, return an error.
+			if (empty($token->getData()['scope'])) {
+				$this->tokenStorage->revokeAccessToken($token->getKey());
+				$this->logger->error("Cannot issue an access token with no scopes.");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
+
+			// If everything checks out, generate an access token and return it.
+			return new Response(200, ['content-type' => 'application/json'], json_encode(array_merge([
+				'access_token' => $token->getKey(),
+				'token_type' => 'Bearer'
+			], array_filter($token->getData(), function ($k) {
+				return in_array($k, ['me', 'profile', 'scope']);
+			}, ARRAY_FILTER_USE_KEY))));
 		}
 
 		return new Response(400, ['content-type' => 'application/json'], json_encode([
 			'error' => 'invalid_request',
 			'error_description' => 'Request to token endpoint was not a valid code exchange request.'
 		]));
-
-		// This is a request to redeem an authorization_code for an access_token.
-
-		// Verify that the authorization code is valid and has not yet been used.
-
-		// Verify that it was issued for the same client_id and redirect_uri
-
-		// Check that the supplied code_verifier hashes to the stored code_challenge
-
-		// If the auth code was issued with no scope, return an error.
-
-		// If everything checks out, generate an access token and return it.
 	}
 
 	protected function handleException(IndieAuthException $exception): ResponseInterface {
