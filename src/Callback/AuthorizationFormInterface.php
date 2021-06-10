@@ -37,7 +37,14 @@ interface AuthorizationFormInterface {
 	 * and make sure to include the required element. This will usually involve getting a
 	 * CSRF token with `$request->getAttribute()` and including it in an `<input type="hidden" …/>`.
 	 * 
-	 * The form SHOULD present 
+	 * The form SHOULD offer the user the opportunity to choose which of the request scopes, 
+	 * if any, they wish to grant. It should describe what effect each scope grants. If no scopes are 
+	 * requested, tell the user that the app is only requesting authorization, not access to their data.
+	 * 
+	 * The form MAY offer the user UIs for additional token configuration, e.g. a custom token lifetime.
+	 * You may have to refer to the documentation for your instance of `TokenStorageInterface` to ensure
+	 * that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
+	 * library, but, if stored on the access token, will be available to your app for use.
 	 * 
 	 * @param ServerRequestInterface $request The current request.
 	 * @param array $authenticationResult The array returned from the Authentication Handler. Guaranteed to contain a 'me' key, may also contain additional keys e.g. 'profile'.
@@ -50,11 +57,35 @@ interface AuthorizationFormInterface {
 	/**
 	 * Transform Authorization Code
 	 * 
+	 * This method is called on a successful authorization form submission. The `$code` array
+	 * is a partially-constructed authorization code array, which is guaranteed to have the 
+	 * following keys:
 	 * 
+	 * * `client_id`: the validated `client_id` request parameter
+	 * * `redirect_uri`: the validated `redirect_uri` request parameter
+	 * * `state`: the `state` request parameter
+	 * * `code_challenge`: the `code_challenge` request parameter
+	 * * `code_challenge_method`: the `code_challenge_method` request parameter
+	 * * `requested_scope`: the value of the `scope` request parameter
+	 * * `me`: the value of the `me` key from the authentication result returned from the authentication request handler callback
+	 * 
+	 * It may also have additional keys, which can come from the following locations:
+	 * 
+	 * * All keys from the the authentication request handler callback result which do not clash 
+	 *   with the keys listed above (with the exception of `me`, which is always present). Usually
+	 *   this is a `profile` key, but you may choose to return additional data from the authentication
+	 *   callback, which will be present in `$data`.
+	 * 
+	 * This method should add any additional data to the auth code, before it is persisted and
+	 * returned to the client app. Typically, this involves setting the `scope` key to be a 
+	 * valid space-separated scope string of any scopes granted by the user in the form.
+	 * 
+	 * If the form offers additional token configuration, this method should set any relevant
+	 * keys in `$code` based on the form data in `$request`.
 	 * 
 	 * @param array $code The base authorization code data, to be added to.
 	 * @param ServerRequestInterface $request The current request.
-	 * @return array The $code argument with any necessary changes.
+	 * @return array The $code data after making any necessary changes.
 	 */
 	public function transformAuthorizationCode(ServerRequestInterface $request, array $code): array;
 }

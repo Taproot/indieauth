@@ -63,6 +63,13 @@ class IndieAuthException extends Exception {
 		return self::EXC_INFO[$this->code] ?? self::EXC_INFO[self::INTERNAL_ERROR];
 	}
 
+	/**
+	 * Trust Query Params
+	 * 
+	 * Only useful on authorization form submission requests. If this returns false,
+	 * the client_id and/or request_uri have likely been tampered with, and the error
+	 * page SHOULD NOT offer the user a link to them.
+	 */
 	public function trustQueryParams() {
 		return $this->code == self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH
 				|| $this->code == self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH;

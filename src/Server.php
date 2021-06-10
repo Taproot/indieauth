@@ -19,21 +19,65 @@ use Psr\Log\NullLogger;
 use Taproot\IndieAuth\Callback\AuthorizationFormInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
 
-/**
- * Development Reference
- * 
- * Specification: https://indieauth.spec.indieweb.org/
- * Error responses: https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
- * indieweb/indieauth-client: https://github.com/indieweb/indieauth-client-php
- * Existing implementation with various validation functions and links to relevant spec portions: https://github.com/Zegnat/php-mindee/blob/development/index.php
- */
 
+/**
+ * IndieAuth Server
+ * 
+ * A PSR-7 compatible implementation of the request-handling logic for IndieAuth authorization endpoints
+ * and token endpoints.
+ * 
+ * Typical usage looks something like this:
+ *     
+ *     // Somewhere in your app set-up:
+ *     
+ *     use Taproot\IndieAuth;
+ *     
+ *     $server = new IndieAuth\Server([
+ *       'secret' => APP_INDIEAUTH_SECRET,
+ *       'tokenStorage' => '/../data/auth_tokens/',
+ *       'handleAuthenticationRequestCallback' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback([
+ *           'me' => 'https://your-domain.com/'
+ *         ],
+ *         YOUR_HASHED_PASSWORD
+ *       )
+ *     ]);
+ *     
+ *     // In your authorization endpoint route:
+ *     return $server->handleAuthorizationEndpointRequest($request);
+ *     
+ *     // In your token endpoint route:
+ *     return $server->handleTokenEndpointRequest($request);
+ * 
+ * Refer to the `__construct` documentation for further configuration options, and to the
+ * documentation for both handling methods for further documentation about them.
+ * 
+ * @link https://indieauth.spec.indieweb.org/
+ * @link https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
+ * @link https://github.com/indieweb/indieauth-client-php
+ * @link https://github.com/Zegnat/php-mindee/blob/development/index.php
+ */
 class Server {
 	const HANDLE_NON_INDIEAUTH_REQUEST = 'handleNonIndieAuthRequestCallback';
 	const HANDLE_AUTHENTICATION_REQUEST = 'handleAuthenticationRequestCallback';
+
+	/**
+	 * The query string parameter key used for storing the hash used for validating authorization request parameters.
+	 */
 	const HASH_QUERY_STRING_KEY = 'taproot_indieauth_server_hash';
+
+	/**
+	 * The key used to store the CSRF token everywhere it’s used: Request parameters, Request body, and Cookies.
+	 */
 	const DEFAULT_CSRF_KEY = 'taproot_indieauth_server_csrf';
+
+	/**
+	 * The form data key used for identifying a request as an authorization (consent screen) form submissions.
+	 */
 	const APPROVE_ACTION_KEY = 'taproot_indieauth_action';
+
+	/**
+	 * The form data value used for identifying a request as an authorization (consent screen) form submissions.
+	 */
 	const APPROVE_ACTION_VALUE = 'approve';
 
 	protected Storage\TokenStorageInterface $tokenStorage;
@@ -54,6 +98,69 @@ class Server {
 
 	protected string $secret;
 
+	/**
+	 * Constructor
+	 * 
+	 * Server instances are configured by passing a config array to the constructor.
+	 * 
+	 * The following keys are required:
+	 * 
+	 * * `handleAuthenticationRequestCallback`: a callable with the signature
+	 *   `function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface`.
+	 *   This function is called on IndieAuth authorization requests, after validating the query parameters.
+	 *   
+	 *   It should check to see if $request is authenticated, then:
+	 *     * If it is authenticated, return an array which MUST have a `me` key, mapping to the 
+	 *       canonical URL of the currently logged-in user. It may additionally have a `profile` key. These
+	 *       keys will be stored in the authorization code and sent to the client, if successful.
+	 *     * If it is not authenticated, either present or redirect to an authentication flow. This flow MUST
+	 *       redirect the logged-in used back to `$authenticationRedirect`.
+	 *   
+	 *   If the request has a valid `me` parameter, the canonicalized version of it is passed as
+	 *   `$normalizedMeUrl`. Otherwise, this parameter is null. This parameter can optionally be used 
+	 *   as a suggestion for which user to log in as in a multi-user authentication flow, but should NOT
+	 *   be considered valid data.
+	 * * `secret`: A cryptographically random string with a minimum length of 64 characters. Used
+	 *   to hash and subsequently query parameters which get passed around.
+	 * * `tokenStorage`: Either an object implementing `Storage\TokenStorageInterface`, or a string path,
+	 *   which will be passed to `Storage\FilesystemJsonStorage`. This object handles persisting authorization
+	 *   codes and access tokens, as well as implementation-specific parts of the exchange process which are 
+	 *   out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the `Storage\TokenStorageInterface`
+	 *   documentation for more details.
+	 * 
+	 * The following keys may be required depending on which packages you have installed:
+	 * 
+	 * * `httpGetWithEffectiveUrl`: must be a callable with the following signature:
+	 *   `function (string $url): array [ResponseInterface $response, string $effectiveUrl]`, where 
+	 *   `$effectiveUrl` is the final URL after following any redirects (unfortunately, neither the PSR-7
+	 *   Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
+	 *   data, hence the unusual return signature).  If `guzzlehttp/guzzle` is installed, this parameter
+	 *   will be created automatically. Otherwise, the user must provide their own callable.
+	 * 
+	 * The following keys are optional:
+	 * 
+	 * * `authorizationForm`: an instance of `AuthorizationFormInterface`. Defaults to `DefaultAuthorizationForm`.
+	 *   Refer to that implementation if you wish to replace the consent screen/scope choosing/authorization form.
+	 * * `csrfMiddleware`: an instance of `MiddlewareInterface`, which will be used to CSRF-protect the
+	 *   user-facing authorization flow. By default an instance of `DoubleSubmitCookieCsrfMiddleware`.
+	 *   Refer to that implementation if you want to replace it with your own middleware — you will 
+	 *   likely have to either make sure your middleware sets the same request attribute, or alter your
+	 *   templates accordingly.
+	 * * `exceptionTemplatePath`: string, path to a template which will be used for displaying user-facing
+	 *   errors. Defaults to `../templates/default_exception_response.html.php`, refer to that if you wish
+	 *   to write your own template.
+	 * * `handleNonIndieAuthRequestCallback`: A callback with the following signature:
+	 *   `function (ServerRequestInterface $request): ?ResponseInterface` which will be called if the
+	 *   authorization endpoint gets a request which is not identified as an IndieAuth request or authorization
+	 *   form submission request. You could use this to handle various requests e.g. client-side requests
+	 *   made by your authentication or authorization pages, if it’s not convenient to put them elsewhere.
+	 *   Returning `null` will result in a standard `invalid_request` error being returned.
+	 * * `logger`: An instance of `LoggerInterface`. Will be used for internal logging, and will also be set
+	 *   as the logger for most objects passed in config which implement `LoggerAwareInterface`.
+	 * 
+	 * @param array $config An array of configuration variables
+	 * @return self
+	 */
 	public function __construct(array $config) {
 		$config = array_merge([
 			'csrfMiddleware' => null,
@@ -148,6 +255,35 @@ class Server {
 
 	/**
 	 * Handle Authorization Endpoint Request
+	 * 
+	 * This method handles all requests to your authorization endpoint, passing execution off to
+	 * other callbacks when necessary. The logical flow can be summarised as follows:
+	 * 
+	 * * If this request an **auth code exchange for profile information**, validate the request
+	 *   and return a response or error response.
+	 * * Otherwise, proceed, wrapping all execution in CSRF-protection middleware.
+	 * * Validate the request’s indieauth authorization code request parameters, returning an 
+	 *   error response if any are missing or invalid.
+	 * * Call the authentication callback
+	 *     * If the callback returned an instance of ResponseInterface, the user is not currently
+	 *       logged in. Return the Response, which will presumably start an authentication flow.
+	 *     * Otherwise, the callback returned information about the currently logged-in user. Continue.
+	 * * If this request is an authorization form submission, validate the data, store and authorization
+	 *   code and return a redirect response to the client redirect_uri with code data. On an error, return
+	 *   an appropriate error response.
+	 * * Otherwise, fetch the client_id, parse app data if present, validate the `redirect_uri` and present
+	 *   the authorization form/consent screen to the user.
+	 * * If none of the above apply, try calling the non-indieauth request handler. If it returns a Response,
+	 *   return that, otherwise return an error response.
+	 * 
+	 * This route should NOT be wrapped in additional CSRF-protection, due to the need to handle API 
+	 * POST requests from the client. Make sure you call it from a route which is excluded from any
+	 * CSRF-protection you might be using. To customise the CSRF protection used internally, refer to the
+	 * `__construct` config array documentation for the `csrfMiddleware` key.
+	 * 
+	 * Most user-facing errors are thrown as instances of `IndieAuthException`, which are passed off to
+	 * `handleException` to be turned into an instance of `ResponseInterface`. If you want to customise
+	 * error behaviour, one way to do so is to subclass `Server` and override that method.
 	 * 
 	 * @param ServerRequestInterface $request
 	 * @return ResponseInterface
@@ -246,6 +382,7 @@ class Server {
 					});
 					if (!empty($missingRequiredParameters)) {
 						$this->logger->warning('The authorization request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+						// TODO: if the missing parameter isn’t redirect_uri or client_id, this should be a redirect error.
 						throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
 					}
 
@@ -373,6 +510,11 @@ class Server {
 						// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
 
 						// Fetch the client_id URL to find information about the client to present to the user.
+						// TODO: in order to comply with https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1,
+						// it may be necessary to do this before returning any other kind of error response, as, per
+						// the spec, errors should only be shown to the user if the client_id and redirect_uri parameters
+						// are missing or invalid. Otherwise, they should be sent back to the client with an error
+						// redirect response.
 						try {
 							/** @var ResponseInterface $clientIdResponse */
 							list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
@@ -447,6 +589,24 @@ class Server {
 		}));	
 	}
 
+	/**
+	 * Handle Token Endpoint Request
+	 * 
+	 * Handles requests to the IndieAuth token endpoint. The logical flow can be summarised as follows:
+	 * 
+	 * * Check that the request is a code redeeming request. Return an error if not.
+	 * * Ensure that all required parameters are present. Return an error if not.
+	 * * Attempt to exchange the `code` parameter for an access token. Return an error if it fails.
+	 * * Make sure the client_id and redirect_uri request parameters match those stored in the auth code. If not, revoke the access token and return an error.
+	 * * Make sure the provided code_verifier hashes to the code_challenge stored in the auth code. If not, revoke the access token and return an error.
+	 * * Make sure the granted scope stored in the auth code is not empty. If it is, revoke the access token and return an error.
+	 * * Otherwise, return a success response containing information about the issued access token.
+	 * 
+	 * This method must NOT be CSRF-protected as it accepts external requests from client apps.
+	 * 
+	 * @param ServerRequestInterface $request
+	 * @return ResponseInterface
+	 */
 	public function handleTokenEndpointRequest(ServerRequestInterface $request): ResponseInterface {
 		if (isIndieAuthAuthorizationCodeRedeemingRequest($request)) {
 			$this->logger->info('Handling a request to redeem an authorization code for profile information.');
@@ -524,6 +684,11 @@ class Server {
 		]));
 	}
 
+	/**
+	 * Handle Exception
+	 * 
+	 * Turns an instance of `IndieAuthException` into an appropriate instance of `ResponseInterface`.
+	 */
 	protected function handleException(IndieAuthException $exception): ResponseInterface {
 		$exceptionData = $exception->getInfo();
 
