@@ -14,12 +14,25 @@ use Psr\Log\NullLogger;
 use function Taproot\IndieAuth\generateRandomString;
 
 /**
- * Development reference
+ * Double-Submit Cookie CSRF Middleware
  * 
- * CSRF protection cheat sheet: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
- * Example CSRF protection cookie middleware: https://github.com/zakirullin/csrf-middleware/blob/master/src/CSRF.php
+ * A PSR-15-compatible Middleware for stateless Double-Submit-Cookie-based CSRF protection.
+ * 
+ * The `$attribute` property and first constructor argument sets the key by which the CSRF token
+ * is referred to in all parameter sets (request attributes, request body parameters, cookies).
+ * 
+ * Generates a random token of length `$tokenLength`  (default 128), and stores it as an attribute
+ * on the `ServerRequestInterface`. It’s also added to the response as a cookie.
+ * 
+ * On requests which may modify state (methods other than HEAD, GET or OPTIONS), the request body
+ * and request cookies are checked for matching CSRF tokens. If they match, the request is passed on
+ * to the handler. If they do not match, further processing is halted and an error response generated
+ * from the `$errorResponse` callback is returned. Refer to the constructor argument for information
+ * about customising the error response.
+ * 
+ * @link https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+ * @link https://github.com/zakirullin/csrf-middleware/blob/master/src/CSRF.php
  */
-
 class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwareInterface {
 	const READ_METHODS = ['HEAD', 'GET', 'OPTIONS'];
 	const TTL = 60 * 20;
@@ -89,6 +102,8 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 	protected function isValid(ServerRequestInterface $request) {
 		if (array_key_exists($this->attribute, $request->getParsedBody() ?? [])) {
 			if (array_key_exists($this->attribute, $request->getCookieParams() ?? [])) {
+				// TODO: make sure CSRF token isn’t the empty string, possibly also check that it’s the same length
+				// as defined in $this->tokenLength.
 				return hash_equals($request->getParsedBody()[$this->attribute], $request->getCookieParams()[$this->attribute]);
 			}
 		}
