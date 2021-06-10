@@ -560,7 +560,7 @@ EOT
 			$authEndpointJson = json_decode((string) $authEndpointResponse->getBody(), true);
 			$this->assertEquals('invalid_grant', $authEndpointJson['error']);
 
-			$tokenEndpointResponse = $s->handleAuthorizationEndpointRequest($req);
+			$tokenEndpointResponse = $s->handleTokenEndpointRequest($req);
 			$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
 			$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
 			$this->assertEquals('invalid_grant', $tokenEndpointJson['error']);

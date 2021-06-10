@@ -196,6 +196,14 @@ class Server {
 			}
 
 			// Check that the supplied code_verifier hashes to the stored code_challenge
+			// TODO: support method = plain as well as S256.
+			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
 
 			// If everything checked out, return {"me": "https://example.com"} response
 			// (a response containing any additional information must contain a valid scope value, and 
@@ -442,6 +450,37 @@ class Server {
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_request',
 					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
+				]));
+			}
+
+			// Attempt to internally exchange the provided auth code for an access token.
+			$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+
+			if (is_null($token)) {
+				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
+
+			// Verify that it was issued for the same client_id and redirect_uri
+			if ($token->getData()['client_id'] !== $bodyParams['client_id']
+				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
+				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
+
+			// Check that the supplied code_verifier hashes to the stored code_challenge
+			// TODO: support method = plain as well as S256.
+			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
 				]));
 			}
 		}

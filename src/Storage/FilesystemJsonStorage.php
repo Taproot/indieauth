@@ -86,7 +86,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			if ($data['exchanged_at'] ?? false) { return null; }
 
 			// Make sure the auth code isn’t expired.
-			if (($data['valid_until'] ?? 0) < time()) { return null; }echo 'h';
+			if (($data['valid_until'] ?? 0) < time()) { return null; }
 
 			// If the access token is valid, mark it as redeemed and set a new expiry time.
 			$data['exchanged_at'] = time();
