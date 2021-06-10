@@ -158,8 +158,29 @@ class Server {
 		// If it’s a profile information request:
 		if (isIndieAuthAuthorizationCodeRedeemingRequest($request)) {
 			$this->logger->info('Handling a request to redeem an authorization code for profile information.');
-			// Verify that the authorization code is valid and has not yet been used.
-			$this->authorizationCodeStorage->get($request->getParsedBody()['code']);
+			
+			$bodyParams = $request->getParsedBody();
+
+			// Verify that all required parameters are included.
+			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
+			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
+				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
+			});
+			if (!empty($missingRequiredParameters)) {
+				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_request',
+					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
+				]));
+			}
+
+			// Attempt to internally exchange the provided auth code for an access token.
+			$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+
+			if (is_null($token)) {
+				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
+				
+			}
 
 			// Verify that it was issued for the same client_id and redirect_uri
 
@@ -196,9 +217,44 @@ class Server {
 						throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
 					}
 
+					// Validate the Client ID.
+					if (false === filter_var($queryParams['client_id'], FILTER_VALIDATE_URL) || !isClientIdentifier($queryParams['client_id'])) {
+						$this->logger->warning("The client_id provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_CLIENT_ID, $request);
+					}
+
+					// Validate the redirect URI — at this stage only superficially, we’ll check it properly later if 
+					// things go well.
+					if (false === filter_var($queryParams['redirect_uri'], FILTER_VALIDATE_URL)) {
+						$this->logger->warning("The client_id provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
+					}
+
+					// Validate the state parameter.
+					if (!isValidState($queryParams['state'])) {
+						$this->logger->warning("The state provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_STATE, $request);
+					}
+
+					// Validate code_challenge parameter.
+					if (!isValidCodeChallenge($queryParams['code_challenge'])) {
+						$this->logger->warning("The code_challenge provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
+					}
+
+					// Validate the scope parameter, if provided.
+					if (array_key_exists('scope', $queryParams) && !isValidScope($queryParams['scope'])) {
+						$this->logger->warning("The scope provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_SCOPE, $request);
+					}
+
 					// Normalise the me parameter, if it exists.
 					if (array_key_exists('me', $queryParams)) {
 						$queryParams['me'] = IndieAuthClient::normalizeMeURL($queryParams['me']);
+						// If the me parameter is not a valid profile URL, ignore it.
+						if (false === $queryParams['me'] || !isProfileUrl($queryParams['me'])) {
+							$queryParams['me'] = null;
+						}
 					}
 
 					// Build a URL containing the indieauth authorization request parameters, hashing them
@@ -212,7 +268,7 @@ class Server {
 					
 					// User-facing requests always start by calling the authentication request callback.
 					$this->logger->info('Calling handle_authentication_request callback');
-					$authenticationResult = call_user_func($this->handleAuthenticationRequestCallback, $request, $authenticationRedirect);
+					$authenticationResult = call_user_func($this->handleAuthenticationRequestCallback, $request, $authenticationRedirect, $queryParams['me'] ?? null);
 					
 					// If the authentication handler returned a Response, return that as-is.
 					if ($authenticationResult instanceof ResponseInterface) {
@@ -360,6 +416,30 @@ class Server {
 	}
 
 	public function handleTokenEndpointRequest(ServerRequestInterface $request): ResponseInterface {
+		if (isIndieAuthAuthorizationCodeRedeemingRequest($request)) {
+			$this->logger->info('Handling a request to redeem an authorization code for profile information.');
+			
+			$bodyParams = $request->getParsedBody();
+
+			// Verify that all required parameters are included.
+			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
+			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
+				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
+			});
+			if (!empty($missingRequiredParameters)) {
+				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_request',
+					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
+				]));
+			}
+		}
+
+		return new Response(400, ['contet-type' => 'application/json'], json_encode([
+			'error' => 'invalid_request',
+			'error_description' => 'Request to token endpoint was not a valid code exchange request.'
+		]));
+		
 		// This is a request to redeem an authorization_code for an access_token.
 
 		// Verify that the authorization code is valid and has not yet been used.
@@ -374,9 +454,29 @@ class Server {
 	}
 
 	protected function handleException(IndieAuthException $exception): ResponseInterface {
-		return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], renderTemplate($this->exceptionTemplatePath, [
-			'request' => $exception->getRequest(),
-			'exception' => $exception
-		]));
+		$exceptionData = $exception->getInfo();
+
+		if ($exceptionData['statusCode'] == 302) {
+			// This exception is handled by redirecting to the redirect_uri with error parameters.
+			$redirectQueryParams = [
+				'error' => $exceptionData['error'] ?? 'invalid_request',
+				'error_description' => (string) $exception
+			];
+
+			// If the state parameter was valid, include it in the error redirect.
+			if ($exception->getCode() !== IndieAuthException::INVALID_STATE) {
+				$redirectQueryParams['state'] = $exception->getRequest()->getQueryParams()['state'];
+			}
+
+			return new Response($exceptionData['statusCode'], [
+				'Location' => appendQueryParams((string) $exception->getRequest()->getQueryParams()['redirect_uri'], $redirectQueryParams)
+			]);
+		} else {
+			// This exception should be shown to the user.
+			return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], renderTemplate($this->exceptionTemplatePath, [
+				'request' => $exception->getRequest(),
+				'exception' => $exception
+			]));
+		}
 	}
 }

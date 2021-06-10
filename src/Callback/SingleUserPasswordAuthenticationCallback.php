@@ -26,7 +26,7 @@ class SingleUserPasswordAuthenticationCallback {
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 	}
 
-	public function __invoke(ServerRequestInterface $request, string $formAction) {
+	public function __invoke(ServerRequestInterface $request, string $formAction, ?string $normalizedMeUrl) {
 		// If the request is a form submission with a matching password, return the corresponding
 		// user data.
 		if ($request->getMethod() == 'POST' && password_verify($request->getParsedBody()[self::PASSWORD_FORM_PARAMETER] ?? '', $this->hashedPassword)) {

@@ -15,6 +15,10 @@ class IndieAuthException extends Exception {
 	const HTTP_EXCEPTION_FETCHING_CLIENT_ID = 5;
 	const INTERNAL_EXCEPTION_FETCHING_CLIENT_ID = 6;
 	const INVALID_REDIRECT_URI = 7;
+	const INVALID_CLIENT_ID = 8;
+	const INVALID_STATE = 9;
+	const INVALID_CODE_CHALLENGE = 10;
+	const INVALID_SCOPE = 11;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
@@ -25,7 +29,11 @@ class IndieAuthException extends Exception {
 		// TODO: should this one be a 500 because it’s an internal server error, or a 400 because the client_id was likely invalid? Is anyone ever going to notice, or care?
 		self::HTTP_EXCEPTION_FETCHING_CLIENT_ID => ['statusCode' => 500, 'name' => 'Error Fetching Client App URL',  'explanation' => 'Fetching the client app (client_id) failed.'],
 		self::INTERNAL_EXCEPTION_FETCHING_CLIENT_ID => ['statusCode' => 500, 'name' => 'Internal Error fetching client app URI', 'explanation' => 'Fetching the client app (client_id) failed due to an internal error.'],
-		self::INVALID_REDIRECT_URI => ['statusCode' => 400, 'name' => 'Invalid Client App Redirect URI', 'explanation' => 'The client app redirect URI (redirect_uri) did not sufficiently match client_id, or exactly match any redirect URIs parsed from fetching the client_id.']
+		self::INVALID_REDIRECT_URI => ['statusCode' => 400, 'name' => 'Invalid Client App Redirect URI', 'explanation' => 'The client app redirect URI (redirect_uri) either was not a valid URI, did not sufficiently match client_id, or did not exactly match any redirect URIs parsed from fetching the client_id.'],
+		self::INVALID_CLIENT_ID => ['statusCode' => 400, 'name' => 'Invalid Client Identifier URI', 'explanation' => 'The Client Identifier was not valid.'],
+		self::INVALID_STATE => ['statusCode' => 302, 'name' => 'Invalid state Parameter', 'error' => 'invalid_request'],
+		self::INVALID_CODE_CHALLENGE => ['statusCode' => 302, 'name' => 'Invalid code_challenge Parameter', 'error' => 'invalid_request'],
+		self::INVALID_SCOPE => ['statusCode' => 302, 'name' => 'Invalid scope Parameter', 'error' => 'invalid_request'],
 	];
 
 	protected ServerRequestInterface $request;
@@ -42,11 +50,15 @@ class IndieAuthException extends Exception {
 	}
 
 	public function getStatusCode() {
-		return self::EXC_INFO[$this->code]['statusCode'] ?? 500;
+		return $this->getInfo()['statusCode'] ?? 500;
 	}
 
 	public function getExplanation() {
-		return self::EXC_INFO[$this->code]['explanation'] ?? 'An unknown error occured.';
+		return $this->getInfo()['explanation'] ?? 'An unknown error occured.';
+	}
+
+	public function getInfo() {
+		return self::EXC_INFO[$this->code] ?? self::EXC_INFO[self::INTERNAL_ERROR];
 	}
 
 	public function trustQueryParams() {

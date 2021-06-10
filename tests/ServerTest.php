@@ -14,6 +14,7 @@ use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
 use Taproot\IndieAuth\IndieAuthException;
 use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
+use Taproot\IndieAuth\Storage\TokenStorageInterface;
 
 use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
 use function Taproot\IndieAuth\urlComponentsMatch;
@@ -25,6 +26,11 @@ const AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH = __DIR__ . '/templates/aut
 const TMP_DIR = __DIR__ . '/tmp';
 
 class ServerTest extends TestCase {
+
+	/**
+	 * Utility Methods
+	 */
+
 	protected function getDefaultServer(array $config=[]) {
 		return new Server(array_merge([
 			'secret' => SERVER_SECRET,
@@ -100,6 +106,10 @@ class ServerTest extends TestCase {
 		@rmdir(TOKEN_STORAGE_PATH);
 	}
 
+	/**
+	 * Authorization Request Tests
+	 */
+
 	public function testAuthorizationRequestMissingParametersReturnsError() {
 		$s = $this->getDefaultServer();
 
@@ -108,6 +118,78 @@ class ServerTest extends TestCase {
 		]);
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		$this->assertEquals((string) IndieAuthException::REQUEST_MISSING_PARAMETER, (string) $res->getBody());
+	}
+
+	public function testAuthorizationRequestWithInvalidClientIdOrRedirectUriShowsErrorToUser() {
+		$testCases = [
+			'client_id not a URI' => [
+				'expectedError' => IndieAuthException::INVALID_CLIENT_ID,
+				'queryParams' => ['client_id' => 'this string is definitely not a valid URI']
+			],
+			'client_id host was an IP address' => [
+				'expectedError' => IndieAuthException::INVALID_CLIENT_ID,
+				'queryParams' => ['client_id' => 'https://12.56.12.5/']
+			],
+			'redirect_uri not a URI' => [
+				'expectedError' => IndieAuthException::INVALID_REDIRECT_URI,
+				'queryParams' => ['redirect_uri' => 'again, definitely not a valid URI.']
+			]
+		];
+
+		foreach ($testCases as $testName => $testData) {
+			$s = $this->getDefaultServer();
+			$res = $s->handleAuthorizationEndpointRequest($this->getIARequest($testData['queryParams']));
+			$this->assertEquals((string) $testData['expectedError'], (string) $res->getBody(), "Case “{$testName}” did not result in expected error {$testData['expectedError']}.");
+		}
+	}
+
+	public function testInvalidStateCodeChallengeOrScopeReturnErrorRedirects() {
+		$testCases = [
+			'Invalid state' => [
+				'expectedError' => IndieAuthException::INVALID_STATE,
+				'queryParams' => ['state' => "This unprintable ASCII character is not allowed in state: \x19"]
+			],
+			'Invalid code_challenge' => [
+				'expectedError' => IndieAuthException::INVALID_CODE_CHALLENGE,
+				'queryParams' => ['code_challenge' => 'has_bad_characters_in_*%#ü____']
+			],
+			'Invalid scope' => [
+				'expectedError' => IndieAuthException::INVALID_SCOPE,
+				'queryParams' => ['scope' => '" is not a permitted scope character']
+			]
+		];
+
+		foreach ($testCases as $testName => $testData) {
+			$s = $this->getDefaultServer();
+			$res = $s->handleAuthorizationEndpointRequest($this->getIARequest($testData['queryParams']));
+			$this->assertEquals(302, $res->getStatusCode(), "Case “{$testName}” should result in a redirect error.");
+			$expectedErrorName = IndieAuthException::EXC_INFO[IndieAuthException::INVALID_STATE]['error'];
+			parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
+			$this->assertEquals($expectedErrorName, $redirectQueryParams['error']);
+		}
+	}
+
+	public function testHandlesValidAndInvalidMeUrlsCorrectly() {
+		$testCases = [
+			'example.com' => 'http://example.com/',
+			'https://example.com' => 'https://example.com/',
+			'https://example.com/path?query' => 'https://example.com/path?query',
+			'invalid URL' => null,
+			'https://example.com/foo/../bar' => null,
+			'https://example.com/#me' => null,
+			'https://user:pass@example.com/' => null,
+			'https://example.com:8443/' => null,
+			'https://172.28.92.51/' => null
+		];
+
+		foreach ($testCases as $meUrl => $expected) {
+			$s = $this->getDefaultServer([
+				Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction, ?string $normalizedMeUrl) use ($expected) {
+					$this->assertEquals($expected, $normalizedMeUrl);
+				}
+			]);
+			$s->handleAuthorizationEndpointRequest($this->getIARequest(['me' => $meUrl]));
+		}
 	}
 
 	public function testUnauthenticatedRequestReturnsAuthenticationResponse() {
@@ -157,88 +239,6 @@ class ServerTest extends TestCase {
 
 			$this->assertEquals($expectedResponse, (string) $res->getBody());
 		}
-	}
-
-	public function testReturnsErrorIfApprovalRequestHasNoHash() {
-		$s = $this->getDefaultServer([
-			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
-				return ['me' => 'https://example.com'];
-			}
-		]);
-		$res = $s->handleAuthorizationEndpointRequest($this->getApprovalRequest(true, false));
-
-		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, (string) $res->getBody());
-	}
-
-	public function testReturnsErrorIfApprovalRequestHasInvalidHash() {
-		$s = $this->getDefaultServer([
-			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
-				return ['me' => 'https://example.com'];
-			}
-		]);
-		$req = $this->getApprovalRequest(true, false);
-		$req = $req->withQueryParams(array_merge($req->getQueryParams(), [
-			Server::HASH_QUERY_STRING_KEY => 'clearly not a valid hash'
-		]));
-		$res = $s->handleAuthorizationEndpointRequest($req);
-
-		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH, (string) $res->getBody());
-	}
-
-	public function testValidApprovalRequestIsHandledCorrectly() {
-		// Make a valid authentication response with additional information, to make sure that it’s saved
-		// in the authorization code.
-		$authenticationResponse = [
-			'me' => 'https://me.example.com/',
-			'profile' => [
-				'name' => 'Example Name'
-			]
-		];
-
-		$s = $this->getDefaultServer([
-			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) use ($authenticationResponse) {
-				return $authenticationResponse;
-			}
-		]);
-		
-		// Make an approval request with valid CSRF tokens, a valid query parameter hash, one requested scope 
-		// (different from the two granted scopes, so that we can test that requested and granted scopes are 
-		// stored separately) and a redirect URI with a query string (so we can test that our IA query string
-		// parameters are appended correctly).
-		$grantedScopes = ['create', 'update'];
-		$req = $this->getApprovalRequest(true, true, [
-			'scope' => 'create',
-			'redirect_uri' => 'https://app.example.com/indieauth?client_redirect_query_string_param=value'
-		], [
-			'taproot_indieauth_server_scope[]' => $grantedScopes
-		]);
-
-		$res = $s->handleAuthorizationEndpointRequest($req);
-		
-		$this->assertEquals(302, $res->getStatusCode(), 'The Response from a successful approval request must be a 302 redirect.');
-		
-		$responseLocation = $res->getHeaderLine('location');
-		$queryParams = $req->getQueryParams();
-		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
-		
-		$this->assertTrue(urlComponentsMatch($responseLocation, $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_USER, PHP_URL_PORT, PHP_URL_HOST, PHP_URL_PORT, PHP_URL_PATH]), 'The successful redirect response location did not match the redirect URI up to the path.');
-		$this->assertEquals($redirectUriQueryParams['state'], $queryParams['state'], 'The redirect URI state parameter did not match the authorization request state parameter.');
-		$this->assertEquals('value', $redirectUriQueryParams['client_redirect_query_string_param'], 'Query string params in the client app redirect_uri were not correctly preserved.');
-		
-		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SECRET);
-		$storedCode = $storage->get(hash_hmac('sha256', $redirectUriQueryParams['code'], SECRET));
-
-		$this->assertNotNull($storedCode, 'An authorization code should be stored after a successful approval request.');
-		
-		foreach (['client_id', 'redirect_uri', 'state', 'code_challenge', 'code_challenge_method'] as $p) {
-			$this->assertEquals($queryParams[$p], $storedCode[$p], "Parameter $p in the stored code ({$storedCode[$p]}) was not the same as the request parameter ($queryParams[$p]).");
-		}
-
-		$this->assertTrue(scopeEquals($queryParams['scope'], $storedCode['requested_scope']), "The requested scopes in the stored code ({$storedCode['requested_scope']}) did not match the scopes in the scope query parameter ({$queryParams['scope']}).");
-		$this->assertTrue(scopeEquals($grantedScopes, $storedCode['scope']), "The granted scopes in the stored code ({$storedCode['scope']}) did not match the granted scopes from the authorization form response (" . join(' ', $grantedScopes) . ").");
-
-		$this->assertEquals($authenticationResponse['me'], $storedCode['me'], "The “me” value in the stored code ({$storedCode['me']}) did not match the “me” value from the authentication response ({$authenticationResponse['me']}).");
-		$this->assertEquals($authenticationResponse['profile'], $storedCode['profile'], "The “profile” value in the stored code did not match the “profile” value from the authentication response.");
 	}
 
 	public function testReturnsErrorIfRedirectUriDoesntMatchClientIdWithNoParsedRedirectUris() {
@@ -414,6 +414,118 @@ EOT
 		$this->assertEquals($correctHAppName, $flatHApp['name']);
 		$this->assertEquals($correctHAppPhoto, $flatHApp['photo']);
 	}
+
+	/**
+	 * Test Authorization Approval Requests
+	 */
+
+	public function testReturnsErrorIfApprovalRequestHasNoHash() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
+				return ['me' => 'https://example.com'];
+			}
+		]);
+		$res = $s->handleAuthorizationEndpointRequest($this->getApprovalRequest(true, false));
+
+		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, (string) $res->getBody());
+	}
+
+	public function testReturnsErrorIfApprovalRequestHasInvalidHash() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
+				return ['me' => 'https://example.com'];
+			}
+		]);
+		$req = $this->getApprovalRequest(true, false);
+		$req = $req->withQueryParams(array_merge($req->getQueryParams(), [
+			Server::HASH_QUERY_STRING_KEY => 'clearly not a valid hash'
+		]));
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH, (string) $res->getBody());
+	}
+
+	public function testValidApprovalRequestIsHandledCorrectly() {
+		// Make a valid authentication response with additional information, to make sure that it’s saved
+		// in the authorization code.
+		$authenticationResponse = [
+			'me' => 'https://me.example.com/',
+			'profile' => [
+				'name' => 'Example Name'
+			]
+		];
+
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) use ($authenticationResponse) {
+				return $authenticationResponse;
+			}
+		]);
+		
+		// Make an approval request with valid CSRF tokens, a valid query parameter hash, one requested scope 
+		// (different from the two granted scopes, so that we can test that requested and granted scopes are 
+		// stored separately) and a redirect URI with a query string (so we can test that our IA query string
+		// parameters are appended correctly).
+		$grantedScopes = ['create', 'update'];
+		$req = $this->getApprovalRequest(true, true, [
+			'scope' => 'create',
+			'redirect_uri' => 'https://app.example.com/indieauth?client_redirect_query_string_param=value'
+		], [
+			'taproot_indieauth_server_scope[]' => $grantedScopes
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		
+		$this->assertEquals(302, $res->getStatusCode(), 'The Response from a successful approval request must be a 302 redirect.');
+		
+		$responseLocation = $res->getHeaderLine('location');
+		$queryParams = $req->getQueryParams();
+		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+		
+		$this->assertTrue(urlComponentsMatch($responseLocation, $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_USER, PHP_URL_PORT, PHP_URL_HOST, PHP_URL_PORT, PHP_URL_PATH]), 'The successful redirect response location did not match the redirect URI up to the path.');
+		$this->assertEquals($redirectUriQueryParams['state'], $queryParams['state'], 'The redirect URI state parameter did not match the authorization request state parameter.');
+		$this->assertEquals('value', $redirectUriQueryParams['client_redirect_query_string_param'], 'Query string params in the client app redirect_uri were not correctly preserved.');
+		
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SECRET);
+		$storedCode = $storage->get(hash_hmac('sha256', $redirectUriQueryParams['code'], SECRET));
+
+		$this->assertNotNull($storedCode, 'An authorization code should be stored after a successful approval request.');
+		
+		foreach (['client_id', 'redirect_uri', 'state', 'code_challenge', 'code_challenge_method'] as $p) {
+			$this->assertEquals($queryParams[$p], $storedCode[$p], "Parameter $p in the stored code ({$storedCode[$p]}) was not the same as the request parameter ($queryParams[$p]).");
+		}
+
+		$this->assertTrue(scopeEquals($queryParams['scope'], $storedCode['requested_scope']), "The requested scopes in the stored code ({$storedCode['requested_scope']}) did not match the scopes in the scope query parameter ({$queryParams['scope']}).");
+		$this->assertTrue(scopeEquals($grantedScopes, $storedCode['scope']), "The granted scopes in the stored code ({$storedCode['scope']}) did not match the granted scopes from the authorization form response (" . join(' ', $grantedScopes) . ").");
+
+		$this->assertEquals($authenticationResponse['me'], $storedCode['me'], "The “me” value in the stored code ({$storedCode['me']}) did not match the “me” value from the authentication response ({$authenticationResponse['me']}).");
+		$this->assertEquals($authenticationResponse['profile'], $storedCode['profile'], "The “profile” value in the stored code did not match the “profile” value from the authentication response.");
+	}
+
+	/**
+	 * Test Authorization Token Exchange Requests
+	 */
+
+	public function testBothExchangePathsReturnErrorsIfParametersAreMissing() {
+		$s = $this->getDefaultServer();
+
+		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+			'grant_type' => 'authorization_code'
+		]);
+
+		$authEndpointResponse = $s->handleAuthorizationEndpointRequest($req);
+		$this->assertEquals(400, $authEndpointResponse->getStatusCode());
+		$authEndpointJson = json_decode((string) $authEndpointResponse->getBody(), true);
+		$this->assertEquals('invalid_request', $authEndpointJson['error']);
+
+		$tokenEndpointResponse = $s->handleTokenEndpointRequest($req);
+		$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
+		$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
+		$this->assertEquals('invalid_request', $tokenEndpointJson['error']);
+	}
+
+	/**
+	 * Test Non-Indieauth Requests.
+	 */
 
 	public function testNonIndieAuthRequestWithDefaultHandlerReturnsError() {
 		$res = $this->getDefaultServer()->handleAuthorizationEndpointRequest(new ServerRequest('GET', 'https://example.com'));

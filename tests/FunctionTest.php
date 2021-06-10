@@ -107,7 +107,8 @@ class FunctionTest extends TestCase {
 
 	public function testIsValidState() {
 		$testCases = [
-			'hisdfbusdgiueryb@#$%^&*(' => true
+			'hisdfbusdgiueryb@#$%^&*(' => true,
+			"\x19" => false
 		];
 
 		foreach ($testCases as $test => $expected) {
