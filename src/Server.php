@@ -179,10 +179,21 @@ class Server {
 
 			if (is_null($token)) {
 				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-				
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
 			}
 
 			// Verify that it was issued for the same client_id and redirect_uri
+			if ($token->getData()['client_id'] !== $bodyParams['client_id']
+				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
+				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_grant',
+					'error_description' => 'The provided credentials were not valid.'
+				]));
+			}
 
 			// Check that the supplied code_verifier hashes to the stored code_challenge
 
@@ -435,11 +446,11 @@ class Server {
 			}
 		}
 
-		return new Response(400, ['contet-type' => 'application/json'], json_encode([
+		return new Response(400, ['content-type' => 'application/json'], json_encode([
 			'error' => 'invalid_request',
 			'error_description' => 'Request to token endpoint was not a valid code exchange request.'
 		]));
-		
+
 		// This is a request to redeem an authorization_code for an access_token.
 
 		// Verify that the authorization code is valid and has not yet been used.

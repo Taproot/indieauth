@@ -8,6 +8,7 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Request;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\TextUI\XmlConfiguration\File;
 use Psr\Http\Message\ServerRequestInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
 use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
@@ -16,6 +17,8 @@ use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
 use Taproot\IndieAuth\Storage\TokenStorageInterface;
 
+use function Taproot\IndieAuth\generatePKCECodeChallenge;
+use function Taproot\IndieAuth\generateRandomString;
 use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
 use function Taproot\IndieAuth\urlComponentsMatch;
 
@@ -505,7 +508,7 @@ EOT
 	 * Test Authorization Token Exchange Requests
 	 */
 
-	public function testBothExchangePathsReturnErrorsIfParametersAreMissing() {
+	public function testExchangePathsReturnErrorsIfParametersAreMissing() {
 		$s = $this->getDefaultServer();
 
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
@@ -521,6 +524,47 @@ EOT
 		$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
 		$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
 		$this->assertEquals('invalid_request', $tokenEndpointJson['error']);
+	}
+
+	public function testExchangePathsReturnErrorOnInvalidParameters() {
+		$s = $this->getDefaultServer();
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+		$testCases = [
+			'Mismatched client_id' => ['client_id' => 'https://invalid-client.example.com/'],
+			'Mismatched redirect_uri' => ['redirect_uri' => 'https://invalid-client.example.com/auth'],
+			'Invalid code_verifier' => ['code_verifier' => 'definitely_not_the_randomly_generated_string'],
+		];
+
+		foreach ($testCases as $name => $params) {
+			// Create an auth code.
+			$codeVerifier = generateRandomString(32);
+			$authCode = $storage->createAuthCode([
+				'client_id' => 'https://client.example.com/',
+				'redirect_uri' => 'https://client.example.com/auth',
+				'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+				'state' => '12345',
+				'code_challenge_method' => 'S256'
+			]);
+			
+			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody(array_merge([
+				'grant_type' => 'authorization_code',
+				'code' => $authCode->getKey(),
+				'client_id' => $authCode->getData()['client_id'],
+				'redirect_uri' => $authCode->getData()['redirect_uri'],
+				'code_verifier' => $codeVerifier
+			], $params));
+
+			$authEndpointResponse = $s->handleAuthorizationEndpointRequest($req);
+			$this->assertEquals(400, $authEndpointResponse->getStatusCode());
+			$authEndpointJson = json_decode((string) $authEndpointResponse->getBody(), true);
+			$this->assertEquals('invalid_grant', $authEndpointJson['error']);
+
+			$tokenEndpointResponse = $s->handleAuthorizationEndpointRequest($req);
+			$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
+			$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
+			$this->assertEquals('invalid_grant', $tokenEndpointJson['error']);
+		}
 	}
 
 	/**

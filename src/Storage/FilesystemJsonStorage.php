@@ -55,6 +55,10 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	public function createAuthCode(array $data): ?Token {
 		$authCode = generateRandomString(self::TOKEN_LENGTH);
 		$accessToken = $this->hash($authCode);
+
+		if (!array_key_exists('valid_until', $data)) {
+			$data['valid_until'] = time() + $this->authCodeTtl;
+		}
 		
 		if (!$this->put($accessToken, $data)) {
 			return null;
@@ -82,7 +86,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			if ($data['exchanged_at'] ?? false) { return null; }
 
 			// Make sure the auth code isn’t expired.
-			if ($data['valid_until'] ?? 0 < time()) { return null; }
+			if (($data['valid_until'] ?? 0) < time()) { return null; }echo 'h';
 
 			// If the access token is valid, mark it as redeemed and set a new expiry time.
 			$data['exchanged_at'] = time();
