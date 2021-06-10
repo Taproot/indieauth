@@ -15,8 +15,10 @@ use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
 use Taproot\IndieAuth\IndieAuthException;
 use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
+use Taproot\IndieAuth\Storage\Token;
 use Taproot\IndieAuth\Storage\TokenStorageInterface;
 
+use function GuzzleHttp\Promise\exception_for;
 use function Taproot\IndieAuth\generatePKCECodeChallenge;
 use function Taproot\IndieAuth\generateRandomString;
 use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
@@ -108,6 +110,34 @@ class ServerTest extends TestCase {
 		}
 		@rmdir(TOKEN_STORAGE_PATH);
 	}
+
+	/**
+	 * Configuration/Instantiation Tests
+	 */
+
+	 public function testInvalidConfigRaisesException() {
+		 $badConfigs = [
+			 ['exceptionTemplatePath' => 21],
+			 ['secret' => 12],
+			 ['secret' => 'too short'],
+			 ['logger' => 'not a logger'],
+			 [Server::HANDLE_AUTHENTICATION_REQUEST => 'not a callable'],
+			 [Server::HANDLE_NON_INDIEAUTH_REQUEST => 'again, not a callable'],
+			 ['tokenStorage' => 34],
+			 ['csrfMiddleware' => 'not a middleware object'],
+			 ['httpGetWithEffectiveUrl' => 'not even a callable this time'],
+			 ['authorizationForm' => 'not an auth form instance']
+		 ];
+
+		 foreach ($badConfigs as $badConfig) {
+			 try {
+				$this->getDefaultServer($badConfig);
+				$this->fail();
+			 } catch (Exception $e) {
+				$this->assertTrue(true);
+			 }
+		 }
+	 }
 
 	/**
 	 * Authorization Request Tests
@@ -504,11 +534,35 @@ EOT
 		$this->assertEquals($authenticationResponse['profile'], $storedCode['profile'], "The “profile” value in the stored code did not match the “profile” value from the authentication response.");
 	}
 
+	public function testReturnsInternalServerErrorIfAuthCodeCannotBeStored() {
+		$s = $this->getDefaultServer([
+			'tokenStorage' => new NullTokenStorage(),
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
+				return ['me' => 'https://me.example.com'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [
+					new Response(200, ['content-type' => 'text/html'], ''),
+					$url
+				];
+			}
+		]);
+
+		$req = $this->getApprovalRequest(true, true);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		
+		$this->assertEquals(302, $res->getStatusCode());
+		$expectedErrorName = IndieAuthException::EXC_INFO[IndieAuthException::INTERNAL_ERROR_REDIRECT]['error'];
+		parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
+		$this->assertEquals($expectedErrorName, $redirectQueryParams['error']);
+	}
+
 	/**
 	 * Test Authorization Token Exchange Requests
 	 */
 
-	public function testExchangePathsReturnErrorsIfParametersAreMissing() {
+	public function testExchangeFlowsReturnErrorsIfParametersAreMissing() {
 		$s = $this->getDefaultServer();
 
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
@@ -526,7 +580,7 @@ EOT
 		$this->assertEquals('invalid_request', $tokenEndpointJson['error']);
 	}
 
-	public function testExchangePathsReturnErrorOnInvalidParameters() {
+	public function testExchangeFlowsReturnErrorOnInvalidParameters() {
 		$s = $this->getDefaultServer();
 		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
 
@@ -534,6 +588,7 @@ EOT
 			'Mismatched client_id' => ['client_id' => 'https://invalid-client.example.com/'],
 			'Mismatched redirect_uri' => ['redirect_uri' => 'https://invalid-client.example.com/auth'],
 			'Invalid code_verifier' => ['code_verifier' => 'definitely_not_the_randomly_generated_string'],
+			'Wrong auth code' => ['code' => 'yeah_thats_not_the_right_code']
 		];
 
 		foreach ($testCases as $name => $params) {
@@ -640,6 +695,22 @@ EOT
 		], $resJson);
 	}
 
+	public function testTokenEndpointReturnsErrorOnNonIndieauthRequest() {
+		$s = $this->getDefaultServer();
+
+		$badRequests = [
+			new ServerRequest('GET', 'https://example.com/'),
+			new ServerRequest('POST', 'https://example.com/')
+		];
+
+		foreach ($badRequests as $badRequest) {
+			$res = $s->handleTokenEndpointRequest($badRequest);
+			$this->assertEquals(400, $res->getStatusCode());
+			$resJson = json_decode((string) $res->getBody(), true);
+			$this->assertEquals('invalid_request', $resJson['error']);
+		}
+	}
+
 	public function testTokenEndpointReturnsErrorIfAccessCodeGrantsNoScopes() {
 		$s = $this->getDefaultServer();
 		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
@@ -732,10 +803,32 @@ EOT
 	}
 }
 
+/**
+ * Utility functions and classes
+ */
+
 function scopeEquals($scope1, $scope2): bool {
 	$scope1 = is_string($scope1) ? explode(' ', $scope1) : $scope1;
 	$scope2 = is_string($scope2) ? explode(' ', $scope2) : $scope2;
 	sort($scope1);
 	sort($scope2);
 	return $scope1 == $scope2;
+}
+
+class NullTokenStorage implements TokenStorageInterface {
+	public function createAuthCode(array $data): ?Token {
+		return null;
+	}
+
+	public function getAccessToken(string $token): ?Token {
+		return null;
+	}
+
+	public function exchangeAuthCodeForAccessToken(string $code): ?Token {
+		return null;
+	}
+
+	public function revokeAccessToken(string $token): bool {
+		return false;
+	}
 }

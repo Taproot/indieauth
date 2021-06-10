@@ -37,7 +37,7 @@ function hashAuthorizationRequestParameters(ServerRequestInterface $request, str
 	$hashedParameters = $hashedParameters ?? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'];
 	$algo = $algo ?? 'sha256';
 
-	$queryParams = $request->getQueryParams();
+	$queryParams = $request->getQueryParams() ?? [];
 	$data = '';
 	foreach ($hashedParameters as $key) {
 		if (!array_key_exists($key, $queryParams)) {
@@ -50,19 +50,19 @@ function hashAuthorizationRequestParameters(ServerRequestInterface $request, str
 
 function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
-			&& array_key_exists('grant_type', $request->getParsedBody())
+			&& array_key_exists('grant_type', $request->getParsedBody() ?? [])
 			&& $request->getParsedBody()['grant_type'] == 'authorization_code';
 }
 
 function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, $permittedMethods=['get']) {
 	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
-			&& array_key_exists('response_type', $request->getQueryParams())
+			&& array_key_exists('response_type', $request->getQueryParams() ?? [])
 			&& $request->getQueryParams()['response_type'] == 'code';
 }
 
 function isAuthorizationApprovalRequest(ServerRequestInterface $request) {
 	return strtolower($request->getMethod()) == 'post'
-			&& array_key_exists('taproot_indieauth_action', $request->getParsedBody())
+			&& array_key_exists('taproot_indieauth_action', $request->getParsedBody() ?? [])
 			&& $request->getParsedBody()[Server::APPROVE_ACTION_KEY] == Server::APPROVE_ACTION_VALUE;
 }
 

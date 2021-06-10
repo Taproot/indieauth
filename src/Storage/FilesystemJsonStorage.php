@@ -209,10 +209,10 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	}
 
 	protected function withLock(string $path, string $mode, callable $callback) {
-		$fp = fopen($path, $mode);
+		$fp = @fopen($path, $mode);
 
 		if ($fp === false) {
-			return false;
+			return null;
 		}
 
 		// Wait for a lock.

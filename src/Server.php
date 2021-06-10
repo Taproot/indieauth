@@ -66,7 +66,7 @@ class Server {
 		], $config);
 
 		if (!is_string($config['exceptionTemplatePath'])) {
-			throw new Exception("\$config['secret'] must be a string (path).");
+			throw new Exception("\$config['exceptionTemplatePath'] must be a string (path).");
 		}
 		$this->exceptionTemplatePath = $config['exceptionTemplatePath'];
 
@@ -130,10 +130,10 @@ class Server {
 					$effectiveUrl = empty($rdh) ? $uri : array_values($rdh)[count($rdh) - 1];
 
 					return [$resp, $effectiveUrl];
-					// @codeCoverageIgnoreEnd
 				};
 			} else {
 				throw new Exception('No valid $httpGetWithEffectiveUrl was provided, and guzzlehttp/guzzle was not installed. Either require guzzlehttp/guzzle, or provide a valid callable.');
+				// @codeCoverageIgnoreEnd
 			}
 		}
 		trySetLogger($httpGetWithEffectiveUrl, $this->logger);
@@ -360,7 +360,7 @@ class Server {
 								// If saving the authorization code failed silently, there isn’t much we can do about it,
 								// but should at least log and return an error.
 								$this->logger->error("Saving the authorization code failed and returned false without raising an exception.");
-								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR, $request);
+								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR_REDIRECT, $request);
 							}
 							
 							// Return a redirect to the client app.

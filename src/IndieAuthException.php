@@ -19,6 +19,7 @@ class IndieAuthException extends Exception {
 	const INVALID_STATE = 9;
 	const INVALID_CODE_CHALLENGE = 10;
 	const INVALID_SCOPE = 11;
+	const INTERNAL_ERROR_REDIRECT = 12;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
@@ -34,6 +35,7 @@ class IndieAuthException extends Exception {
 		self::INVALID_STATE => ['statusCode' => 302, 'name' => 'Invalid state Parameter', 'error' => 'invalid_request'],
 		self::INVALID_CODE_CHALLENGE => ['statusCode' => 302, 'name' => 'Invalid code_challenge Parameter', 'error' => 'invalid_request'],
 		self::INVALID_SCOPE => ['statusCode' => 302, 'name' => 'Invalid scope Parameter', 'error' => 'invalid_request'],
+		self::INTERNAL_ERROR_REDIRECT => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
 	];
 
 	protected ServerRequestInterface $request;
