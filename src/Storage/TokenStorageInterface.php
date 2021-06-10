@@ -29,7 +29,10 @@ namespace Taproot\IndieAuth\Storage;
  * 
  * Periodic deletion of expired tokens is out of the scope of this interface. Implementations may
  * choose to offer a clean-up method, and potentially the option to call it once automatically 
- * on instanciation.
+ * on instantiation.
+ * 
+ * None of the methods defined on TokenStorageInterface should throw exceptions. Failure, for any
+ * reason, is indicated by returning either `null` or `false`, depending on the method.
  */
 interface TokenStorageInterface {
 	/**
@@ -54,9 +57,9 @@ interface TokenStorageInterface {
 	 *   callback, which will be present in `$data`.
 	 * * Any keys added by the `transformAuthorizationCode` method on the currently active instance
 	 *   of `Taproot\IndieAuth\Callback\AuthorizationFormInterface`. Typically this is the `scope`
-	 *   key, which is a valid scope string listing the scopes granted by the user on the consent
-	 *   screen. Other implementations of `AuthorizationFormInterface` may add additional data, such
-	 *   as custom token-specific settings, or a custom token lifetime.
+	 *   key, which is a valid space-separated scope string listing the scopes granted by the user on
+	 *   the consent screen. Other implementations of `AuthorizationFormInterface` may add additional 
+	 *   data, such as custom token-specific settings, or a custom token lifetime.
 	 * 
 	 * This method should store the data passed to it, generate a corresponding authorization code,
 	 * and return an instance of `Storage\Token` containing both. Implementations will usually add 
@@ -66,11 +69,12 @@ interface TokenStorageInterface {
 	 * about how to store authorization code data. It could be a record in an auth code database
 	 * table, a record in a table which is used for both auth codes and access tokens, or even
 	 * a stateless self-encrypted token — note that in the latter case, you must persist a copy
-	 * of the auth code with it’s access token to check against, in order to prevent it being
-	 * exchanged for an access token more than once.
+	 * of the auth code with its exchanged access token to check against, in order to prevent it 
+	 * being exchanged more than once.
 	 * 
 	 * On an error, return null. The reason for the error is irrelevant for calling code, but it’s
-	 * recommended to log it for reference.
+	 * recommended to log it internally for reference. For the same reason, this method should not 
+	 * throw exceptions.
 	 */
 	public function createAuthCode(array $data): ?Token;
 
