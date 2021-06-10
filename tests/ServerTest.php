@@ -537,33 +537,33 @@ EOT
 		];
 
 		foreach ($testCases as $name => $params) {
-			// Create an auth code.
-			$codeVerifier = generateRandomString(32);
-			$authCode = $storage->createAuthCode([
-				'client_id' => 'https://client.example.com/',
-				'redirect_uri' => 'https://client.example.com/auth',
-				'code_challenge' => generatePKCECodeChallenge($codeVerifier),
-				'state' => '12345',
-				'code_challenge_method' => 'S256'
-			]);
-			
-			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody(array_merge([
-				'grant_type' => 'authorization_code',
-				'code' => $authCode->getKey(),
-				'client_id' => $authCode->getData()['client_id'],
-				'redirect_uri' => $authCode->getData()['redirect_uri'],
-				'code_verifier' => $codeVerifier
-			], $params));
+			foreach ([
+					[$s, 'handleAuthorizationEndpointRequest'],
+					[$s, 'handleTokenEndpointRequest'],
+				] as $endpointHandler) {
+				// Create an auth code.
+				$codeVerifier = generateRandomString(32);
+				$authCode = $storage->createAuthCode([
+					'client_id' => 'https://client.example.com/',
+					'redirect_uri' => 'https://client.example.com/auth',
+					'code_challenge' => generatePKCECodeChallenge($codeVerifier),
+					'state' => '12345',
+					'code_challenge_method' => 'S256'
+				]);
+				
+				$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody(array_merge([
+					'grant_type' => 'authorization_code',
+					'code' => $authCode->getKey(),
+					'client_id' => $authCode->getData()['client_id'],
+					'redirect_uri' => $authCode->getData()['redirect_uri'],
+					'code_verifier' => $codeVerifier
+				], $params));
 
-			$authEndpointResponse = $s->handleAuthorizationEndpointRequest($req);
-			$this->assertEquals(400, $authEndpointResponse->getStatusCode());
-			$authEndpointJson = json_decode((string) $authEndpointResponse->getBody(), true);
-			$this->assertEquals('invalid_grant', $authEndpointJson['error']);
-
-			$tokenEndpointResponse = $s->handleTokenEndpointRequest($req);
-			$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
-			$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
-			$this->assertEquals('invalid_grant', $tokenEndpointJson['error']);
+				$res = $endpointHandler($req);
+				$this->assertEquals(400, $res->getStatusCode());
+				$resJson = json_decode((string) $res->getBody(), true);
+				$this->assertEquals('invalid_grant', $resJson['error']);
+			}
 		}
 	}
 
