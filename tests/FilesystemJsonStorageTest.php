@@ -6,6 +6,7 @@ use DirectoryIterator;
 use PHPUnit\Framework\TestCase;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
 
+const SECRET = '1111111111111111111111111111111111111111111111111111111111111111';
 const TMP_DIR = __DIR__ . '/tmp';
 
 class FilesystemJsonStorageTest extends TestCase {
@@ -29,7 +30,7 @@ class FilesystemJsonStorageTest extends TestCase {
 	}
 	
 	public function testCrud() {
-		$s = new FilesystemJsonStorage(TMP_DIR, 0, false);
+		$s = new FilesystemJsonStorage(TMP_DIR, SECRET);
 
 		$t1data = ['example' => 'data'];
 		$t1path = $s->getPath('t1');
@@ -48,10 +49,11 @@ class FilesystemJsonStorageTest extends TestCase {
 	}
 
 	public function testCleanUp() {
-		$s = new FilesystemJsonStorage(TMP_DIR, 1, false);
-		$s->put('t1', ['example' => 'data']);
-		sleep(2);
-		$s->cleanUp();
-		$this->assertNull($s->get('t1'), 't1 was not cleaned up after expiring.');
+		$s = new FilesystemJsonStorage(TMP_DIR, SECRET);
+		$s->put('t1', ['valid_until' => time() + 10]);
+		$s->put('t2', ['valid_until' => time() - 10]);
+		$s->deleteExpiredTokens();
+		$this->assertIsArray($s->get('t1'), 't1 was not expired and should not have been deleted.');
+		$this->assertNull($s->get('t2'), 't2 was not cleaned up after expiring.');
 	}
 }

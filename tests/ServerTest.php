@@ -2,6 +2,7 @@
 
 namespace Taproot\IndieAuth\Test;
 
+use DirectoryIterator;
 use Exception;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
@@ -18,8 +19,7 @@ use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
 use function Taproot\IndieAuth\urlComponentsMatch;
 
 const SERVER_SECRET = '1111111111111111111111111111111111111111111111111111111111111111';
-const AUTH_CODE_STORAGE_PATH = __DIR__ . '/tmp/authorization_codes';
-const ACCESS_TOKEN_STORAGE_PATH = __DIR__ . '/tmp/authorization_codes';
+const TOKEN_STORAGE_PATH = __DIR__ . '/tmp/tokens';
 const CODE_EXCEPTION_TEMPLATE_PATH = __DIR__ . '/templates/code_exception_response.txt.php';
 const AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH = __DIR__ . '/templates/authorization_form_json_response.json.php';
 const TMP_DIR = __DIR__ . '/tmp';
@@ -28,8 +28,7 @@ class ServerTest extends TestCase {
 	protected function getDefaultServer(array $config=[]) {
 		return new Server(array_merge([
 			'secret' => SERVER_SECRET,
-			'authorizationCodeStorage' => AUTH_CODE_STORAGE_PATH,
-			'accessTokenStorage' => ACCESS_TOKEN_STORAGE_PATH,
+			'tokenStorage' => TOKEN_STORAGE_PATH,
 			// With this template, IndieAuthException response bodies will contain only their IndieAuthException error code, for ease of comparison.
 			'exceptionTemplatePath' => CODE_EXCEPTION_TEMPLATE_PATH,
 			// Default to a simple single-user password authentication handler.
@@ -81,18 +80,24 @@ class ServerTest extends TestCase {
 
 	protected function setUp(): void {
 		// Clean up tmp folder.
-		new FilesystemJsonStorage(AUTH_CODE_STORAGE_PATH, -1, true);
-		new FilesystemJsonStorage(ACCESS_TOKEN_STORAGE_PATH, -1, true);
-		@rmdir(AUTH_CODE_STORAGE_PATH);
-		@rmdir(ACCESS_TOKEN_STORAGE_PATH);
+		@mkdir(TOKEN_STORAGE_PATH, 0777, true);
+		foreach (new DirectoryIterator(TOKEN_STORAGE_PATH) as $fileInfo) {
+			if ($fileInfo->isFile()) {
+				unlink($fileInfo->getPathname());
+			}
+		}
+		@rmdir(TOKEN_STORAGE_PATH);
 	}
 
 	protected function tearDown(): void {
 		// Clean up tmp folder.
-		new FilesystemJsonStorage(AUTH_CODE_STORAGE_PATH, -1, true);
-		new FilesystemJsonStorage(ACCESS_TOKEN_STORAGE_PATH, -1, true);
-		@rmdir(AUTH_CODE_STORAGE_PATH);
-		@rmdir(ACCESS_TOKEN_STORAGE_PATH);
+		@mkdir(TOKEN_STORAGE_PATH, 0777, true);
+		foreach (new DirectoryIterator(TOKEN_STORAGE_PATH) as $fileInfo) {
+			if ($fileInfo->isFile()) {
+				unlink($fileInfo->getPathname());
+			}
+		}
+		@rmdir(TOKEN_STORAGE_PATH);
 	}
 
 	public function testAuthorizationRequestMissingParametersReturnsError() {
@@ -220,8 +225,8 @@ class ServerTest extends TestCase {
 		$this->assertEquals($redirectUriQueryParams['state'], $queryParams['state'], 'The redirect URI state parameter did not match the authorization request state parameter.');
 		$this->assertEquals('value', $redirectUriQueryParams['client_redirect_query_string_param'], 'Query string params in the client app redirect_uri were not correctly preserved.');
 		
-		$storage = new FilesystemJsonStorage(AUTH_CODE_STORAGE_PATH);
-		$storedCode = $storage->get($redirectUriQueryParams['code']);
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SECRET);
+		$storedCode = $storage->get(hash_hmac('sha256', $redirectUriQueryParams['code'], SECRET));
 
 		$this->assertNotNull($storedCode, 'An authorization code should be stored after a successful approval request.');
 		

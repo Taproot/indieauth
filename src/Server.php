@@ -36,9 +36,7 @@ class Server {
 	const APPROVE_ACTION_KEY = 'taproot_indieauth_action';
 	const APPROVE_ACTION_VALUE = 'approve';
 
-	protected Storage\TokenStorageInterface $authorizationCodeStorage;
-
-	protected Storage\TokenStorageInterface $accessTokenStorage;
+	protected Storage\TokenStorageInterface $tokenStorage;
 
 	protected AuthorizationFormInterface $authorizationForm;
 
@@ -61,8 +59,7 @@ class Server {
 			'csrfMiddleware' => null,
 			'logger' => null,
 			self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
-			'authorizationCodeStorage' => null,
-			'accessTokenStorage' => null,
+			'tokenStorage' => null,
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
 			'exceptionTemplatePath' => __DIR__ . '/../templates/default_exception_response.html.php',
@@ -75,7 +72,7 @@ class Server {
 
 		$secret = $config['secret'] ?? '';
 		if (!is_string($secret) || strlen($secret) < 64) {
-			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters.");
+			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters. Make one with Taproot\IndieAuth\generateRandomString(64)");
 		}
 		$this->secret = $secret;
 
@@ -94,28 +91,17 @@ class Server {
 		}
 		$this->handleNonIndieAuthRequest = $config[self::HANDLE_NON_INDIEAUTH_REQUEST];
 
-		$authorizationCodeStorage = $config['authorizationCodeStorage'];
-		if (!$authorizationCodeStorage instanceof Storage\TokenStorageInterface) {
-			if (is_string($authorizationCodeStorage)) {
-				$authorizationCodeStorage = new Storage\FilesystemJsonStorage($authorizationCodeStorage, 600, true);
-			} else {
-				throw new Exception("\$config['authorizationCodeStorage'] must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.");
-			}
-		}
-		trySetLogger($authorizationCodeStorage, $this->logger);
-		$this->authorizationCodeStorage = $authorizationCodeStorage;
-
-		$accessTokenStorage = $config['accessTokenStorage'];
-		if (!$accessTokenStorage instanceof Storage\TokenStorageInterface) {
-			if (is_string($accessTokenStorage)) {
+		$tokenStorage = $config['tokenStorage'];
+		if (!$tokenStorage instanceof Storage\TokenStorageInterface) {
+			if (is_string($tokenStorage)) {
 				// Create a default access token storage with a TTL of 7 days.
-				$accessTokenStorage = new Storage\FilesystemJsonStorage($accessTokenStorage, 60 * 60 * 24 * 7, true);
+				$tokenStorage = new Storage\FilesystemJsonStorage($tokenStorage, $this->secret);
 			} else {
-				throw new Exception('$accessTokenStorage parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.');
+				throw new Exception("\$config['tokenStorage'] parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.");
 			}
 		}
-		trySetLogger($accessTokenStorage, $this->logger);
-		$this->accessTokenStorage = $accessTokenStorage;
+		trySetLogger($tokenStorage, $this->logger);
+		$this->tokenStorage = $tokenStorage;
 
 		$csrfMiddleware = $config['csrfMiddleware'];
 		if (!$csrfMiddleware instanceof MiddlewareInterface) {
@@ -281,8 +267,8 @@ class Server {
 							$code = $this->authorizationForm->transformAuthorizationCode($request, $code);
 
 							// Store the authorization code.
-							$success = $this->authorizationCodeStorage->put($code['code'], $code);
-							if (!$success) {
+							$authCode = $this->tokenStorage->createAuthCode($code);
+							if (is_null($authCode)) {
 								// If saving the authorization code failed silently, there isn’t much we can do about it,
 								// but should at least log and return an error.
 								$this->logger->error("Saving the authorization code failed and returned false without raising an exception.");
@@ -291,7 +277,7 @@ class Server {
 							
 							// Return a redirect to the client app.
 							return new Response(302, ['Location' => appendQueryParams($queryParams['redirect_uri'], [
-								'code' => $code['code'],
+								'code' => $authCode->getKey(),
 								'state' => $code['state']
 							])]);
 						}

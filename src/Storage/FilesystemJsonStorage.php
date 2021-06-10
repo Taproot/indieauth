@@ -9,7 +9,6 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 use function Taproot\IndieAuth\generateRandomString;
-use function Taproot\IndieAuth\trySetLogger;
 
 class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterface {
 	const DEFAULT_AUTH_CODE_TTL = 60 * 5; // Five minutes.
@@ -24,23 +23,24 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 
 	protected LoggerInterface $logger;
 
+
 	public function __construct(string $path, string $secret, ?int $authCodeTtl=null, ?int $accessTokenTtl=null, $cleanUpNow=false, ?LoggerInterface $logger=null) {
 		$this->logger = $logger ?? new NullLogger();
 
 		if (!is_string($secret) || strlen($secret) < 64) {
-			throw new Exception("\$secret must be a string with a minimum length of 64 characters.");
+			throw new Exception("\$secret must be a string with a minimum length of 64 characters. Make one with Taproot\IndieAuth\generateRandomString(64)");
 		}
 		$this->secret = $secret;
 
 		$this->path = rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-		$this->authCodeTtl == $authCodeTtl ?? self::DEFAULT_AUTH_CODE_TTL;
+		$this->authCodeTtl = $authCodeTtl ?? self::DEFAULT_AUTH_CODE_TTL;
 		$this->accessTokenTtl = $accessTokenTtl ?? self::DEFAULT_ACCESS_TOKEN_TTL;
 
 		@mkdir($this->path, 0777, true);
 
 		if ($cleanUpNow) {
-			$this->cleanUp();
+			$this->deleteExpiredTokens();
 		}
 	}
 
@@ -204,7 +204,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		return $this->path . "$key.json";
 	}
 
-	protected function withLock(string $path, string $mode, callable $callback): mixed {
+	protected function withLock(string $path, string $mode, callable $callback) {
 		$fp = fopen($path, $mode);
 
 		if ($fp === false) {
