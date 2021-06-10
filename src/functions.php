@@ -25,6 +25,14 @@ function generateRandomString($numBytes) {
 	return bin2hex($bytes);
 }
 
+function generatePKCECodeChallenge($plaintext) {
+	return base64_urlencode(hash('sha256', $plaintext, true));
+}
+
+function base64_urlencode($string) {
+	return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
+}
+
 function hashAuthorizationRequestParameters(ServerRequestInterface $request, string $secret, ?string $algo=null, ?array $hashedParameters=null): ?string {
 	$hashedParameters = $hashedParameters ?? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'];
 	$algo = $algo ?? 'sha256';
@@ -126,4 +134,79 @@ function renderTemplate(string $template, array $context=[]) {
 		return ob_get_clean();
 	};
 	return $render($template, $context);
+}
+
+// IndieAuth/OAuth2-related Validation Functions
+// Mostly taken or adapted by https://github.com/Zegnat/php-mindee/ — thanks Zegnat!
+// Code was not licensed at time of writing, permission granted here https://chat.indieweb.org/dev/2021-06-10/1623327498355700
+
+/**
+ * Check if a provided string matches the IndieAuth criteria for a Client Identifier.
+ * @see https://indieauth.spec.indieweb.org/#client-identifier
+ * 
+ * @param string $client_id The client ID provided by the OAuth Client
+ * @return bool true if the value is allowed by IndieAuth
+ */
+function isClientIdentifier(string $client_id): bool {
+	return ($url_components = parse_url($client_id)) &&                     // Clients are identified by a URL.
+			in_array($url_components['scheme'] ?? '', ['http', 'https']) &&     // Client identifier URLs MUST have either an https or http scheme,
+			0 < strlen($url_components['path'] ?? '') &&                        // MUST contain a path component,
+			false === strpos($url_components['path'], '/./') &&                 // MUST NOT contain single-dot
+			false === strpos($url_components['path'], '/../') &&                // or double-dot path segments,
+			false === isset($url_components['fragment']) &&                     // MUST NOT contain a fragment component,
+			false === isset($url_components['user']) &&                         // MUST NOT contain a username
+			false === isset($url_components['pass']) &&                         // or password component,
+			(
+				false === filter_var($url_components['host'], FILTER_VALIDATE_IP) ||  // MUST NOT be an IP address
+				($url_components['host'] ?? null) == '127.0.0.1' ||                   // except for 127.0.0.1
+				($url_components['host'] ?? null) == '[::1]'                          // or [::1]
+			)
+	;
+}
+
+/**
+ * Check if a provided string matches the IndieAuth criteria for a User Profile URL.
+ * @see https://indieauth.spec.indieweb.org/#user-profile-url
+ * 
+ * @param string $profile_url The profile URL provided by the IndieAuth Client as me
+ * @return bool true if the value is allowed by IndieAuth
+ */
+function isProfileUrl(string $profile_url): bool {
+	return ($url_components = parse_url($profile_url)) &&                   // Users are identified by a URL.
+			in_array($url_components['scheme'] ?? '', ['http', 'https']) &&     // Profile URLs MUST have either an https or http scheme,
+			0 < strlen($url_components['path'] ?? '') &&                        // MUST contain a path component,
+			false === strpos($url_components['path'], '/./') &&                 // MUST NOT contain single-dot
+			false === strpos($url_components['path'], '/../') &&                // or double-dot path segments,
+			false === isset($url_components['fragment']) &&                     // MUST NOT contain a fragment component,
+			false === isset($url_components['user']) &&                         // MUST NOT contain a username
+			false === isset($url_components['pass']) &&                         // or password component,
+			false === isset($url_components['port']) &&                         // MUST NOT contain a port,
+			false === filter_var($url_components['host'], FILTER_VALIDATE_IP)   // MUST NOT be an IP address.
+	;
+}
+
+/**
+ * OAuth 2.0 limits what values are valid for state.
+ * We check this first, because if valid, we want to send it along with other errors.
+ * @see https://tools.ietf.org/html/rfc6749#appendix-A.5
+ */
+function isValidState(string $state): bool {
+	return false !== filter_var($state, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[\x20-\x7E]*$/']]);
+}
+
+/**
+ * IndieAuth requires PKCE. This implementation supports only S256 for hashing.
+ * 
+ * @see https://indieauth.spec.indieweb.org/#authorization-request
+ */
+function isValidCodeChallenge(string $challenge): bool {
+	return false !== filter_var($challenge, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[A-Za-z0-9_-]+$/']]);
+}
+
+/**
+ * OAuth 2.0 limits what values are valid for scope.
+ * @see https://tools.ietf.org/html/rfc6749#section-3.3
+ */
+function isValidScope(string $scope): bool {
+	return false !== filter_var($scope, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^([\x21\x23-\x5B\x5D-\x7E]+( [\x21\x23-\x5B\x5D-\x7E]+)*)?$/']]);
 }
