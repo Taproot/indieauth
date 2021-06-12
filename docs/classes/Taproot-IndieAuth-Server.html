@@ -89,7 +89,7 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">72</span>
+    <span class="phpdocumentor-element-found-in__line">78</span>
 </aside>
 
             <p class="phpdocumentor-summary">IndieAuth Server</p>
@@ -99,8 +99,14 @@ and token endpoints.</p>
 <p>Typical minimal usage looks something like this:</p>
 <pre class="prettyprint"><code class="prettyprint">// Somewhere in your app set-up code:
 $server = new Taproot\IndieAuth\Server([
-  'secret' =&gt; APP_INDIEAUTH_SECRET,  // A secret key, &gt;= 64 characters long.
-  'tokenStorage' =&gt; '/../data/auth_tokens/',  // A path to store token data, or an object implementing TokenStorageInterface.
+  // A secret key, &gt;= 64 characters long.
+  'secret' =&gt; YOUR_APP_INDIEAUTH_SECRET,
+
+  // A path to store token data, or an object implementing TokenStorageInterface.
+  'tokenStorage' =&gt; '/../data/auth_tokens/',
+
+  // An authentication callback function, which either returns data about the current user,
+  // or redirects to/implements an authentication flow.
   'handleAuthenticationRequestCallback' =&gt; function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
     // If the request is authenticated, return an array with a `me` key containing the
     // canonical URL of the currently logged-in user.
@@ -339,7 +345,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">89</span>
+    <span class="phpdocumentor-element-found-in__line">95</span>
 </aside>
 
         <p class="phpdocumentor-summary">The form data key used for identifying a request as an authorization (consent screen) form submissions.</p>
@@ -366,7 +372,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">94</span>
+    <span class="phpdocumentor-element-found-in__line">100</span>
 </aside>
 
         <p class="phpdocumentor-summary">The form data value used for identifying a request as an authorization (consent screen) form submissions.</p>
@@ -393,7 +399,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">84</span>
+    <span class="phpdocumentor-element-found-in__line">90</span>
 </aside>
 
         <p class="phpdocumentor-summary">The key used to store the CSRF token everywhere it’s used: Request parameters, Request body, and Cookies.</p>
@@ -420,7 +426,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">74</span>
+    <span class="phpdocumentor-element-found-in__line">80</span>
 </aside>
 
     
@@ -445,7 +451,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">73</span>
+    <span class="phpdocumentor-element-found-in__line">79</span>
 </aside>
 
     
@@ -470,7 +476,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">79</span>
+    <span class="phpdocumentor-element-found-in__line">85</span>
 </aside>
 
         <p class="phpdocumentor-summary">The query string parameter key used for storing the hash used for validating authorization request parameters.</p>
@@ -512,7 +518,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">98</span>
+    <span class="phpdocumentor-element-found-in__line">104</span>
 </aside>
 
     
@@ -542,7 +548,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">100</span>
+    <span class="phpdocumentor-element-found-in__line">106</span>
 </aside>
 
     
@@ -572,7 +578,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">110</span>
+    <span class="phpdocumentor-element-found-in__line">116</span>
 </aside>
 
     
@@ -602,7 +608,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">106</span>
+    <span class="phpdocumentor-element-found-in__line">112</span>
 </aside>
 
     
@@ -632,7 +638,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">108</span>
+    <span class="phpdocumentor-element-found-in__line">114</span>
 </aside>
 
     
@@ -662,7 +668,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">104</span>
+    <span class="phpdocumentor-element-found-in__line">110</span>
 </aside>
 
     
@@ -692,7 +698,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">102</span>
+    <span class="phpdocumentor-element-found-in__line">108</span>
 </aside>
 
     
@@ -722,7 +728,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">112</span>
+    <span class="phpdocumentor-element-found-in__line">118</span>
 </aside>
 
     
@@ -752,7 +758,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">96</span>
+    <span class="phpdocumentor-element-found-in__line">102</span>
 </aside>
 
     
@@ -786,7 +792,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">181</span>
+    <span class="phpdocumentor-element-found-in__line">187</span>
 </aside>
 
         <p class="phpdocumentor-summary">Constructor</p>
@@ -903,7 +909,7 @@ as the logger for any objects passed in config which implement <code class="pret
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">273</span>
+    <span class="phpdocumentor-element-found-in__line">279</span>
 </aside>
 
     
@@ -935,7 +941,7 @@ as the logger for any objects passed in config which implement <code class="pret
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">312</span>
+    <span class="phpdocumentor-element-found-in__line">318</span>
 </aside>
 
         <p class="phpdocumentor-summary">Handle Authorization Endpoint Request</p>
@@ -1010,7 +1016,7 @@ error behaviour, one way to do so is to subclass <code class="prettyprint">Serve
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">670</span>
+    <span class="phpdocumentor-element-found-in__line">676</span>
 </aside>
 
         <p class="phpdocumentor-summary">Handle Token Endpoint Request</p>
@@ -1066,7 +1072,7 @@ error behaviour, one way to do so is to subclass <code class="prettyprint">Serve
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">763</span>
+    <span class="phpdocumentor-element-found-in__line">769</span>
 </aside>
 
         <p class="phpdocumentor-summary">Handle Exception</p>
