@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../">
+    <link rel="icon" href="images/favicon.ico"/>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/base.css">
+            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="css/template.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/css/all.min.css" integrity="sha256-ybRkN9dBjhcS2qrW1z+hfCxq+1aBdwyQM5wlQoQVt/0=" crossorigin="anonymous" />
+                <script src="https://cdn.jsdelivr.net/npm/fuse.js@3.4.6"></script>
+        <script src="https://cdn.jsdelivr.net/npm/css-vars-ponyfill@2"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/js/all.min.js" integrity="sha256-0vuk8LXoyrmCjp1f0O300qo1M75ZQyhH9X3J6d+scmk=" crossorigin="anonymous"></script>
+        <script src="js/search.js"></script>
+        <script defer src="js/searchIndex.js"></script>
+    </head>
+<body id="top">
+    <header class="phpdocumentor-header phpdocumentor-section">
+    <h1 class="phpdocumentor-title"><a href="" class="phpdocumentor-title__link">Documentation</a></h1>
+    <input class="phpdocumentor-header__menu-button" type="checkbox" id="menu-button" name="menu-button" />
+    <label class="phpdocumentor-header__menu-icon" for="menu-button">
+        <i class="fas fa-bars"></i>
+    </label>
+    <section data-search-form class="phpdocumentor-search">
+    <label>
+        <span class="visually-hidden">Search for</span>
+        <svg class="phpdocumentor-search__icon" width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="2"/>
+            <line x1="12.4892" y1="12.2727" x2="19.1559" y2="18.9393" stroke="currentColor" stroke-width="3"/>
+        </svg>
+        <input type="search" class="phpdocumentor-field phpdocumentor-search__field" placeholder="Loading .." disabled />
+    </label>
+</section>
+
+    <nav class="phpdocumentor-topnav">
+    <ul class="phpdocumentor-topnav__menu">
+        </ul>
+</nav>
+</header>
+
+    <main class="phpdocumentor">
+        <div class="phpdocumentor-section">
+            <input class="phpdocumentor-sidebar__menu-button" type="checkbox" id="sidebar-button" name="sidebar-button" />
+<label class="phpdocumentor-sidebar__menu-icon" for="sidebar-button">
+    Menu
+</label>
+<aside class="phpdocumentor-column -four phpdocumentor-sidebar">
+    
+    <section class="phpdocumentor-sidebar__category">
+        <h2 class="phpdocumentor-sidebar__category-header">Namespaces</h2>
+                                                <h4 class="phpdocumentor-sidebar__root-namespace"><a href="namespaces/taproot.html"><abbr title="\Taproot">Taproot</abbr></a></h4>
+                <ul class="phpdocumentor-list">
+                                            <li><a href="namespaces/taproot-indieauth.html"><abbr title="\Taproot\IndieAuth">IndieAuth</abbr></a></li>
+                                    </ul>
+                        </section>
+
+    
+    <section class="phpdocumentor-sidebar__category">
+        <h2 class="phpdocumentor-sidebar__category-header">Reports</h2>
+                <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/deprecated.html">Deprecated</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/errors.html">Errors</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/markers.html">Markers</a></h3>
+    </section>
+
+    <section class="phpdocumentor-sidebar__category">
+        <h2 class="phpdocumentor-sidebar__category-header">Indices</h2>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="indices/files.html">Files</a></h3>
+    </section>
+</aside>
+
+            <div class="phpdocumentor-column -eight phpdocumentor-content">
+                    <ul class="phpdocumentor-breadcrumbs">
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/taproot.html">Taproot</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/taproot-indieauth.html">IndieAuth</a></li>
+    </ul>
+
+    <article class="phpdocumentor-element -class">
+        <h2 class="phpdocumentor-content__title">
+    Server
+
+    
+    
+    
+    </h2>
+
+        <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">72</span>
+</aside>
+
+            <p class="phpdocumentor-summary">IndieAuth Server</p>
+
+    <section class="phpdocumentor-description"><p>A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
+and token endpoints.</p>
+<p>Typical minimal usage looks something like this:</p>
+<pre class="prettyprint"><code class="prettyprint">// Somewhere in your app set-up code:
+$server = new Taproot\IndieAuth\Server([
+  'secret' =&gt; APP_INDIEAUTH_SECRET,  // A secret key, &gt;= 64 characters long.
+  'tokenStorage' =&gt; '/../data/auth_tokens/',  // A path to store token data, or an object implementing TokenStorageInterface.
+  'handleAuthenticationRequestCallback' =&gt; function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
+    // If the request is authenticated, return an array with a `me` key containing the
+    // canonical URL of the currently logged-in user.
+    if ($userUrl = getLoggedInUserUrl($request)) {
+      return ['me' =&gt; $userUrl];
+    }
+
+    // Otherwise, redirect the user to a login page, ensuring that they will be redirected
+    // back to the IndieAuth flow with query parameters intact once logged in.
+    return new Response('302', ['Location' =&gt; 'https://example.com/login?next=' . urlencode($authenticationRedirect)]);
+  }
+]);
+
+// In your authorization endpoint route:
+return $server-&gt;handleAuthorizationEndpointRequest($request);
+
+// In your token endpoint route:
+return $server-&gt;handleTokenEndpointRequest($request);
+
+// In another route (e.g. a micropub route), to authenticate the request:
+// (assuming $bearerToken is a token parsed from an “Authorization: Bearer XXXXXX” header
+// or access_token property from a request body)
+if ($accessToken = $server-&gt;getTokenStorage()-&gt;getAccessToken($bearerToken)) {
+  // Request is authenticated as $accessToken['me'], and is allowed to
+  // act according to the scopes listed in $accessToken['scope'].
+  $scopes = explode(' ', $accessToken['scope']);
+}
+</code></pre>
+<p>Refer to the <code class="prettyprint">__construct</code> documentation for further configuration options, and to the
+documentation for both handling methods for further documentation about them.</p>
+</section>
+
+
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="#tags" class="headerlink"><i class="fas fa-link"></i></a>
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">link</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://indieauth.spec.indieweb.org/"> https://indieauth.spec.indieweb.org/ </a>
+                    
+                                    </dd>
+                            <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">link</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2"> https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2 </a>
+                    
+                                    </dd>
+                            <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">link</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://github.com/indieweb/indieauth-client-php"> https://github.com/indieweb/indieauth-client-php </a>
+                    
+                                    </dd>
+                            <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">link</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://github.com/Zegnat/php-mindee/blob/development/index.php"> https://github.com/Zegnat/php-mindee/blob/development/index.php </a>
+                    
+                                    </dd>
+                        </dl>
+
+
+
+
+
+
+<h3 id="toc">
+    Table of Contents
+    <a href="#toc" class="headerlink"><i class="fas fa-link"></i></a>
+</h3>
+
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_APPROVE_ACTION_KEY">APPROVE_ACTION_KEY</a>
+    <span>
+        &nbsp;= &#039;taproot_indieauth_action&#039;                    </span>
+</dt>
+<dd>The form data key used for identifying a request as an authorization (consent screen) form submissions.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_APPROVE_ACTION_VALUE">APPROVE_ACTION_VALUE</a>
+    <span>
+        &nbsp;= &#039;approve&#039;                    </span>
+</dt>
+<dd>The form data value used for identifying a request as an authorization (consent screen) form submissions.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_DEFAULT_CSRF_KEY">DEFAULT_CSRF_KEY</a>
+    <span>
+        &nbsp;= &#039;taproot_indieauth_server_csrf&#039;                    </span>
+</dt>
+<dd>The key used to store the CSRF token everywhere it’s used: Request parameters, Request body, and Cookies.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_HANDLE_AUTHENTICATION_REQUEST">HANDLE_AUTHENTICATION_REQUEST</a>
+    <span>
+        &nbsp;= &#039;handleAuthenticationRequestCallback&#039;                    </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_HANDLE_NON_INDIEAUTH_REQUEST">HANDLE_NON_INDIEAUTH_REQUEST</a>
+    <span>
+        &nbsp;= &#039;handleNonIndieAuthRequestCallback&#039;                    </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#constant_HASH_QUERY_STRING_KEY">HASH_QUERY_STRING_KEY</a>
+    <span>
+        &nbsp;= &#039;taproot_indieauth_server_hash&#039;                    </span>
+</dt>
+<dd>The query string parameter key used for storing the hash used for validating authorization request parameters.</dd>
+
+                <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_authorizationForm">$authorizationForm</a>
+    <span>
+                &nbsp;: <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a>            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_csrfMiddleware">$csrfMiddleware</a>
+    <span>
+                &nbsp;: <abbr title="\Psr\Http\Server\MiddlewareInterface">MiddlewareInterface</abbr>            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplatePath">$exceptionTemplatePath</a>
+    <span>
+                &nbsp;: string            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_handleAuthenticationRequestCallback">$handleAuthenticationRequestCallback</a>
+    <span>
+                &nbsp;: mixed            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_handleNonIndieAuthRequest">$handleNonIndieAuthRequest</a>
+    <span>
+                &nbsp;: mixed            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_httpGetWithEffectiveUrl">$httpGetWithEffectiveUrl</a>
+    <span>
+                &nbsp;: mixed            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_logger">$logger</a>
+    <span>
+                &nbsp;: <abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_secret">$secret</a>
+    <span>
+                &nbsp;: string            </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#property_tokenStorage">$tokenStorage</a>
+    <span>
+                &nbsp;: <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a>            </span>
+</dt>
+<dd></dd>
+
+                <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#method___construct">__construct()</a>
+    <span>
+                        &nbsp;: self    </span>
+</dt>
+<dd>Constructor</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#method_getTokenStorage">getTokenStorage()</a>
+    <span>
+                        &nbsp;: <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a>    </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#method_handleAuthorizationEndpointRequest">handleAuthorizationEndpointRequest()</a>
+    <span>
+                        &nbsp;: <abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr>    </span>
+</dt>
+<dd>Handle Authorization Endpoint Request</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/Taproot-IndieAuth-Server.html#method_handleTokenEndpointRequest">handleTokenEndpointRequest()</a>
+    <span>
+                        &nbsp;: <abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr>    </span>
+</dt>
+<dd>Handle Token Endpoint Request</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a href="classes/Taproot-IndieAuth-Server.html#method_handleException">handleException()</a>
+    <span>
+                        &nbsp;: <abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr>    </span>
+</dt>
+<dd>Handle Exception</dd>
+
+        </dl>
+
+
+
+        
+    <section class="phpdocumentor-constants">
+        <h3 class="phpdocumentor-elements__header" id="constants">
+            Constants
+            <a href="classes/Taproot-IndieAuth-Server.html#constants" class="headerlink"><i class="fas fa-link"></i></a>
+        </h3>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_APPROVE_ACTION_KEY">
+        APPROVE_ACTION_KEY
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_APPROVE_ACTION_KEY" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">89</span>
+</aside>
+
+        <p class="phpdocumentor-summary">The form data key used for identifying a request as an authorization (consent screen) form submissions.</p>
+
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">APPROVE_ACTION_KEY</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;taproot_indieauth_action&#039;</span>
+</code>
+
+
+        <section class="phpdocumentor-description"></section>
+
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_APPROVE_ACTION_VALUE">
+        APPROVE_ACTION_VALUE
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_APPROVE_ACTION_VALUE" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">94</span>
+</aside>
+
+        <p class="phpdocumentor-summary">The form data value used for identifying a request as an authorization (consent screen) form submissions.</p>
+
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">APPROVE_ACTION_VALUE</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;approve&#039;</span>
+</code>
+
+
+        <section class="phpdocumentor-description"></section>
+
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_DEFAULT_CSRF_KEY">
+        DEFAULT_CSRF_KEY
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_DEFAULT_CSRF_KEY" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">84</span>
+</aside>
+
+        <p class="phpdocumentor-summary">The key used to store the CSRF token everywhere it’s used: Request parameters, Request body, and Cookies.</p>
+
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">DEFAULT_CSRF_KEY</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;taproot_indieauth_server_csrf&#039;</span>
+</code>
+
+
+        <section class="phpdocumentor-description"></section>
+
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_HANDLE_AUTHENTICATION_REQUEST">
+        HANDLE_AUTHENTICATION_REQUEST
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_HANDLE_AUTHENTICATION_REQUEST" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">74</span>
+</aside>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">HANDLE_AUTHENTICATION_REQUEST</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;handleAuthenticationRequestCallback&#039;</span>
+</code>
+
+
+    
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_HANDLE_NON_INDIEAUTH_REQUEST">
+        HANDLE_NON_INDIEAUTH_REQUEST
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_HANDLE_NON_INDIEAUTH_REQUEST" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">73</span>
+</aside>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">HANDLE_NON_INDIEAUTH_REQUEST</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;handleNonIndieAuthRequestCallback&#039;</span>
+</code>
+
+
+    
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_HASH_QUERY_STRING_KEY">
+        HASH_QUERY_STRING_KEY
+        <a href="classes/Taproot-IndieAuth-Server.html#constant_HASH_QUERY_STRING_KEY" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">79</span>
+</aside>
+
+        <p class="phpdocumentor-summary">The query string parameter key used for storing the hash used for validating authorization request parameters.</p>
+
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">HASH_QUERY_STRING_KEY</span>
+    = <span class="phpdocumentor-signature__default-value">&#039;taproot_indieauth_server_hash&#039;</span>
+</code>
+
+
+        <section class="phpdocumentor-description"></section>
+
+    
+
+</article>
+            </section>
+
+        
+    <section class="phpdocumentor-properties">
+        <h3 class="phpdocumentor-elements__header" id="properties">
+            Properties
+            <a href="classes/Taproot-IndieAuth-Server.html#properties" class="headerlink"><i class="fas fa-link"></i></a>
+        </h3>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_authorizationForm">
+        $authorizationForm
+        <a href="classes/Taproot-IndieAuth-Server.html#property_authorizationForm" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">98</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type"><a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$authorizationForm</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_csrfMiddleware">
+        $csrfMiddleware
+        <a href="classes/Taproot-IndieAuth-Server.html#property_csrfMiddleware" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">100</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type"><abbr title="\Psr\Http\Server\MiddlewareInterface">MiddlewareInterface</abbr></span>
+    <span class="phpdocumentor-signature__name">$csrfMiddleware</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_exceptionTemplatePath">
+        $exceptionTemplatePath
+        <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplatePath" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">110</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type">string</span>
+    <span class="phpdocumentor-signature__name">$exceptionTemplatePath</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_handleAuthenticationRequestCallback">
+        $handleAuthenticationRequestCallback
+        <a href="classes/Taproot-IndieAuth-Server.html#property_handleAuthenticationRequestCallback" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">106</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">$handleAuthenticationRequestCallback</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_handleNonIndieAuthRequest">
+        $handleNonIndieAuthRequest
+        <a href="classes/Taproot-IndieAuth-Server.html#property_handleNonIndieAuthRequest" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">108</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">$handleNonIndieAuthRequest</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_httpGetWithEffectiveUrl">
+        $httpGetWithEffectiveUrl
+        <a href="classes/Taproot-IndieAuth-Server.html#property_httpGetWithEffectiveUrl" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">104</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">$httpGetWithEffectiveUrl</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_logger">
+        $logger
+        <a href="classes/Taproot-IndieAuth-Server.html#property_logger" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">102</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr></span>
+    <span class="phpdocumentor-signature__name">$logger</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_secret">
+        $secret
+        <a href="classes/Taproot-IndieAuth-Server.html#property_secret" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">112</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type">string</span>
+    <span class="phpdocumentor-signature__name">$secret</span>
+    </code>
+
+    
+    
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_tokenStorage">
+        $tokenStorage
+        <a href="classes/Taproot-IndieAuth-Server.html#property_tokenStorage" class="headerlink"><i class="fas fa-link"></i></a>
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">96</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__type"><a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$tokenStorage</span>
+    </code>
+
+    
+    
+
+</article>
+            </section>
+
+            <section class="phpdocumentor-methods">
+        <h3 class="phpdocumentor-elements__header" id="methods">
+            Methods
+            <a href="classes/Taproot-IndieAuth-Server.html#methods" class="headerlink"><i class="fas fa-link"></i></a>
+        </h3>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method___construct">
+        __construct()
+        <a href="classes/Taproot-IndieAuth-Server.html#method___construct" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">181</span>
+</aside>
+
+        <p class="phpdocumentor-summary">Constructor</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">array&lt;string|int, mixed&gt;&nbsp;</span><span class="phpdocumentor-signature__argument__name">$config</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">self</span></code>
+
+        <section class="phpdocumentor-description"><p>Server instances are configured by passing a config array to the constructor.</p>
+<p>The following keys are required:</p>
+<ul>
+<li>
+<p><code class="prettyprint">handleAuthenticationRequestCallback</code>: a callable with the signature
+<code class="prettyprint">function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface</code>.
+This function is called on IndieAuth authorization requests, after validating the query parameters.</p>
+<p>It should check to see if $request is authenticated, then:</p>
+<ul>
+<li>If it is authenticated, return an array which MUST have a <code class="prettyprint">me</code> key, mapping to the
+canonical URL of the currently logged-in user. It may additionally have a <code class="prettyprint">profile</code> key. These
+keys will be stored in the authorization code and sent to the client, if successful.</li>
+<li>If it is not authenticated, either present or redirect to an authentication flow. This flow MUST
+redirect the logged-in used back to <code class="prettyprint">$authenticationRedirect</code>.</li>
+</ul>
+<p>If the request has a valid <code class="prettyprint">me</code> parameter, the canonicalized version of it is passed as
+<code class="prettyprint">$normalizedMeUrl</code>. Otherwise, this parameter is null. This parameter can optionally be used
+as a suggestion for which user to log in as in a multi-user authentication flow, but should NOT
+be considered valid data.</p>
+<p>If redirecting to an existing authentication flow, this callable can usually be implemented as a
+closure. The callable may also implement its own authentication logic. For an example, see
+<code class="prettyprint">Callback\SingleUserPasswordAuthenticationCallback</code>.</p>
+</li>
+<li>
+<p><code class="prettyprint">secret</code>: A cryptographically random string with a minimum length of 64 characters. Used
+to hash and subsequently verify request query parameters which get passed around.</p>
+</li>
+<li>
+<p><code class="prettyprint">tokenStorage</code>: Either an object implementing <code class="prettyprint">Storage\TokenStorageInterface</code>, or a string path,
+which will be passed to <code class="prettyprint">Storage\FilesystemJsonStorage</code>. This object handles persisting authorization
+codes and access tokens, as well as implementation-specific parts of the exchange process which are
+out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the <code class="prettyprint">Storage\TokenStorageInterface</code>
+documentation for more details.</p>
+</li>
+</ul>
+<p>The following keys may be required depending on which packages you have installed:</p>
+<ul>
+<li>
+<code class="prettyprint">httpGetWithEffectiveUrl</code>: must be a callable with the following signature:
+<code class="prettyprint">function (string $url): array [ResponseInterface $response, string $effectiveUrl]</code>, where
+<code class="prettyprint">$effectiveUrl</code> is the final URL after following any redirects (unfortunately, neither the PSR-7
+Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
+data, hence the unusual return signature).  If <code class="prettyprint">guzzlehttp/guzzle</code> is installed, this parameter
+will be created automatically. Otherwise, the user must provide their own callable.</li>
+</ul>
+<p>The following keys are optional:</p>
+<ul>
+<li>
+<code class="prettyprint">authorizationForm</code>: an instance of <code class="prettyprint">AuthorizationFormInterface</code>. Defaults to <code class="prettyprint">DefaultAuthorizationForm</code>.
+Refer to that implementation if you wish to replace the consent screen/scope choosing/authorization form.</li>
+<li>
+<code class="prettyprint">csrfMiddleware</code>: an instance of <code class="prettyprint">MiddlewareInterface</code>, which will be used to CSRF-protect the
+user-facing authorization flow. By default an instance of <code class="prettyprint">DoubleSubmitCookieCsrfMiddleware</code>.
+Refer to that implementation if you want to replace it with your own middleware — you will
+likely have to either make sure your middleware sets the same request attribute, or alter your
+templates accordingly.</li>
+<li>
+<code class="prettyprint">exceptionTemplatePath</code>: string, path to a template which will be used for displaying user-facing
+errors. Defaults to <code class="prettyprint">../templates/default_exception_response.html.php</code>, refer to that if you wish
+to write your own template.</li>
+<li>
+<code class="prettyprint">handleNonIndieAuthRequestCallback</code>: A callback with the following signature:
+<code class="prettyprint">function (ServerRequestInterface $request): ?ResponseInterface</code> which will be called if the
+authorization endpoint gets a request which is not identified as an IndieAuth request or authorization
+form submission request. You could use this to handle various requests e.g. client-side requests
+made by your authentication or authorization pages, if it’s not convenient to put them elsewhere.
+Returning <code class="prettyprint">null</code> will result in a standard <code class="prettyprint">invalid_request</code> error being returned.</li>
+<li>
+<code class="prettyprint">logger</code>: An instance of <code class="prettyprint">LoggerInterface</code>. Will be used for internal logging, and will also be set
+as the logger for any objects passed in config which implement <code class="prettyprint">LoggerAwareInterface</code>.</li>
+</ul>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$config</span>
+                : <span class="phpdocumentor-signature__argument__return-type">array&lt;string|int, mixed&gt;</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>An array of configuration variables</p>
+</section>
+
+            </dd>
+            </dl>
+
+    
+
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+    <span class="phpdocumentor-signature__response_type">self</span>
+            &mdash;
+            <section class="phpdocumentor-description"></section>
+
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getTokenStorage">
+        getTokenStorage()
+        <a href="classes/Taproot-IndieAuth-Server.html#method_getTokenStorage" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">273</span>
+</aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                <span class="phpdocumentor-signature__name">getTokenStorage</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a></span></code>
+
+    
+    
+    
+
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+    <span class="phpdocumentor-signature__response_type"><a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a></span>
+            &mdash;
+            <section class="phpdocumentor-description"></section>
+
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleAuthorizationEndpointRequest">
+        handleAuthorizationEndpointRequest()
+        <a href="classes/Taproot-IndieAuth-Server.html#method_handleAuthorizationEndpointRequest" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">312</span>
+</aside>
+
+        <p class="phpdocumentor-summary">Handle Authorization Endpoint Request</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                <span class="phpdocumentor-signature__name">handleAuthorizationEndpointRequest</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span></code>
+
+        <section class="phpdocumentor-description"><p>This method handles all requests to your authorization endpoint, passing execution off to
+other callbacks when necessary. The logical flow can be summarised as follows:</p>
+<ul>
+<li>If this request an <strong>auth code exchange for profile information</strong>, validate the request
+and return a response or error response.</li>
+<li>Otherwise, proceed, wrapping all execution in CSRF-protection middleware.</li>
+<li>Validate the request’s indieauth authorization code request parameters, returning an
+error response if any are missing or invalid.</li>
+<li>Call the authentication callback
+<ul>
+<li>If the callback returned an instance of ResponseInterface, the user is not currently
+logged in. Return the Response, which will presumably start an authentication flow.</li>
+<li>Otherwise, the callback returned information about the currently logged-in user. Continue.</li>
+</ul>
+</li>
+<li>If this request is an authorization form submission, validate the data, store and authorization
+code and return a redirect response to the client redirect_uri with code data. On an error, return
+an appropriate error response.</li>
+<li>Otherwise, fetch the client_id, parse app data if present, validate the <code class="prettyprint">redirect_uri</code> and present
+the authorization form/consent screen to the user.</li>
+<li>If none of the above apply, try calling the non-indieauth request handler. If it returns a Response,
+return that, otherwise return an error response.</li>
+</ul>
+<p>This route should NOT be wrapped in additional CSRF-protection, due to the need to handle API
+POST requests from the client. Make sure you call it from a route which is excluded from any
+CSRF-protection you might be using. To customise the CSRF protection used internally, refer to the
+<code class="prettyprint">__construct</code> config array documentation for the <code class="prettyprint">csrfMiddleware</code> key.</p>
+<p>Most user-facing errors are thrown as instances of <code class="prettyprint">IndieAuthException</code>, which are passed off to
+<code class="prettyprint">handleException</code> to be turned into an instance of <code class="prettyprint">ResponseInterface</code>. If you want to customise
+error behaviour, one way to do so is to subclass <code class="prettyprint">Server</code> and override that method.</p>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$request</span>
+                : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"></section>
+
+            </dd>
+            </dl>
+
+    
+
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+    <span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span>
+            &mdash;
+            <section class="phpdocumentor-description"></section>
+
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleTokenEndpointRequest">
+        handleTokenEndpointRequest()
+        <a href="classes/Taproot-IndieAuth-Server.html#method_handleTokenEndpointRequest" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">670</span>
+</aside>
+
+        <p class="phpdocumentor-summary">Handle Token Endpoint Request</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                <span class="phpdocumentor-signature__name">handleTokenEndpointRequest</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span></code>
+
+        <section class="phpdocumentor-description"><p>Handles requests to the IndieAuth token endpoint. The logical flow can be summarised as follows:</p>
+<ul>
+<li>Check that the request is a code redeeming request. Return an error if not.</li>
+<li>Ensure that all required parameters are present. Return an error if not.</li>
+<li>Attempt to exchange the <code class="prettyprint">code</code> parameter for an access token. Return an error if it fails.</li>
+<li>Make sure the client_id and redirect_uri request parameters match those stored in the auth code. If not, revoke the access token and return an error.</li>
+<li>Make sure the provided code_verifier hashes to the code_challenge stored in the auth code. If not, revoke the access token and return an error.</li>
+<li>Make sure the granted scope stored in the auth code is not empty. If it is, revoke the access token and return an error.</li>
+<li>Otherwise, return a success response containing information about the issued access token.</li>
+</ul>
+<p>This method must NOT be CSRF-protected as it accepts external requests from client apps.</p>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$request</span>
+                : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"></section>
+
+            </dd>
+            </dl>
+
+    
+
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+    <span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span>
+            &mdash;
+            <section class="phpdocumentor-description"></section>
+
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleException">
+        handleException()
+        <a href="classes/Taproot-IndieAuth-Server.html#method_handleException" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">763</span>
+</aside>
+
+        <p class="phpdocumentor-summary">Handle Exception</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                <span class="phpdocumentor-signature__name">handleException</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><a href="classes/Taproot-IndieAuth-IndieAuthException.html"><abbr title="\Taproot\IndieAuth\IndieAuthException">IndieAuthException</abbr></a>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$exception</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span></code>
+
+        <section class="phpdocumentor-description"><p>Turns an instance of <code class="prettyprint">IndieAuthException</code> into an appropriate instance of <code class="prettyprint">ResponseInterface</code>.</p>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$exception</span>
+                : <span class="phpdocumentor-signature__argument__return-type"><a href="classes/Taproot-IndieAuth-IndieAuthException.html"><abbr title="\Taproot\IndieAuth\IndieAuthException">IndieAuthException</abbr></a></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+    <span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span>
+            &mdash;
+            <section class="phpdocumentor-description"></section>
+
+    
+</article>
+            </section>
+
+    </article>
+                <section data-search-results class="phpdocumentor-search-results phpdocumentor-search-results--hidden">
+    <section class="phpdocumentor-search-results__dialog">
+        <header class="phpdocumentor-search-results__header">
+            <h2 class="phpdocumentor-search-results__title">Search results</h2>
+            <button class="phpdocumentor-search-results__close"><i class="fas fa-times"></i></button>
+        </header>
+        <section class="phpdocumentor-search-results__body">
+            <ul class="phpdocumentor-search-results__entries"></ul>
+        </section>
+    </section>
+</section>
+            </div>
+        </div>
+        <a href="classes/Taproot-IndieAuth-Server.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
+
+    </main>
+
+    <script>
+        cssVars({});
+    </script>
+</body>
+</html>
