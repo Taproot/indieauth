@@ -93,10 +93,24 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">15</span>
+    <span class="phpdocumentor-element-found-in__line">35</span>
 </aside>
 
-        
+            <p class="phpdocumentor-summary">Default Authorization Form</p>
+
+    <section class="phpdocumentor-description"><p>This implementation of <code class="prettyprint">AuthorizationFormInterface</code> is used by <code class="prettyprint">Server</code> if the user doesn’t
+provide one of their own. It presents the user with a simple consent screen, showing any
+available details about the client app, and allowing the user to grant any requested scopes.</p>
+<p>When the form is submitted, any granted scopes are then added to the authorization code data.</p>
+<p>You can customise the authorization template used by passing a path to your own template to
+the constructor. Refer to the default template <code class="prettyprint">/templates/default_authorization_page.html.php</code>
+as a starting point.</p>
+<p>If you want to add additional form controls (e.g. configurable token lifetimes), as well as
+making a new template, you’ll need to make a subclass which overrides <code class="prettyprint">transformAuthorizationCode()</code>
+to additionally handle your new form data.</p>
+<p>For any more involved customisation (for example using a templating library of your choice), it
+may make sense to create your own implementation of <code class="prettyprint">AuthorizationFormInterface</code>.</p>
+</section>
 
 
 
@@ -150,7 +164,7 @@
     <span>
                         &nbsp;: mixed    </span>
 </dt>
-<dd></dd>
+<dd>Constructor</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#method_setLogger">setLogger()</a>
@@ -201,7 +215,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">16</span>
+    <span class="phpdocumentor-element-found-in__line">36</span>
 </aside>
 
     
@@ -231,7 +245,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">18</span>
+    <span class="phpdocumentor-element-found-in__line">38</span>
 </aside>
 
     
@@ -261,7 +275,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">20</span>
+    <span class="phpdocumentor-element-found-in__line">40</span>
 </aside>
 
     
@@ -295,15 +309,17 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">22</span>
+    <span class="phpdocumentor-element-found-in__line">49</span>
 </aside>
 
-    
+        <p class="phpdocumentor-summary">Constructor</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
                 <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$formTemplatePath</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$csrfKey</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
-    
+        <section class="phpdocumentor-description"></section>
+
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
@@ -311,21 +327,27 @@
                 : <span class="phpdocumentor-signature__argument__return-type">string|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>The path to a custom template. Uses the default if null.</p>
+</section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$csrfKey</span>
                 : <span class="phpdocumentor-signature__argument__return-type">string|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>The key used to retrieve a CSRF token from the request attributes, and as its form data name. Uses the default defined in Server if null. Only change this if you’re using a custom CSRF middleware.</p>
+</section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$logger</span>
                 : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>A logger.</p>
+</section>
+
             </dd>
             </dl>
 
@@ -351,7 +373,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">75</span>
+    <span class="phpdocumentor-element-found-in__line">102</span>
 </aside>
 
     
@@ -393,7 +415,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">28</span>
+    <span class="phpdocumentor-element-found-in__line">55</span>
 </aside>
 
         <p class="phpdocumentor-summary">Show Form</p>
@@ -499,7 +521,7 @@ library, but, if stored on the access token, will be available to your app for u
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">61</span>
+    <span class="phpdocumentor-element-found-in__line">88</span>
 </aside>
 
         <p class="phpdocumentor-summary">Transform Authorization Code</p>

@@ -12,6 +12,26 @@ use Psr\Log\NullLogger;
 
 use function Taproot\IndieAuth\renderTemplate;
 
+/**
+ * Default Authorization Form
+ * 
+ * This implementation of `AuthorizationFormInterface` is used by `Server` if the user doesn’t 
+ * provide one of their own. It presents the user with a simple consent screen, showing any
+ * available details about the client app, and allowing the user to grant any requested scopes.
+ * 
+ * When the form is submitted, any granted scopes are then added to the authorization code data.
+ * 
+ * You can customise the authorization template used by passing a path to your own template to
+ * the constructor. Refer to the default template `/templates/default_authorization_page.html.php`
+ * as a starting point.
+ * 
+ * If you want to add additional form controls (e.g. configurable token lifetimes), as well as
+ * making a new template, you’ll need to make a subclass which overrides `transformAuthorizationCode()`
+ * to additionally handle your new form data.
+ * 
+ * For any more involved customisation (for example using a templating library of your choice), it
+ * may make sense to create your own implementation of `AuthorizationFormInterface`.
+ */
 class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwareInterface {
 	public string $csrfKey;
 
@@ -19,6 +39,13 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 
 	public LoggerInterface $logger;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param string|null $formTemplatePath The path to a custom template. Uses the default if null.
+	 * @param string|null $csrfKey The key used to retrieve a CSRF token from the request attributes, and as its form data name. Uses the default defined in Server if null. Only change this if you’re using a custom CSRF middleware.
+	 * @param LoggerInterface|null $logger A logger.
+	 */
 	public function __construct(?string $formTemplatePath=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
 		$this->formTemplatePath = $formTemplatePath ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;

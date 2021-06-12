@@ -10,6 +10,18 @@ use Psr\Log\NullLogger;
 
 use function Taproot\IndieAuth\generateRandomString;
 
+/**
+ * Filesystem JSON Token Storage
+ * 
+ * An implementation of `TokenStorageInterface` which stores authorization codes
+ * and access tokens in the filesystem as JSON files, and supports custom access
+ * token lifetimes.
+ * 
+ * This is intended as a default, example implementation with minimal requirements.
+ * In practise, most people should probably be using an SQLite3 version of this
+ * which I haven’t written yet. I haven’t extensively documented this class, as it
+ * will likely be superceded by the SQLite version.
+ */
 class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterface {
 	const DEFAULT_AUTH_CODE_TTL = 60 * 5; // Five minutes.
 	const DEFAULT_ACCESS_TOKEN_TTL = 60 * 60 * 24 * 7; // One week.

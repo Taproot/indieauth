@@ -18,12 +18,12 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm",
             "name": "DefaultAuthorizationForm",
-            "summary": "",
+            "summary": "Default\u0020Authorization\u0020Form",
             "url": "classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm\u003A\u003A__construct\u0028\u0029",
             "name": "__construct",
-            "summary": "",
+            "summary": "Constructor",
             "url": "classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#method___construct"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm\u003A\u003AshowForm\u0028\u0029",
@@ -63,7 +63,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A__construct\u0028\u0029",
             "name": "__construct",
-            "summary": "",
+            "summary": "Constructor",
             "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#method___construct"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A__invoke\u0028\u0029",
@@ -528,7 +528,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage",
             "name": "FilesystemJsonStorage",
-            "summary": "",
+            "summary": "Filesystem\u0020JSON\u0020Token\u0020Storage",
             "url": "classes/Taproot-IndieAuth-Storage-FilesystemJsonStorage.html"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage\u003A\u003A__construct\u0028\u0029",
