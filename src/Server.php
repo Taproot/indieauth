@@ -31,8 +31,14 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  *     
  *     // Somewhere in your app set-up code:
  *     $server = new Taproot\IndieAuth\Server([
- *       'secret' => APP_INDIEAUTH_SECRET,  // A secret key, >= 64 characters long.
- *       'tokenStorage' => '/../data/auth_tokens/',  // A path to store token data, or an object implementing TokenStorageInterface.
+ *       // A secret key, >= 64 characters long.
+ *       'secret' => APP_INDIEAUTH_SECRET,
+ * 
+ *       // A path to store token data, or an object implementing TokenStorageInterface.
+ *       'tokenStorage' => '/../data/auth_tokens/',
+ * 
+ *       // An authentication callback function, which either returns data about the current user,
+ *       // or redirects to/implements an authentication flow.
  *       'handleAuthenticationRequestCallback' => function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
  *         // If the request is authenticated, return an array with a `me` key containing the
  *         // canonical URL of the currently logged-in user.
