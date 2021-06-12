@@ -24,19 +24,21 @@ use function Taproot\IndieAuth\renderTemplate;
  * 
  * Minimal usage:
  * 
- *     // One-off during app configuration:
- *     YOUR_HASHED_PASSWORD = password_hash('my super strong password', PASSWORD_DEFAULT);
- *     
- *     // In your app:
- *     use Taproot\IndieAuth;
- *     $server = new IndieAuth\Server([
- *       …
- *       'authenticationHandler' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback(
- *         ['me' => 'https://me.example.com/'],
- *         YOUR_HASHED_PASSWORD
- *       )
- *       …
- *     ]);
+ * ```php
+ * // One-off during app configuration:
+ * YOUR_HASHED_PASSWORD = password_hash('my super strong password', PASSWORD_DEFAULT);
+ * 
+ * // In your app:
+ * use Taproot\IndieAuth;
+ * $server = new IndieAuth\Server([
+ *   …
+ *   'authenticationHandler' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback(
+ *     ['me' => 'https://me.example.com/'],
+ *     YOUR_HASHED_PASSWORD
+ *   )
+ *   …
+ * ]);
+ * ```
  * 
  * See documentation for `__construct()` for information about customising behaviour.
  */
