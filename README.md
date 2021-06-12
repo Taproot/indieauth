@@ -45,5 +45,5 @@ if ($accessToken = $server->getTokenStorage()->getAccessToken($bearerToken)) {
 }
 ```
 
-Refer to the `__construct` documentation for further configuration options, and to the
-documentation for both handling methods for further documentation about them.
+Refer to the `__construct` documentation for further configuration options, and to [the
+documentation](https://taproot.github.io/indieauth/) for both handling methods for further documentation about them.
