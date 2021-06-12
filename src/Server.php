@@ -32,7 +32,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  *     // Somewhere in your app set-up code:
  *     $server = new Taproot\IndieAuth\Server([
  *       // A secret key, >= 64 characters long.
- *       'secret' => APP_INDIEAUTH_SECRET,
+ *       'secret' => YOUR_APP_INDIEAUTH_SECRET,
  * 
  *       // A path to store token data, or an object implementing TokenStorageInterface.
  *       'tokenStorage' => '/../data/auth_tokens/',
