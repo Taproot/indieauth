@@ -8,7 +8,7 @@ use Throwable;
 
 class IndieAuthException extends Exception {
 	const INTERNAL_ERROR = 0;
-	const REQUEST_MISSING_PARAMETER = 1;
+	const INTERNAL_ERROR_REDIRECT = 1;
 	const AUTHENTICATION_CALLBACK_MISSING_ME_PARAM = 2;
 	const AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH = 3;
 	const AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH = 4;
@@ -19,14 +19,13 @@ class IndieAuthException extends Exception {
 	const INVALID_STATE = 9;
 	const INVALID_CODE_CHALLENGE = 10;
 	const INVALID_SCOPE = 11;
-	const INTERNAL_ERROR_REDIRECT = 12;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
-		self::REQUEST_MISSING_PARAMETER => ['statusCode' => 400, 'name' => 'Request Missing Parameter', 'explanation' => 'The request was missing one or more required query string parameters.'],
-		self::AUTHENTICATION_CALLBACK_MISSING_ME_PARAM => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'The user data returned from handleAuthenticationRequestCallback was missing a “me” parameter.'],
-		self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH => ['statusCode' => 400, 'name' => 'Request Missing Hash', 'explanation' => 'An authentication form submission request was missing the hash parameter.'],
-		self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH => ['statusCode' => 400, 'name' => 'Request Hash Invalid', 'explanation' => 'The hash protecting the query string parameters from tampering was invalid. Your form submission may have been altered by malicious client-side code.'],
+		self::INTERNAL_ERROR_REDIRECT => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
+		self::AUTHENTICATION_CALLBACK_MISSING_ME_PARAM => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
+		self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH => ['statusCode' => 302, 'name' => 'Request Missing Hash', 'error' => 'internal_error'],
+		self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH => ['statusCode' => 302, 'name' => 'Request Hash Invalid', 'error' => 'internal_error'],
 		// TODO: should this one be a 500 because it’s an internal server error, or a 400 because the client_id was likely invalid? Is anyone ever going to notice, or care?
 		self::HTTP_EXCEPTION_FETCHING_CLIENT_ID => ['statusCode' => 500, 'name' => 'Error Fetching Client App URL',  'explanation' => 'Fetching the client app (client_id) failed.'],
 		self::INTERNAL_EXCEPTION_FETCHING_CLIENT_ID => ['statusCode' => 500, 'name' => 'Internal Error fetching client app URI', 'explanation' => 'Fetching the client app (client_id) failed due to an internal error.'],
@@ -35,7 +34,6 @@ class IndieAuthException extends Exception {
 		self::INVALID_STATE => ['statusCode' => 302, 'name' => 'Invalid state Parameter', 'error' => 'invalid_request'],
 		self::INVALID_CODE_CHALLENGE => ['statusCode' => 302, 'name' => 'Invalid code_challenge Parameter', 'error' => 'invalid_request'],
 		self::INVALID_SCOPE => ['statusCode' => 302, 'name' => 'Invalid scope Parameter', 'error' => 'invalid_request'],
-		self::INTERNAL_ERROR_REDIRECT => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
 	];
 
 	protected ServerRequestInterface $request;

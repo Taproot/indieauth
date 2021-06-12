@@ -84,6 +84,15 @@ interface TokenStorageInterface {
 	 * Attempt to exchange an authorization code identified by `$code` for
 	 * an access token, returning it in a `Token` on success and null on error.
 	 * 
+	 * This method is called at the beginning of a code exchange request, before
+	 * further error checking or validation is applied. On an error, the created
+	 * access token is immediately revoked via `revokeAccessToken()`.
+	 * 
+	 * For this reason, the token data in the returned Token object MUST include 
+	 * the `client_id` and `redirect_uri` parameters associated with the 
+	 * authorization code, as these are used by the IndieAuth Server for further 
+	 * validation.
+	 * 
 	 * This method is responsible for ensuring that the matched auth code is
 	 * not expired. If it is, it should return null, presumably after deleting
 	 * the corresponding authorization code record.

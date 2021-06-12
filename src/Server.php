@@ -318,27 +318,35 @@ class Server {
 			
 			$bodyParams = $request->getParsedBody();
 
+			// Attempt to internally exchange the provided auth code for an access token.
+			// We do this before anything else so that the auth code is invalidated as soon as the request starts,
+			// and the resulting access token is revoked if we encounter an error. This ends up providing a simpler
+			// and more flexible interface for TokenStorage implementors.
+			if (array_key_exists('code', $bodyParams)) {
+				$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+
+				if (is_null($token)) {
+					$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
+					return new Response(400, ['content-type' => 'application/json'], json_encode([
+						'error' => 'invalid_grant',
+						'error_description' => 'The provided credentials were not valid.'
+					]));
+				}
+			} // The else case is handled by the code below.
+
 			// Verify that all required parameters are included.
 			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
 			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
 				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
 			});
 			if (!empty($missingRequiredParameters)) {
+				if (isset($token)) {
+					$this->tokenStorage->revokeAccessToken($token->getKey());
+				}
 				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_request',
 					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
-				]));
-			}
-
-			// Attempt to internally exchange the provided auth code for an access token.
-			$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
-
-			if (is_null($token)) {
-				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
 				]));
 			}
 
@@ -393,35 +401,86 @@ class Server {
 			// to IndieAuthException if necessary, then passes it to $this->handleException() to be turned into a
 			// response.
 			try {
+				$queryParams = $request->getQueryParams();
+
+				/** @var ResponseInterface|null $clientIdResponse */
+				/** @var string|null $clientIdEffectiveUrl */
+				/** @var array|null $clientIdMf2 */
+				list($clientIdResponse, $clientIdEffectiveUrl, $clientIdMf2) = [null, null, null];
+
 				// If this is an authorization or approval request (allowing POST requests as well to accommodate 
 				// approval requests and custom auth form submission.
 				if (isIndieAuthAuthorizationRequest($request, ['get', 'post'])) {
 					$this->logger->info('Handling an authorization request', ['method' => $request->getMethod()]);
 
-					$queryParams = $request->getQueryParams();
-					// Return an error if we’re missing required parameters.
-					$requiredParameters = ['client_id', 'redirect_uri', 'state', 'code_challenge', 'code_challenge_method'];
-					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($queryParams) {
-						return !array_key_exists($p, $queryParams) || empty($queryParams[$p]);
-					});
-					if (!empty($missingRequiredParameters)) {
-						$this->logger->warning('The authorization request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
-						// TODO: if the missing parameter isn’t redirect_uri or client_id, this should be a redirect error.
-						throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
-					}
-
 					// Validate the Client ID.
-					if (false === filter_var($queryParams['client_id'], FILTER_VALIDATE_URL) || !isClientIdentifier($queryParams['client_id'])) {
+					if (!isset($queryParams['client_id']) || false === filter_var($queryParams['client_id'], FILTER_VALIDATE_URL) || !isClientIdentifier($queryParams['client_id'])) {
 						$this->logger->warning("The client_id provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_CLIENT_ID, $request);
 					}
 
-					// Validate the redirect URI — at this stage only superficially, we’ll check it properly later if 
-					// things go well.
-					if (false === filter_var($queryParams['redirect_uri'], FILTER_VALIDATE_URL)) {
+					// Validate the redirect URI.
+					if (!isset($queryParams['redirect_uri']) || false === filter_var($queryParams['redirect_uri'], FILTER_VALIDATE_URL)) {
 						$this->logger->warning("The client_id provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
 					}
+
+					// How most errors are handled depends on whether or not the request has a valid redirect_uri. In
+					// order to know that, we need to also validate, fetch and parse the client_id.
+					// If the request lacks a hash, or if the provided hash was invalid, perform the validation.
+					if (!array_key_exists(self::HASH_QUERY_STRING_KEY, $queryParams) || !hash_equals(hashAuthorizationRequestParameters($request, $this->secret), $queryParams[self::HASH_QUERY_STRING_KEY])) {
+						// All we need to know at this stage is whether the redirect_uri is valid. If it
+						// sufficiently matches the client_id, we don’t (yet) need to fetch the client_id.
+						if (!urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT])) {
+							// If we do need to fetch the client_id, store the response and effective URL in variables
+							// we defined earlier, so they’re available to the approval request code path, which additionally
+							// needs to parse client_id for h-app markup.
+							try {
+								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
+								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+							} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
+								$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
+									'client_id' => $queryParams['client_id'],
+									'exception' => $e->__toString()
+								]);
+
+								throw IndieAuthException::create(IndieAuthException::HTTP_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
+							} catch (Exception $e) {
+								$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
+									'exception' => $e->__toString()
+								]);
+
+								throw IndieAuthException::create(IndieAuthException::INTERNAL_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
+							}
+							
+							// Search for all link@rel=redirect_uri at the client_id.
+							$clientIdRedirectUris = [];
+							if (array_key_exists('redirect_uri', $clientIdMf2['rels'])) {
+								$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMf2['rels']['redirect_uri']);
+							}
+							
+							foreach (HeaderParser::parse($clientIdResponse->getHeader('Link')) as $link) {
+								if (array_key_exists('rel', $link) && mb_strpos(" {$link['rel']} ", " redirect_uri ") !== false) {
+									// Strip off the < > which surround the link URL for some reason.
+									$clientIdRedirectUris[] = substr($link[0], 1, strlen($link[0]) - 2);
+								}
+							}
+
+							// If the authority of the redirect_uri does not match the client_id, or exactly match one of their redirect URLs, return an error.
+							if (!in_array($queryParams['redirect_uri'], $clientIdRedirectUris)) {
+								$this->logger->warning("The provided redirect_uri did not match either the client_id, nor the discovered redirect URIs.", [
+									'provided_redirect_uri' => $queryParams['redirect_uri'],
+									'provided_client_id' => $queryParams['client_id'],
+									'discovered_redirect_uris' => $clientIdRedirectUris
+								]);
+
+								throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
+							}
+						}						
+					}
+
+					// From now on, we can assume that redirect_uri is valid. Any IndieAuth-related errors should be
+					// reported by redirecting to redirect_uri with error parameters.
 
 					// Validate the state parameter.
 					if (!isValidState($queryParams['state'])) {
@@ -434,6 +493,10 @@ class Server {
 						$this->logger->warning("The code_challenge provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
 					}
+
+					// From now on, any redirect error responses should include the state parameter.
+					// This is handled automatically in `handleException()` and is only noted here
+					// for reference.
 
 					// Validate the scope parameter, if provided.
 					if (array_key_exists('scope', $queryParams) && !isValidScope($queryParams['scope'])) {
@@ -478,22 +541,12 @@ class Server {
 							// Authorization approval requests MUST include a hash protecting the sensitive IndieAuth
 							// authorization request parameters from being changed, e.g. by a malicious script which
 							// found its way onto the authorization form.
-							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
-							if (is_null($expectedHash)) {
-								// In theory this code should never be reached, as we already checked the request for valid parameters.
-								// However, it’s possible for hashAuthorizationRequestParameters() to return null, and if for whatever
-								// reason it does, the library should handle that case as elegantly as possible.
-								// @codeCoverageIgnoreStart
-								$this->logger->warning("Calculating the expected hash for an authorization approval request failed. This SHOULD NOT happen; if you encounter this error please contact the maintainers of taproot/indieauth.");
-								throw IndieAuthException::create(IndieAuthException::REQUEST_MISSING_PARAMETER, $request);
-								// @codeCoverageIgnoreEnd
-							}
-							
 							if (!array_key_exists(self::HASH_QUERY_STRING_KEY, $queryParams)) {
 								$this->logger->warning("An authorization approval request did not have a " . self::HASH_QUERY_STRING_KEY . " parameter.");
 								throw IndieAuthException::create(IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, $request);
 							}
 
+							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
 							if (!hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 								$this->logger->warning("The hash provided in the URL was invalid!", [
 									'expected' => $expectedHash,
@@ -542,55 +595,32 @@ class Server {
 						// the spec, errors should only be shown to the user if the client_id and redirect_uri parameters
 						// are missing or invalid. Otherwise, they should be sent back to the client with an error
 						// redirect response.
-						try {
-							/** @var ResponseInterface $clientIdResponse */
-							list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
-							$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
-						} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
-							$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
-								'client_id' => $queryParams['client_id'],
-								'exception' => $e->__toString()
-							]);
-
-							throw IndieAuthException::create(IndieAuthException::HTTP_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
-						} catch (Exception $e) {
-							$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
-								'exception' => $e->__toString()
-							]);
-
-							throw IndieAuthException::create(IndieAuthException::INTERNAL_EXCEPTION_FETCHING_CLIENT_ID, $request, $e);
+						if (is_null($clientIdResponse) || is_null($clientIdEffectiveUrl) || is_null($clientIdMf2)) {
+							try {
+								/** @var ResponseInterface $clientIdResponse */
+								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
+								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+							} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
+								$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
+									'client_id' => $queryParams['client_id'],
+									'exception' => $e->__toString()
+								]);
+								
+								// At this point in the flow, we’ve already guaranteed that the redirect_uri is valid,
+								// so in theory we should report these errors by redirecting there.
+								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR_REDIRECT, $request, $e);
+							} catch (Exception $e) {
+								$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
+									'exception' => $e->__toString()
+								]);
+	
+								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR_REDIRECT, $request, $e);
+							}
 						}
 						
 						// Search for an h-app with u-url matching the client_id.
 						$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client_id']);
 						$clientHApp = empty($clientHApps) ? null : $clientHApps[0];
-						
-						// Search for all link@rel=redirect_uri at the client_id.
-						$clientIdRedirectUris = [];
-						if (array_key_exists('redirect_uri', $clientIdMf2['rels'])) {
-							$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMf2['rels']['redirect_uri']);
-						}
-						
-						foreach (HeaderParser::parse($clientIdResponse->getHeader('Link')) as $link) {
-							if (array_key_exists('rel', $link) && mb_strpos(" {$link['rel']} ", " redirect_uri ") !== false) {
-								// Strip off the < > which surround the link URL for some reason.
-								$clientIdRedirectUris[] = substr($link[0], 1, strlen($link[0]) - 2);
-							}
-						}
-
-						// If the authority of the redirect_uri does not match the client_id, or exactly match one of their redirect URLs, return an error.
-						$clientIdMatchesRedirectUri = urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT]);
-						$redirectUriValid = $clientIdMatchesRedirectUri || in_array($queryParams['redirect_uri'], $clientIdRedirectUris);
-
-						if (!$redirectUriValid) {
-							$this->logger->warning("The provided redirect_uri did not match either the client_id, nor the discovered redirect URIs.", [
-								'provided_redirect_uri' => $queryParams['redirect_uri'],
-								'provided_client_id' => $queryParams['client_id'],
-								'discovered_redirect_uris' => $clientIdRedirectUris
-							]);
-
-							throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
-						}
 
 						// Present the authorization UI.
 						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp)
@@ -604,6 +634,8 @@ class Server {
 				if ($nonIndieAuthRequestResult instanceof ResponseInterface) {
 					return $nonIndieAuthRequestResult;
 				} else {
+					// In this code path we have not validated the redirect_uri, so show a regular error page
+					// rather than returning a redirect error.
 					throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR, $request);
 				}
 			} catch (IndieAuthException $e) {
@@ -641,27 +673,35 @@ class Server {
 			
 			$bodyParams = $request->getParsedBody();
 
+			// Attempt to internally exchange the provided auth code for an access token.
+			// We do this before anything else so that the auth code is invalidated as soon as the request starts,
+			// and the resulting access token is revoked if we encounter an error. This ends up providing a simpler
+			// and more flexible interface for TokenStorage implementors.
+			if (array_key_exists('code', $bodyParams)) {
+				$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+
+				if (is_null($token)) {
+					$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
+					return new Response(400, ['content-type' => 'application/json'], json_encode([
+						'error' => 'invalid_grant',
+						'error_description' => 'The provided credentials were not valid.'
+					]));
+				}
+			}
+
 			// Verify that all required parameters are included.
 			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
 			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
 				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
 			});
 			if (!empty($missingRequiredParameters)) {
+				if (isset($token)) {
+					$this->tokenStorage->revokeAccessToken($token->getKey());
+				}
 				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_request',
 					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
-				]));
-			}
-
-			// Attempt to internally exchange the provided auth code for an access token.
-			$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
-
-			if (is_null($token)) {
-				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
 				]));
 			}
 

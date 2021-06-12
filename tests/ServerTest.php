@@ -143,16 +143,6 @@ class ServerTest extends TestCase {
 	 * Authorization Request Tests
 	 */
 
-	public function testAuthorizationRequestMissingParametersReturnsError() {
-		$s = $this->getDefaultServer();
-
-		$req = (new ServerRequest('GET', 'https://example.com/'))->withQueryParams([
-			'response_type' => 'code' // This param is required to identify the request as an IA authorization request.
-		]);
-		$res = $s->handleAuthorizationEndpointRequest($req);
-		$this->assertEquals((string) IndieAuthException::REQUEST_MISSING_PARAMETER, (string) $res->getBody());
-	}
-
 	public function testAuthorizationRequestWithInvalidClientIdOrRedirectUriShowsErrorToUser() {
 		$testCases = [
 			'client_id not a URI' => [
@@ -232,7 +222,7 @@ class ServerTest extends TestCase {
 				return new Response(200, ['content-type' => 'text/plain'], $expectedResponse);
 			}
 		]);
-
+		
 		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest());
 		
 		$this->assertEquals(200, $res->getStatusCode());
@@ -246,9 +236,14 @@ class ServerTest extends TestCase {
 			}
 		]);
 
-		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest());
+		$req = $this->getIARequest();
+		$res = $s->handleAuthorizationEndpointRequest($req);
 
-		$this->assertEquals((string) IndieAuthException::AUTHENTICATION_CALLBACK_MISSING_ME_PARAM, (string) $res->getBody());
+		$this->assertEquals(302, $res->getStatusCode());
+		$responseLocation = $res->getHeaderLine('Location');
+		$this->assertTrue(urlComponentsMatch($req->getQueryParams()['redirect_uri'], $responseLocation, [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PATH]));
+		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+		$this->assertEquals('internal_error', $redirectUriQueryParams['error']);
 	}
 
 	public function testReturnErrorIfFetchingClientIdThrowsException() {
@@ -268,9 +263,14 @@ class ServerTest extends TestCase {
 				}
 			]);
 
-			$res = $s->handleAuthorizationEndpointRequest($this->getIARequest());
+			$req = $this->getIARequest();
+			$res = $s->handleAuthorizationEndpointRequest($req);
 
-			$this->assertEquals($expectedResponse, (string) $res->getBody());
+			$this->assertEquals(302, $res->getStatusCode());
+			$responseLocation = $res->getHeaderLine('Location');
+			$this->assertTrue(urlComponentsMatch($req->getQueryParams()['redirect_uri'], $responseLocation, [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PATH]));
+			parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+			$this->assertEquals('internal_error', $redirectUriQueryParams['error']);
 		}
 	}
 
@@ -461,9 +461,15 @@ EOT
 				return ['me' => 'https://example.com'];
 			}
 		]);
-		$res = $s->handleAuthorizationEndpointRequest($this->getApprovalRequest(true, false));
+		
+		$req = $this->getApprovalRequest(true, false);
+		$res = $s->handleAuthorizationEndpointRequest($req);
 
-		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, (string) $res->getBody());
+		$this->assertEquals(302, $res->getStatusCode());
+		$responseLocation = $res->getHeaderLine('Location');
+		$this->assertTrue(urlComponentsMatch($req->getQueryParams()['redirect_uri'], $responseLocation, [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PATH]));
+		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+		$this->assertEquals('internal_error', $redirectUriQueryParams['error']);
 	}
 
 	public function testReturnsErrorIfApprovalRequestHasInvalidHash() {
@@ -478,7 +484,11 @@ EOT
 		]));
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
-		$this->assertEquals((string) IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH, (string) $res->getBody());
+		$this->assertEquals(302, $res->getStatusCode());
+		$responseLocation = $res->getHeaderLine('Location');
+		$this->assertTrue(urlComponentsMatch($req->getQueryParams()['redirect_uri'], $responseLocation, [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PATH]));
+		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+		$this->assertEquals('internal_error', $redirectUriQueryParams['error']);
 	}
 
 	public function testValidApprovalRequestIsHandledCorrectly() {
