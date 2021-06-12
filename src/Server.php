@@ -39,7 +39,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  * 
  *       // An authentication callback function, which either returns data about the current user,
  *       // or redirects to/implements an authentication flow.
- *       'handleAuthenticationRequestCallback' => function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
+ *       'authenticationHandler' => function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
  *         // If the request is authenticated, return an array with a `me` key containing the
  *         // canonical URL of the currently logged-in user.
  *         if ($userUrl = getLoggedInUserUrl($request)) {
@@ -77,7 +77,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  */
 class Server {
 	const HANDLE_NON_INDIEAUTH_REQUEST = 'handleNonIndieAuthRequestCallback';
-	const HANDLE_AUTHENTICATION_REQUEST = 'handleAuthenticationRequestCallback';
+	const HANDLE_AUTHENTICATION_REQUEST = 'authenticationHandler';
 
 	/**
 	 * The query string parameter key used for storing the hash used for validating authorization request parameters.

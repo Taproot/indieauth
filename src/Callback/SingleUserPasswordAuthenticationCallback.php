@@ -31,7 +31,7 @@ use function Taproot\IndieAuth\renderTemplate;
  *     use Taproot\IndieAuth;
  *     $server = new IndieAuth\Server([
  *       …
- *       'handleAuthenticationRequestCallback' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback(
+ *       'authenticationHandler' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback(
  *         ['me' => 'https://me.example.com/'],
  *         YOUR_HASHED_PASSWORD
  *       )
