@@ -25,6 +25,15 @@ function generateRandomString($numBytes) {
 	return bin2hex($bytes);
 }
 
+function generateRandomPrintableAsciiString(int $length) {
+	$chars = [];
+	while (count($chars) < $length) {
+		// 0x21 to 0x7E is the entire printable ASCII range, not including space (0x20).
+		$chars[] = chr(random_int(0x21, 0x7E));
+	}
+	return join('', $chars);
+}
+
 function generatePKCECodeChallenge($plaintext) {
 	return base64_urlencode(hash('sha256', $plaintext, true));
 }

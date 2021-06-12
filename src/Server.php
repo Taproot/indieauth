@@ -2,12 +2,13 @@
 
 namespace Taproot\IndieAuth;
 
+use BarnabyWalters\Mf2 as M;
 use Exception;
+use GuzzleHttp\Psr7\Header as HeaderParser;
 use IndieAuth\Client as IndieAuthClient;
 use Mf2;
-use BarnabyWalters\Mf2 as M;
-use GuzzleHttp\Psr7\Header as HeaderParser;
 use Nyholm\Psr7\Response;
+use PDO;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Client\RequestExceptionInterface;
@@ -18,28 +19,31 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Taproot\IndieAuth\Callback\AuthorizationFormInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
-
+use Taproot\IndieAuth\Storage\TokenStorageInterface;
 
 /**
  * IndieAuth Server
  * 
- * A PSR-7 compatible implementation of the request-handling logic for IndieAuth authorization endpoints
+ * A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
  * and token endpoints.
  * 
- * Typical usage looks something like this:
+ * Typical minimal usage looks something like this:
  *     
- *     // Somewhere in your app set-up:
- *     
- *     use Taproot\IndieAuth;
- *     
- *     $server = new IndieAuth\Server([
- *       'secret' => APP_INDIEAUTH_SECRET,
- *       'tokenStorage' => '/../data/auth_tokens/',
- *       'handleAuthenticationRequestCallback' => new IndieAuth\Callback\SingleUserPasswordAuthenticationCallback([
- *           'me' => 'https://your-domain.com/'
- *         ],
- *         YOUR_HASHED_PASSWORD
- *       )
+ *     // Somewhere in your app set-up code:
+ *     $server = new Taproot\IndieAuth\Server([
+ *       'secret' => APP_INDIEAUTH_SECRET,  // A secret key, >= 64 characters long.
+ *       'tokenStorage' => '/../data/auth_tokens/',  // A path to store token data, or an object implementing TokenStorageInterface.
+ *       'handleAuthenticationRequestCallback' => function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl) {
+ *         // If the request is authenticated, return an array with a `me` key containing the
+ *         // canonical URL of the currently logged-in user.
+ *         if ($userUrl = getLoggedInUserUrl($request)) {
+ *           return ['me' => $userUrl];
+ *         }
+ *         
+ *         // Otherwise, redirect the user to a login page, ensuring that they will be redirected
+ *         // back to the IndieAuth flow with query parameters intact once logged in.
+ *         return new Response('302', ['Location' => 'https://example.com/login?next=' . urlencode($authenticationRedirect)]);
+ *       }
  *     ]);
  *     
  *     // In your authorization endpoint route:
@@ -47,6 +51,15 @@ use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
  *     
  *     // In your token endpoint route:
  *     return $server->handleTokenEndpointRequest($request);
+ *     
+ *     // In another route (e.g. a micropub route), to authenticate the request:
+ *     // (assuming $bearerToken is a token parsed from an “Authorization: Bearer XXXXXX” header
+ *     // or access_token property from a request body)
+ *     if ($accessToken = $server->getTokenStorage()->getAccessToken($bearerToken)) {
+ *       // Request is authenticated as $accessToken['me'], and is allowed to
+ *       // act according to the scopes listed in $accessToken['scope'].
+ *       $scopes = explode(' ', $accessToken['scope']);
+ *     }
  * 
  * Refer to the `__construct` documentation for further configuration options, and to the
  * documentation for both handling methods for further documentation about them.
@@ -120,8 +133,12 @@ class Server {
 	 *   `$normalizedMeUrl`. Otherwise, this parameter is null. This parameter can optionally be used 
 	 *   as a suggestion for which user to log in as in a multi-user authentication flow, but should NOT
 	 *   be considered valid data.
+	 *   
+	 *   If redirecting to an existing authentication flow, this callable can usually be implemented as a
+	 *   closure. The callable may also implement its own authentication logic. For an example, see 
+	 *   `Callback\SingleUserPasswordAuthenticationCallback`.
 	 * * `secret`: A cryptographically random string with a minimum length of 64 characters. Used
-	 *   to hash and subsequently query parameters which get passed around.
+	 *   to hash and subsequently verify request query parameters which get passed around.
 	 * * `tokenStorage`: Either an object implementing `Storage\TokenStorageInterface`, or a string path,
 	 *   which will be passed to `Storage\FilesystemJsonStorage`. This object handles persisting authorization
 	 *   codes and access tokens, as well as implementation-specific parts of the exchange process which are 
@@ -156,7 +173,7 @@ class Server {
 	 *   made by your authentication or authorization pages, if it’s not convenient to put them elsewhere.
 	 *   Returning `null` will result in a standard `invalid_request` error being returned.
 	 * * `logger`: An instance of `LoggerInterface`. Will be used for internal logging, and will also be set
-	 *   as the logger for most objects passed in config which implement `LoggerAwareInterface`.
+	 *   as the logger for any objects passed in config which implement `LoggerAwareInterface`.
 	 * 
 	 * @param array $config An array of configuration variables
 	 * @return self
@@ -179,7 +196,7 @@ class Server {
 
 		$secret = $config['secret'] ?? '';
 		if (!is_string($secret) || strlen($secret) < 64) {
-			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters. Make one with Taproot\IndieAuth\generateRandomString(64)");
+			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters.");
 		}
 		$this->secret = $secret;
 
@@ -251,6 +268,10 @@ class Server {
 		}
 		$this->authorizationForm = $config['authorizationForm'];
 		trySetLogger($this->authorizationForm, $this->logger);
+	}
+
+	public function getTokenStorage(): TokenStorageInterface {
+		return $this->tokenStorage;
 	}
 
 	/**
@@ -357,7 +378,10 @@ class Server {
 			// TODO: return an error if the token doesn’t contain a me key.
 
 			// If everything checked out, return {"me": "https://example.com"} response
-			return new Response(200, ['content-type' => 'application/json'], json_encode(array_filter($token->getData(), function ($k) {
+			return new Response(200, [
+				'content-type' => 'application/json',
+				'cache-control' => 'no-store',
+			], json_encode(array_filter($token->getData(), function ($k) {
 				return in_array($k, ['me', 'profile']);
 			}, ARRAY_FILTER_USE_KEY)));
 		}
@@ -501,10 +525,13 @@ class Server {
 							}
 							
 							// Return a redirect to the client app.
-							return new Response(302, ['Location' => appendQueryParams($queryParams['redirect_uri'], [
-								'code' => $authCode->getKey(),
-								'state' => $code['state']
-							])]);
+							return new Response(302, [
+								'Location' => appendQueryParams($queryParams['redirect_uri'], [
+									'code' => $authCode->getKey(),
+									'state' => $code['state']
+								]),
+								'Cache-control' => 'no-cache'
+							]);
 						}
 
 						// Otherwise, the user is authenticated and needs to authorize the client app + choose scopes.
@@ -566,7 +593,8 @@ class Server {
 						}
 
 						// Present the authorization UI.
-						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp);
+						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp)
+								->withAddedHeader('Cache-control', 'no-cache');
 					}
 				}
 
@@ -670,7 +698,10 @@ class Server {
 			}
 
 			// If everything checks out, generate an access token and return it.
-			return new Response(200, ['content-type' => 'application/json'], json_encode(array_merge([
+			return new Response(200, [
+				'content-type' => 'application/json',
+				'cache-control' => 'no-store'
+			], json_encode(array_merge([
 				'access_token' => $token->getKey(),
 				'token_type' => 'Bearer'
 			], array_filter($token->getData(), function ($k) {

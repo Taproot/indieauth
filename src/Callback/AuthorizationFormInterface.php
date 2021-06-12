@@ -29,8 +29,8 @@ interface AuthorizationFormInterface {
 	 * * `client_id`: the URL of the client app. Should be shown to the user. This also makes a good “cancel” link.
 	 * * `redirect_uri`: the URI which the user will be redirected to on successful authorization. 
 	 * 
-	 * The form MUST submit a POST request to $formAction, with the `taproot_indieauth_action`
-	 * set to `approve`.
+	 * The form MUST submit a POST request to `$formAction`, with the `taproot_indieauth_action`
+	 * parameter set to `approve`.
 	 * 
 	 * The form MUST additionally include any CSRF tokens required to protect the submission.
 	 * Refer to whatever CSRF protection code you’re using (e.g. `\Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware`)

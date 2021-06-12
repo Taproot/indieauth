@@ -352,7 +352,8 @@ EOT
 		]);
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
-
+		
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(200, $res->getStatusCode());
 	}
 
@@ -381,6 +382,7 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(200, $res->getStatusCode());
 	}
 
@@ -406,6 +408,7 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(200, $res->getStatusCode());
 	}
 
@@ -508,6 +511,7 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(302, $res->getStatusCode(), 'The Response from a successful approval request must be a 302 redirect.');
 		
 		$responseLocation = $res->getHeaderLine('location');
@@ -686,6 +690,7 @@ EOT
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
 		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals([
 			'me' => 'https://me.example.com/',
@@ -772,6 +777,7 @@ EOT
 		$res = $s->handleTokenEndpointRequest($req);
 
 		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals(hash_hmac('sha256', $authCode->getKey(), SERVER_SECRET), $resJson['access_token']);
 		$this->assertEquals('Bearer', $resJson['token_type']);

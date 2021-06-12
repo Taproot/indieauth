@@ -8,6 +8,11 @@ use Psr\Http\Message\ServerRequestInterface;
 
 use function Taproot\IndieAuth\renderTemplate;
 
+/**
+ * Single User Password Authentication Callback
+ * 
+ * 
+ */
 class SingleUserPasswordAuthenticationCallback {
 	const PASSWORD_FORM_PARAMETER = 'taproot_indieauth_server_password';
 

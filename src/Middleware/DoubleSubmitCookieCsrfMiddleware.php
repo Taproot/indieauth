@@ -11,7 +11,8 @@ use Dflydev\FigCookies;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use function Taproot\IndieAuth\generateRandomString;
+
+use function Taproot\IndieAuth\generateRandomPrintableAsciiString;
 
 /**
  * Double-Submit Cookie CSRF Middleware
@@ -50,6 +51,17 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 
 	public LoggerInterface $logger;
 
+	/**
+	 * Constructor
+	 * 
+	 * The `$errorResponse` parameter can be used to customse the error response returned when a
+	 * write request has invalid CSRF parameters. It can take the following forms:
+	 * 
+	 * * A `string`, which will be returned as-is with a 400 Status Code and `Content-type: text/plain` header
+	 * * An instance of `ResponseInterface`, which will be returned as-is
+	 * * A callable with the signature `function (ServerRequestInterface $request): ResponseInterface`,
+	 *   the return value of which will be returned as-is.
+	 */
 	public function __construct(?string $attribute=self::ATTRIBUTE, ?int $ttl=self::TTL, $errorResponse=self::DEFAULT_ERROR_RESPONSE_STRING, $tokenLength=self::CSRF_TOKEN_LENGTH, $logger=null) {
 		$this->attribute = $attribute ?? self::ATTRIBUTE;
 		$this->ttl = $ttl ?? self::TTL;
@@ -78,7 +90,7 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
 		// Generate a new CSRF token, add it to the request attributes, and as a cookie on the response.
-		$csrfToken = generateRandomString($this->tokenLength);
+		$csrfToken = generateRandomPrintableAsciiString($this->tokenLength);
 		$request = $request->withAttribute($this->attribute, $csrfToken);
 
 		if (!in_array(strtoupper($request->getMethod()), self::READ_METHODS) && !$this->isValid($request)) {
