@@ -46,4 +46,10 @@ if ($accessToken = $server->getTokenStorage()->getAccessToken($bearerToken)) {
 ```
 
 Refer to the `__construct` documentation for further configuration options, and to [the
-documentation](https://taproot.github.io/indieauth/) for both handling methods for further documentation about them.
+documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.html) for both handling methods for further documentation about them, specifically:
+
+* [Taproot\IndieAuth\Server::__construct()](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Server.html#method___construct) for detailed information about how to configure your `Server` instance.
+* [Taproot\IndieAuth\Callback\DefaultAuthorizationForm](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html) (and its [associated template](https://github.com/Taproot/indieauth/blob/main/templates/default_authorization_page.html.php)) for details about customising the default consent screen form.
+* [Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html) for an example of how to implement an authentication callback, and it’s [corresponding template](https://github.com/Taproot/indieauth/blob/main/templates/single_user_password_authentication_form.html.php) for information on customising the template.
+* [Taproot\IndieAuth\Storage\TokenStorageInterface](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html) for details about implementing your own token storage
+* [Taproot\IndieAuth\Callback\AuthorizationFormInterface](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html) for infomation about implementing your own authorization form.
