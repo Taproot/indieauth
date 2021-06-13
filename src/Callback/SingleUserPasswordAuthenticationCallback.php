@@ -2,7 +2,7 @@
 
 namespace Taproot\IndieAuth\Callback;
 
-use Exception;
+use BadMethodCallException;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -59,8 +59,12 @@ class SingleUserPasswordAuthenticationCallback {
 	 * @param string|null $csrfKey The key under which to fetch a CSRF token from `$request` attributes, and as the CSRF token name in submitted form data. Defaults to the Server default, only change if you’re using a custom CSRF middleware.
 	 */
 	public function __construct(array $user, string $hashedPassword, ?string $formTemplate=null, ?string $csrfKey=null) {
-		if (!array_key_exists('me', $user) || !is_string($user['me'])) {
-			throw new Exception('The $user array MUST contain a “me” key, the value which must be the user’s canonical URL as a string.');
+		if (!isset($user['me'])) {
+			throw new BadMethodCallException('The $user array MUST contain a “me” key, the value which must be the user’s canonical URL as a string.');
+		}
+		
+		if (is_null(password_get_info($hashedPassword)['algo'])) {
+			throw new BadMethodCallException('The provided $hashedPassword was not a valid hash created by the password_hash() function.');
 		}
 		$this->user = $user;
 		$this->hashedPassword = $hashedPassword;
@@ -68,7 +72,7 @@ class SingleUserPasswordAuthenticationCallback {
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 	}
 
-	public function __invoke(ServerRequestInterface $request, string $formAction, ?string $normalizedMeUrl) {
+	public function __invoke(ServerRequestInterface $request, string $formAction, ?string $normalizedMeUrl=null) {
 		// If the request is a form submission with a matching password, return the corresponding
 		// user data.
 		if ($request->getMethod() == 'POST' && password_verify($request->getParsedBody()[self::PASSWORD_FORM_PARAMETER] ?? '', $this->hashedPassword)) {

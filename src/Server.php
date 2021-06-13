@@ -2,6 +2,7 @@
 
 namespace Taproot\IndieAuth;
 
+use BadMethodCallException;
 use BarnabyWalters\Mf2 as M;
 use Exception;
 use GuzzleHttp\Psr7\Header as HeaderParser;
@@ -186,7 +187,7 @@ class Server {
 	 */
 	public function __construct(array $config) {
 		$config = array_merge([
-			'csrfMiddleware' => null,
+			'csrfMiddleware' => new Middleware\DoubleSubmitCookieCsrfMiddleware(self::DEFAULT_CSRF_KEY),
 			'logger' => null,
 			self::HANDLE_NON_INDIEAUTH_REQUEST => function (ServerRequestInterface $request) { return null; }, // Default to no-op.
 			'tokenStorage' => null,
@@ -196,28 +197,28 @@ class Server {
 		], $config);
 
 		if (!is_string($config['exceptionTemplatePath'])) {
-			throw new Exception("\$config['exceptionTemplatePath'] must be a string (path).");
+			throw new BadMethodCallException("\$config['exceptionTemplatePath'] must be a string (path).");
 		}
 		$this->exceptionTemplatePath = $config['exceptionTemplatePath'];
 
 		$secret = $config['secret'] ?? '';
 		if (!is_string($secret) || strlen($secret) < 64) {
-			throw new Exception("\$config['secret'] must be a string with a minimum length of 64 characters.");
+			throw new BadMethodCallException("\$config['secret'] must be a string with a minimum length of 64 characters.");
 		}
 		$this->secret = $secret;
 
 		if (!is_null($config['logger']) && !$config['logger'] instanceof LoggerInterface) {
-			throw new Exception("\$config['logger'] must be an instance of \\Psr\\Log\\LoggerInterface or null.");
+			throw new BadMethodCallException("\$config['logger'] must be an instance of \\Psr\\Log\\LoggerInterface or null.");
 		}
 		$this->logger = $config['logger'] ?? new NullLogger();
 
 		if (!(array_key_exists(self::HANDLE_AUTHENTICATION_REQUEST, $config) and is_callable($config[self::HANDLE_AUTHENTICATION_REQUEST]))) {
-			throw new Exception('$callbacks[\'' . self::HANDLE_AUTHENTICATION_REQUEST .'\'] must be present and callable.');
+			throw new BadMethodCallException('$callbacks[\'' . self::HANDLE_AUTHENTICATION_REQUEST .'\'] must be present and callable.');
 		}
 		$this->handleAuthenticationRequestCallback = $config[self::HANDLE_AUTHENTICATION_REQUEST];
 		
 		if (!is_callable($config[self::HANDLE_NON_INDIEAUTH_REQUEST])) {
-			throw new Exception("\$config['" . self::HANDLE_NON_INDIEAUTH_REQUEST . "'] must be callable");
+			throw new BadMethodCallException("\$config['" . self::HANDLE_NON_INDIEAUTH_REQUEST . "'] must be callable");
 		}
 		$this->handleNonIndieAuthRequest = $config[self::HANDLE_NON_INDIEAUTH_REQUEST];
 
@@ -227,7 +228,7 @@ class Server {
 				// Create a default access token storage with a TTL of 7 days.
 				$tokenStorage = new Storage\FilesystemJsonStorage($tokenStorage, $this->secret);
 			} else {
-				throw new Exception("\$config['tokenStorage'] parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.");
+				throw new BadMethodCallException("\$config['tokenStorage'] parameter must be either a string (path) or an instance of Taproot\IndieAuth\TokenStorageInterface.");
 			}
 		}
 		trySetLogger($tokenStorage, $this->logger);
@@ -235,14 +236,13 @@ class Server {
 
 		$csrfMiddleware = $config['csrfMiddleware'];
 		if (!$csrfMiddleware instanceof MiddlewareInterface) {
-			// Default to the statless Double-Submit Cookie CSRF Middleware, with default settings.
-			$csrfMiddleware = new Middleware\DoubleSubmitCookieCsrfMiddleware(self::DEFAULT_CSRF_KEY);
+			throw new BadMethodCallException("\$config['csrfMiddleware'] must be null or implement MiddlewareInterface.");
 		}
 		trySetLogger($csrfMiddleware, $this->logger);
 		$this->csrfMiddleware = $csrfMiddleware;
 
 		$httpGetWithEffectiveUrl = $config['httpGetWithEffectiveUrl'];
-		if (!is_callable($httpGetWithEffectiveUrl)) {
+		if (is_null($httpGetWithEffectiveUrl)) {
 			if (class_exists('\GuzzleHttp\Client')) {
 				$httpGetWithEffectiveUrl = function (string $uri) {
 					// This code can’t be tested, ignore it for coverage purposes.
@@ -262,15 +262,19 @@ class Server {
 					return [$resp, $effectiveUrl];
 				};
 			} else {
-				throw new Exception('No valid $httpGetWithEffectiveUrl was provided, and guzzlehttp/guzzle was not installed. Either require guzzlehttp/guzzle, or provide a valid callable.');
+				throw new BadMethodCallException("\$config['httpGetWithEffectiveUrl'] was not provided, and guzzlehttp/guzzle was not installed. Either require guzzlehttp/guzzle, or provide a valid callable.");
 				// @codeCoverageIgnoreEnd
+			}
+		} else {
+			if (!is_callable($httpGetWithEffectiveUrl)) {
+				throw new BadMethodCallException("\$config['httpGetWithEffectiveUrl'] must be callable.");
 			}
 		}
 		trySetLogger($httpGetWithEffectiveUrl, $this->logger);
 		$this->httpGetWithEffectiveUrl = $httpGetWithEffectiveUrl;
 
 		if (!$config['authorizationForm'] instanceof AuthorizationFormInterface) {
-			throw new Exception("When provided, \$config['authorizationForm'] must implement Taproot\IndieAuth\Callback\AuthorizationForm.");
+			throw new BadMethodCallException("When provided, \$config['authorizationForm'] must implement Taproot\IndieAuth\Callback\AuthorizationForm.");
 		}
 		$this->authorizationForm = $config['authorizationForm'];
 		trySetLogger($this->authorizationForm, $this->logger);

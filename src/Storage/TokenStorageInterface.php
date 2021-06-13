@@ -36,7 +36,7 @@ namespace Taproot\IndieAuth\Storage;
  */
 interface TokenStorageInterface {
 	/**
-	 * Create Auth Code
+	 * Create Authorization Code
 	 * 
 	 * This method is called on a valid authorization token request. The `$data`
 	 * array is guaranteed to have the following keys:

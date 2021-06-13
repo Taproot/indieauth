@@ -2,6 +2,7 @@
 
 namespace Taproot\IndieAuth\Test;
 
+use BadMethodCallException;
 use DirectoryIterator;
 use Exception;
 use Nyholm\Psr7\Response;
@@ -129,11 +130,11 @@ class ServerTest extends TestCase {
 			 ['authorizationForm' => 'not an auth form instance']
 		 ];
 
-		 foreach ($badConfigs as $badConfig) {
+		 foreach ($badConfigs as $testId => $badConfig) {
 			 try {
 				$this->getDefaultServer($badConfig);
-				$this->fail();
-			 } catch (Exception $e) {
+				$this->fail("Test case {$testId} failed.");
+			 } catch (BadMethodCallException $e) {
 				$this->assertTrue(true);
 			 }
 		 }
