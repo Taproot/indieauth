@@ -805,7 +805,7 @@ documentation for both handling methods for further documentation about them.</p
 <p>The following keys are required:</p>
 <ul>
 <li>
-<p><code class="prettyprint">handleAuthenticationRequestCallback</code>: a callable with the signature
+<p><code class="prettyprint">authenticationHandler</code>: a callable with the signature
 <code class="prettyprint">function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface</code>.
 This function is called on IndieAuth authorization requests, after validating the query parameters.</p>
 <p>It should check to see if $request is authenticated, then:</p>

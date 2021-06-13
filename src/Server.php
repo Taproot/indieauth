@@ -124,7 +124,7 @@ class Server {
 	 * 
 	 * The following keys are required:
 	 * 
-	 * * `handleAuthenticationRequestCallback`: a callable with the signature
+	 * * `authenticationHandler`: a callable with the signature
 	 *   `function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface`.
 	 *   This function is called on IndieAuth authorization requests, after validating the query parameters.
 	 *   
