@@ -553,7 +553,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage\u003A\u003AcreateAuthCode\u0028\u0029",
             "name": "createAuthCode",
-            "summary": "Create\u0020Auth\u0020Code",
+            "summary": "Create\u0020Authorization\u0020Code",
             "url": "classes/Taproot-IndieAuth-Storage-FilesystemJsonStorage.html#method_createAuthCode"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage\u003A\u003AexchangeAuthCodeForAccessToken\u0028\u0029",
@@ -658,7 +658,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\TokenStorageInterface\u003A\u003AcreateAuthCode\u0028\u0029",
             "name": "createAuthCode",
-            "summary": "Create\u0020Auth\u0020Code",
+            "summary": "Create\u0020Authorization\u0020Code",
             "url": "classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html#method_createAuthCode"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\TokenStorageInterface\u003A\u003AexchangeAuthCodeForAccessToken\u0028\u0029",
