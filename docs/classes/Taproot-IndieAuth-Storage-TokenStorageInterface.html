@@ -267,7 +267,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">119</span>
+    <span class="phpdocumentor-element-found-in__line">146</span>
 </aside>
 
         <p class="phpdocumentor-summary">Exchange Authorization Code for Access Token</p>
@@ -316,7 +316,30 @@ And MAY contain additional keys, such as:</li>
 <p>If the authorization code was redeemed at the authorization endpoint, Server will
 only pass the <code class="prettyprint">me</code> and <code class="prettyprint">profile</code> keys onto the client. In both cases, it will filter
 out <code class="prettyprint">code_challenge</code> keys to prevent that data from accidentally being leaked to
-clients.</p>
+clients. If an access token is present, the server will add <code class="prettyprint">token_type: Bearer</code>
+automatically.</p>
+<p>A typical implementation might look like this:</p>
+<pre class="prettyprint"><code class="language-php">function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
+  if (is_null($authCodeData = $this-&gt;fetchAuthCode($code))) {
+    return null;
+  }
+
+  if (isExpired($authCodeData)) {
+    return null;
+  }
+
+  try {
+    $validateAuthCode($authCodeData);
+  } catch (IndieAuthException $e) {
+    $this-&gt;deleteAuthCode($code);
+    throw $e;
+  }
+
+  return $this-&gt;newTokenFromAuthCodeData($authCodeData);
+}
+</code></pre>
+<p>Refer to reference implementations in the <code class="prettyprint">Taproot\IndieAuth\Storage</code> namespace for
+reference.</p>
 </section>
 
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
@@ -364,7 +387,7 @@ clients.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">127</span>
+    <span class="phpdocumentor-element-found-in__line">154</span>
 </aside>
 
         <p class="phpdocumentor-summary">Get Access Token</p>
@@ -410,7 +433,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">135</span>
+    <span class="phpdocumentor-element-found-in__line">162</span>
 </aside>
 
         <p class="phpdocumentor-summary">Revoke Access Token</p>

@@ -110,7 +110,34 @@ interface TokenStorageInterface {
 	 * If the authorization code was redeemed at the authorization endpoint, Server will
 	 * only pass the `me` and `profile` keys onto the client. In both cases, it will filter
 	 * out `code_challenge` keys to prevent that data from accidentally being leaked to
-	 * clients.
+	 * clients. If an access token is present, the server will add `token_type: Bearer`
+	 * automatically.
+	 * 
+	 * A typical implementation might look like this:
+	 * 
+	 * ```php
+	 * function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
+	 *   if (is_null($authCodeData = $this->fetchAuthCode($code))) {
+	 *     return null;
+	 *   }
+	 *   
+	 *   if (isExpired($authCodeData)) {
+	 *     return null;
+	 *   }
+	 *   
+	 *   try {
+	 *     $validateAuthCode($authCodeData);
+	 *   } catch (IndieAuthException $e) {
+	 *     $this->deleteAuthCode($code);
+	 *     throw $e;
+	 *   }
+	 *   
+	 *   return $this->newTokenFromAuthCodeData($authCodeData);
+	 * }
+	 * ```
+	 * 
+	 * Refer to reference implementations in the `Taproot\IndieAuth\Storage` namespace for
+	 * reference.
 	 * 
 	 * @param string $code The Authorization Code to attempt to exchange.
 	 * @param callable $validateAuthCode A callable to perform additional validation if valid auth code data is found. Takes `array $authCodeData`, raises `Taproot\IndieAuth\IndieAuthException` on invalid data, which should be bubbled up to the caller after any clean-up. Returns void.
