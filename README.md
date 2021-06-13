@@ -3,6 +3,9 @@
 A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
 and token endpoints.
 
+* [API Documentation](https://taproot.github.io/indieauth/)
+* [Code Coverage](https://taproot.github.io/indieauth/coverage/)
+
 Typical minimal usage looks something like this:
     
 ```php
