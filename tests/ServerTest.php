@@ -801,6 +801,16 @@ EOT
 		$this->assertEquals($authCodeData['me'], $resJson['me']);
 		$this->assertEquals($authCodeData['profile'], $resJson['profile']);
 		$this->assertTrue(scopeEquals($authCodeData['scope'], $resJson['scope']));
+
+		// Make sure we can fetch the token from the token storage.
+		$accessToken = $s->getTokenStorage()->getAccessToken($resJson['access_token']);
+		$this->assertNotNull($accessToken);
+		$this->assertEquals($accessToken['me'], $authCodeData['me']);
+		$this->assertEquals($accessToken['scope'], $authCodeData['scope']);
+
+		// Make sure we can revoke the token and no longer fetch it.
+		$this->assertTrue($s->getTokenStorage()->revokeAccessToken($resJson['access_token']));
+		$this->assertNull($s->getTokenStorage()->getAccessToken($resJson['access_token']));
 	}
 
 	/**

@@ -150,7 +150,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		if (!is_array($data)) { return null; }
 
 		// Check that this is a redeemed access token.
-		if ($data['_redeemed'] ?? false === false) { return null; }
+		if (($data['exchanged_at'] ?? false) === false) { return null; }
 
 		// Check that the access token is still valid. valid_until=null means it should live until
 		// explicitly revoked.
