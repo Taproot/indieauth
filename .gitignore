@@ -1,7 +1,6 @@
 .DS_Store
 vendor
 tests/tmp/*
-tests/coverage
 phpDocumentor.phar
 phpdoc.xml
 .phpdoc
