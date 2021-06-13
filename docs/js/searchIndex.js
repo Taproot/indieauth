@@ -281,6 +281,16 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_SCOPE"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AINVALID_GRANT",
+            "name": "INVALID_GRANT",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_GRANT"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AINVALID_REQUEST",
+            "name": "INVALID_REQUEST",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AEXC_INFO",
             "name": "EXC_INFO",
             "summary": "",
@@ -640,46 +650,6 @@ Search.appendIndex(
             "name": "Sqlite3Storage",
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Storage-Sqlite3Storage.html"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token",
-            "name": "Token",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003A__construct\u0028\u0029",
-            "name": "__construct",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#method___construct"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003AgetData\u0028\u0029",
-            "name": "getData",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#method_getData"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003AgetKey\u0028\u0029",
-            "name": "getKey",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#method_getKey"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003A__toString\u0028\u0029",
-            "name": "__toString",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#method___toString"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003AjsonSerialize\u0028\u0029",
-            "name": "jsonSerialize",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#method_jsonSerialize"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003A\u0024key",
-            "name": "key",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#property_key"
-        },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Token\u003A\u003A\u0024data",
-            "name": "data",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Token.html#property_data"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\TokenStorageInterface",
             "name": "TokenStorageInterface",

@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
 
 const SECRET = '1111111111111111111111111111111111111111111111111111111111111111';
-const TMP_DIR = __DIR__ . '/tmp';
 
 class FilesystemJsonStorageTest extends TestCase {
 	protected function setUp(): void {

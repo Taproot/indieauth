@@ -324,65 +324,63 @@ class Server {
 			
 			$bodyParams = $request->getParsedBody();
 
+			if (!isset($bodyParams['code'])) {
+				$this->logger->warning('The exchange request was missing the code parameter. Returning an error response.');
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_request',
+					'error_description' => 'The code parameter was missing.'
+				]));
+			}
+
 			// Attempt to internally exchange the provided auth code for an access token.
 			// We do this before anything else so that the auth code is invalidated as soon as the request starts,
 			// and the resulting access token is revoked if we encounter an error. This ends up providing a simpler
 			// and more flexible interface for TokenStorage implementors.
-			if (array_key_exists('code', $bodyParams)) {
-				$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+			try {
+				// Call the token exchange method, passing in a callback which performs additional validation
+				// on the auth code before it gets exchanged.
+				$tokenData = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code'], function (array $authCode) use ($request, $bodyParams) {
+					// Verify that all required parameters are included.
+					$requiredParameters = ['client_id', 'redirect_uri', 'code_verifier'];
+					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
+						return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
+					});
+					if (!empty($missingRequiredParameters)) {
+						$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+						throw IndieAuthException::create(IndieAuthException::INVALID_REQUEST, $request);
+					}
 
-				if (is_null($token)) {
-					$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-					return new Response(400, ['content-type' => 'application/json'], json_encode([
-						'error' => 'invalid_grant',
-						'error_description' => 'The provided credentials were not valid.'
-					]));
-				}
-			} // The else case is handled by the code below.
+					// Verify that it was issued for the same client_id and redirect_uri
+					if ($authCode['client_id'] !== $bodyParams['client_id']
+						|| $authCode['redirect_uri'] !== $bodyParams['redirect_uri']) {
+						$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
 
-			// Verify that all required parameters are included.
-			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
-			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
-				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
-			});
-			if (!empty($missingRequiredParameters)) {
-				if (isset($token)) {
-					$this->tokenStorage->revokeAccessToken($token->getKey());
-				}
-				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+					// Check that the supplied code_verifier hashes to the stored code_challenge
+					// TODO: support method = plain as well as S256.
+					if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+						$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
+
+					// Check that this token either grants at most the profile scope.
+					$requestedScopes = explode(' ', $authCode['scope'] ?? '');
+					if (!empty($requestedScopes) && $requestedScopes != ['profile']) {
+						$this->logger->error("An exchange request for a token granting scopes other than “profile” was sent to the authorization endpoint.");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
+				});
+			} catch (IndieAuthException $e) {
+				// If an exception was thrown, return a corresponding error response.
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_request',
-					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
+					'error' => $e->getInfo()['error'],
+					'error_description' => $e->getMessage()
 				]));
 			}
 
-			// Verify that it was issued for the same client_id and redirect_uri
-			if ($token->getData()['client_id'] !== $bodyParams['client_id']
-				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
-				]));
-			}
-
-			// Check that the supplied code_verifier hashes to the stored code_challenge
-			// TODO: support method = plain as well as S256.
-			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
-				]));
-			}
-
-			// Check that this token either grants at most the profile scope.
-			$requestedScopes = explode(' ', $token->getData()['scope'] ?? '');
-			if (!empty($requestedScopes) && $requestedScopes != ['profile']) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("An exchange request for a token granting scopes other than “profile” was sent to the authorization endpoint.");
+			if (is_null($tokenData)) {
+				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
 					'error_description' => 'The provided credentials were not valid.'
@@ -395,7 +393,9 @@ class Server {
 			return new Response(200, [
 				'content-type' => 'application/json',
 				'cache-control' => 'no-store',
-			], json_encode(array_filter($token->getData(), function ($k) {
+			], json_encode(array_filter($tokenData, function ($k) {
+				// Prevent codes exchanged at the authorization endpoint from returning any information other than
+				// me and profile.
 				return in_array($k, ['me', 'profile']);
 			}, ARRAY_FILTER_USE_KEY)));
 		}
@@ -586,7 +586,7 @@ class Server {
 							// Return a redirect to the client app.
 							return new Response(302, [
 								'Location' => appendQueryParams($queryParams['redirect_uri'], [
-									'code' => $authCode->getKey(),
+									'code' => $authCode,
 									'state' => $code['state']
 								]),
 								'Cache-control' => 'no-cache'
@@ -679,79 +679,81 @@ class Server {
 			
 			$bodyParams = $request->getParsedBody();
 
+			if (!isset($bodyParams['code'])) {
+				$this->logger->warning('The exchange request was missing the code parameter. Returning an error response.');
+				return new Response(400, ['content-type' => 'application/json'], json_encode([
+					'error' => 'invalid_request',
+					'error_description' => 'The code parameter was missing.'
+				]));
+			}
+
 			// Attempt to internally exchange the provided auth code for an access token.
 			// We do this before anything else so that the auth code is invalidated as soon as the request starts,
 			// and the resulting access token is revoked if we encounter an error. This ends up providing a simpler
 			// and more flexible interface for TokenStorage implementors.
-			if (array_key_exists('code', $bodyParams)) {
-				$token = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code']);
+			try {
+				// Call the token exchange method, passing in a callback which performs additional validation
+				// on the auth code before it gets exchanged.
+				$tokenData = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code'], function (array $authCode) use ($request, $bodyParams) {
+					// Verify that all required parameters are included.
+					$requiredParameters = ['client_id', 'redirect_uri', 'code_verifier'];
+					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
+						return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
+					});
+					if (!empty($missingRequiredParameters)) {
+						$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+						throw IndieAuthException::create(IndieAuthException::INVALID_REQUEST, $request);
+					}
 
-				if (is_null($token)) {
-					$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-					return new Response(400, ['content-type' => 'application/json'], json_encode([
-						'error' => 'invalid_grant',
-						'error_description' => 'The provided credentials were not valid.'
-					]));
-				}
-			}
+					// Verify that it was issued for the same client_id and redirect_uri
+					if ($authCode['client_id'] !== $bodyParams['client_id']
+						|| $authCode['redirect_uri'] !== $bodyParams['redirect_uri']) {
+						$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
 
-			// Verify that all required parameters are included.
-			$requiredParameters = ['client_id', 'redirect_uri', 'code', 'code_verifier'];
-			$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
-				return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
-			});
-			if (!empty($missingRequiredParameters)) {
-				if (isset($token)) {
-					$this->tokenStorage->revokeAccessToken($token->getKey());
-				}
-				$this->logger->warning('The exchange request was missing required parameters. Returning an error response.', ['missing' => $missingRequiredParameters]);
+					// Check that the supplied code_verifier hashes to the stored code_challenge
+					// TODO: support method = plain as well as S256.
+					if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+						$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
+
+					// Check that scope is not empty.
+					if (empty($authCode['scope'])) {
+						$this->logger->error("An exchange request for a token with an empty scope was sent to the token endpoint.");
+						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
+				});
+			} catch (IndieAuthException $e) {
+				// If an exception was thrown, return a corresponding error response.
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_request',
-					'error_description' => 'The following required parameters were missing or empty: ' . join(', ', $missingRequiredParameters)
+					'error' => $e->getInfo()['error'],
+					'error_description' => $e->getMessage()
 				]));
 			}
 
-			// Verify that it was issued for the same client_id and redirect_uri
-			if ($token->getData()['client_id'] !== $bodyParams['client_id']
-				|| $token->getData()['redirect_uri'] !== $bodyParams['redirect_uri']) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("The provided client_id and/or redirect_uri did not match those stored in the token.");
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
-				]));
-			}
-
-			// Check that the supplied code_verifier hashes to the stored code_challenge
-			// TODO: support method = plain as well as S256.
-			if (!hash_equals($token->getData()['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
-					'error' => 'invalid_grant',
-					'error_description' => 'The provided credentials were not valid.'
-				]));
-			}
-
-			// If the auth code was issued with no scope, return an error.
-			if (empty($token->getData()['scope'])) {
-				$this->tokenStorage->revokeAccessToken($token->getKey());
-				$this->logger->error("Cannot issue an access token with no scopes.");
+			if (is_null($tokenData)) {
+				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
 				return new Response(400, ['content-type' => 'application/json'], json_encode([
 					'error' => 'invalid_grant',
 					'error_description' => 'The provided credentials were not valid.'
 				]));
 			}
 
-			// If everything checks out, generate an access token and return it.
+			// TODO: return an error if the token doesn’t contain a me key.
+
+			// If everything checked out, return {"me": "https://example.com"} response
 			return new Response(200, [
 				'content-type' => 'application/json',
-				'cache-control' => 'no-store'
+				'cache-control' => 'no-store',
 			], json_encode(array_merge([
-				'access_token' => $token->getKey(),
+				// Ensure that the token_type key is present, if tokenStorage doesn’t include it.
 				'token_type' => 'Bearer'
-			], array_filter($token->getData(), function ($k) {
-				return in_array($k, ['me', 'profile', 'scope']);
+			], array_filter($tokenData, function ($k) {
+				// We should be able to trust the return data from tokenStorage, but there’s no harm in
+				// preventing code_challenges from leaking, per OAuth2.
+				return !in_array($k, ['code_challenge', 'code_challenge_method']);
 			}, ARRAY_FILTER_USE_KEY))));
 		}
 

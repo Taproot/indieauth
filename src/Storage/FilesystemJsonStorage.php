@@ -7,6 +7,7 @@ use Exception;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Taproot\IndieAuth\IndieAuthException;
 
 use function Taproot\IndieAuth\generateRandomString;
 
@@ -64,7 +65,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 
 	// TokenStorageInterface Methods.
 
-	public function createAuthCode(array $data): ?Token {
+	public function createAuthCode(array $data): ?string {
 		$authCode = generateRandomString(self::TOKEN_LENGTH);
 		$accessToken = $this->hash($authCode);
 
@@ -75,17 +76,17 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		if (!$this->put($accessToken, $data)) {
 			return null;
 		}
-		return new Token($authCode, $data);
+		return $authCode;
 	}
 
-	public function exchangeAuthCodeForAccessToken(string $code): ?Token {
+	public function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
 		// Hash the auth code to get the theoretical matching access token filename.
 		$accessToken = $this->hash($code);
 
 		// Prevent the token file from being read, modified or deleted while we’re working with it.
 		// r+ to allow reading and writing, but to make sure we don’t create the file if it doesn’t 
 		// already exist.
-		return $this->withLock($this->getPath($accessToken), 'r+', function ($fp) use ($accessToken) {
+		return $this->withLock($this->getPath($accessToken), 'r+', function ($fp) use ($accessToken, $validateAuthCode) {
 			// Read the file contents.
 			$fileContents = '';
 			while ($d = fread($fp, 1024)) { $fileContents .= $d; }
@@ -99,6 +100,18 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 
 			// Make sure the auth code isn’t expired.
 			if (($data['valid_until'] ?? 0) < time()) { return null; }
+
+			// The auth code is valid as far as we know, pass it to the validation callback passed from the
+			// Server.
+			try {
+				$validateAuthCode($data);
+			} catch (IndieAuthException $e) {
+				// If there was an issue with the auth code, delete it before bubbling the exception
+				// up to the Server for handling. We currently have a lock on the file path, so pass
+				// false to $observeLock to prevent a deadlock.
+				$this->delete($accessToken, false);
+				throw $e;
+			}
 
 			// If the access token is valid, mark it as redeemed and set a new expiry time.
 			$data['exchanged_at'] = time();
@@ -120,11 +133,18 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			if (fwrite($fp, $jsonData) === false) { return null; }
 			if (ftruncate($fp, strlen($jsonData)) === false) { return null; }
 
-			return new Token($accessToken, $data);
+			// Return the OAuth2-compatible access token data to the Server for passing onto
+			// the client app. Passed via array_filter to remove the scope key if scope is null.
+			return array_filter([
+				'access_token' => $accessToken,
+				'scope' => $data['scope'] ?? null,
+				'me' => $data['me'],
+				'profile' => $data['profile'] ?? null
+			]);
 		});
 	}
 
-	public function getAccessToken(string $token): ?Token {
+	public function getAccessToken(string $token): ?array {
 		$data = $this->get($token);
 
 		if (!is_array($data)) { return null; }
@@ -137,7 +157,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		if (is_int($data['valid_until']) && $data['valid_until'] < time()) { return null; }
 
 		// The token is valid!
-		return new Token($token, $data);
+		return $data;
 	}
 
 	public function revokeAccessToken(string $token): bool {
@@ -205,12 +225,16 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		});
 	}
 
-	public function delete(string $key): bool {
+	public function delete(string $key, $observeLock=true): bool {
 		$path = $this->getPath($key);
 		if (file_exists($path)) {
-			return $this->withLock($path, 'r', function ($fp) use ($path) {
+			if ($observeLock) {
+				return $this->withLock($path, 'r', function ($fp) use ($path) {
+					return unlink($path);
+				});
+			} else {
 				return unlink($path);
-			});
+			}
 		}
 		return false;
 	}

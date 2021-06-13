@@ -148,6 +148,8 @@
     self::INVALID_STATE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid state Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
     self::INVALID_CODE_CHALLENGE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid code_challenge Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
     self::INVALID_SCOPE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid scope Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
+    self::INVALID_GRANT =&gt; [&#039;statusCode&#039; =&gt; 400, &#039;name&#039; =&gt; &#039;The provided credentials were not valid.&#039;, &#039;error&#039; =&gt; &#039;invalid_grant&#039;],
+    self::INVALID_REQUEST =&gt; [&#039;statusCode&#039; =&gt; 400, &#039;name&#039; =&gt; &#039;Invalid Request&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
 ]                    </span>
 </dt>
 <dd></dd>
@@ -195,9 +197,23 @@
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_GRANT">INVALID_GRANT</a>
+    <span>
+        &nbsp;= 12                    </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REDIRECT_URI">INVALID_REDIRECT_URI</a>
     <span>
         &nbsp;= 7                    </span>
+</dt>
+<dd></dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST">INVALID_REQUEST</a>
+    <span>
+        &nbsp;= 13                    </span>
 </dt>
 <dd></dd>
 
@@ -358,7 +374,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">23</span>
+    <span class="phpdocumentor-element-found-in__line">25</span>
 </aside>
 
     
@@ -380,6 +396,8 @@
     self::INVALID_STATE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid state Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
     self::INVALID_CODE_CHALLENGE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid code_challenge Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
     self::INVALID_SCOPE =&gt; [&#039;statusCode&#039; =&gt; 302, &#039;name&#039; =&gt; &#039;Invalid scope Parameter&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
+    self::INVALID_GRANT =&gt; [&#039;statusCode&#039; =&gt; 400, &#039;name&#039; =&gt; &#039;The provided credentials were not valid.&#039;, &#039;error&#039; =&gt; &#039;invalid_grant&#039;],
+    self::INVALID_REQUEST =&gt; [&#039;statusCode&#039; =&gt; 400, &#039;name&#039; =&gt; &#039;Invalid Request&#039;, &#039;error&#039; =&gt; &#039;invalid_request&#039;],
 ]</span>
 </code>
 
@@ -539,6 +557,31 @@
 
 </article>
                     <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_INVALID_GRANT">
+        INVALID_GRANT
+        <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_GRANT" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">22</span>
+</aside>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">INVALID_GRANT</span>
+    = <span class="phpdocumentor-signature__default-value">12</span>
+</code>
+
+
+    
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
     <h4 class="phpdocumentor-element__name" id="constant_INVALID_REDIRECT_URI">
         INVALID_REDIRECT_URI
         <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REDIRECT_URI" class="headerlink"><i class="fas fa-link"></i></a>
@@ -556,6 +599,31 @@
     <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">INVALID_REDIRECT_URI</span>
     = <span class="phpdocumentor-signature__default-value">7</span>
+</code>
+
+
+    
+    
+
+</article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_INVALID_REQUEST">
+        INVALID_REQUEST
+        <a href="classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST" class="headerlink"><i class="fas fa-link"></i></a>
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">23</span>
+</aside>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">INVALID_REQUEST</span>
+    = <span class="phpdocumentor-signature__default-value">13</span>
 </code>
 
 
@@ -637,7 +705,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">39</span>
+    <span class="phpdocumentor-element-found-in__line">43</span>
 </aside>
 
     
@@ -671,7 +739,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">41</span>
+    <span class="phpdocumentor-element-found-in__line">45</span>
 </aside>
 
     
@@ -727,7 +795,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">56</span>
+    <span class="phpdocumentor-element-found-in__line">60</span>
 </aside>
 
     
@@ -759,7 +827,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">60</span>
+    <span class="phpdocumentor-element-found-in__line">64</span>
 </aside>
 
     
@@ -791,7 +859,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">76</span>
+    <span class="phpdocumentor-element-found-in__line">80</span>
 </aside>
 
     
@@ -823,7 +891,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">52</span>
+    <span class="phpdocumentor-element-found-in__line">56</span>
 </aside>
 
     
@@ -855,7 +923,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/IndieAuthException.php"><a href="files/src-indieauthexception.html"><abbr title="src/IndieAuthException.php">IndieAuthException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">71</span>
+    <span class="phpdocumentor-element-found-in__line">75</span>
 </aside>
 
         <p class="phpdocumentor-summary">Trust Query Params</p>

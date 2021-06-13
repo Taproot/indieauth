@@ -61,9 +61,8 @@ interface TokenStorageInterface {
 	 *   the consent screen. Other implementations of `AuthorizationFormInterface` may add additional 
 	 *   data, such as custom token-specific settings, or a custom token lifetime.
 	 * 
-	 * This method should store the data passed to it, generate a corresponding authorization code,
-	 * and return an instance of `Storage\Token` containing both. Implementations will usually add 
-	 * an expiry time, usually under the `valid_until` key.
+	 * This method should store the data passed to it, generate a corresponding authorization code
+	 * string, and return it.
 	 * 
 	 * The method call and data is structured such that implementations have a lot of flexibility
 	 * about how to store authorization code data. It could be a record in an auth code database
@@ -76,40 +75,56 @@ interface TokenStorageInterface {
 	 * recommended to log it internally for reference. For the same reason, this method should not 
 	 * throw exceptions.
 	 */
-	public function createAuthCode(array $data): ?Token;
+	public function createAuthCode(array $data): ?string;
 
 	/**
 	 * Exchange Authorization Code for Access Token
 	 * 
 	 * Attempt to exchange an authorization code identified by `$code` for
-	 * an access token, returning it in a `Token` on success and null on error.
+	 * an access token. Return an array of access token data to be passed onto
+	 * the client app on success, and null on error.
 	 * 
 	 * This method is called at the beginning of a code exchange request, before
-	 * further error checking or validation is applied. On an error, the created
-	 * access token is immediately revoked via `revokeAccessToken()`.
+	 * further error checking or validation is applied. It should proceed as
+	 * follows.
 	 * 
-	 * For this reason, the token data in the returned Token object MUST include 
-	 * the `client_id` and `redirect_uri` parameters associated with the 
-	 * authorization code, as these are used by the IndieAuth Server for further 
-	 * validation.
+	 * * Attempt to fetch the authorization code data identified by $code. If
+	 *   it does not exist or has expired, return null;
+	 * * Pass the authorization code data array to $validateAuthCode for validation.
+	 *   If there is a problem with the code, a `Taproot\IndieAuth\IndieAuthException`
+	 *   will be thrown. This method should catch it, invalidate the authorization
+	 *   code data, then re-throw the exception for handling by Server.
+	 * * If the authorization code data passed all checks, convert it into an access
+	 *   token, invalidate the auth code to prevent re-use, and store the access token
+	 *   data internally.
+	 * * Return an array of access token data to be passed onto the client app. It MUST
+	 *   contain the following keys:
+	 *     * `me`
+	 *     * `access_token`
+	 *   Additonally, it SHOULD contain the following keys:
+	 *     * `scope`, if the token grants any scope
+	 *   And MAY contain additional keys, such as:
+	 *     * `profile`
+	 *     * `expires_at`
 	 * 
-	 * This method is responsible for ensuring that the matched auth code is
-	 * not expired. If it is, it should return null, presumably after deleting
-	 * the corresponding authorization code record.
+	 * If the authorization code was redeemed at the authorization endpoint, Server will
+	 * only pass the `me` and `profile` keys onto the client. In both cases, it will filter
+	 * out `code_challenge` keys to prevent that data from accidentally being leaked to
+	 * clients.
 	 * 
-	 * If the exchanged access token should expire, this method should set its 
-	 * expiry time, usually in a `valid_until` key.
+	 * @param string $code The Authorization Code to attempt to exchange.
+	 * @param callable $validateAuthCode A callable to perform additional validation if valid auth code data is found. Takes `array $authCodeData`, raises `Taproot\IndieAuth\IndieAuthException` on invalid data, which should be bubbled up to the caller after any clean-up. Returns void.
+	 * @return array|null An array of access token data to return to the client on success, null on any error.
 	 */
-	public function exchangeAuthCodeForAccessToken(string $code): ?Token;
+	public function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array;
 
 	/**
 	 * Get Access Token
 	 * 
 	 * Fetch access token data identified by the token `$token`, returning 
-	 * null if it is expired or invalid. The data should be structured in
-	 * exactly the same way it was stored by `exchangeAuthCodeForAccessToken`.
+	 * null if it is expired or invalid.
 	 */
-	public function getAccessToken(string $token): ?Token;
+	public function getAccessToken(string $token): ?array;
 
 	/**
 	 * Revoke Access Token

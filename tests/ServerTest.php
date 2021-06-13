@@ -613,20 +613,21 @@ EOT
 				] as $endpointHandler) {
 				// Create an auth code.
 				$codeVerifier = generateRandomString(32);
-				$authCode = $storage->createAuthCode([
+				$authCodeData = [
 					'client_id' => 'https://client.example.com/',
 					'redirect_uri' => 'https://client.example.com/auth',
 					'code_challenge' => generatePKCECodeChallenge($codeVerifier),
 					'state' => '12345',
 					'code_challenge_method' => 'S256'
-				]);
+				];
+				$authCode = $storage->createAuthCode($authCodeData);
 				
 				// Create what would by default be a successful request, then merge specific error-inducing params.
 				$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody(array_merge([
 					'grant_type' => 'authorization_code',
-					'code' => $authCode->getKey(),
-					'client_id' => $authCode->getData()['client_id'],
-					'redirect_uri' => $authCode->getData()['redirect_uri'],
+					'code' => $authCode,
+					'client_id' => $authCodeData['client_id'],
+					'redirect_uri' => $authCodeData['redirect_uri'],
 					'code_verifier' => $codeVerifier
 				], $params));
 
@@ -644,21 +645,22 @@ EOT
 
 		// Create an auth code.
 		$codeVerifier = generateRandomString(32);
-		$authCode = $storage->createAuthCode([
+		$authCodeData = [
 			'client_id' => 'https://client.example.com/',
 			'redirect_uri' => 'https://client.example.com/auth',
 			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
 			'state' => '12345',
 			'code_challenge_method' => 'S256',
 			'scope' => 'create update'
-		]);
+		];
+		$authCode = $storage->createAuthCode($authCodeData);
 		
 		// Create what would by default be a successful request, then merge specific error-inducing params.
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 			'grant_type' => 'authorization_code',
-			'code' => $authCode->getKey(),
-			'client_id' => $authCode->getData()['client_id'],
-			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code' => $authCode,
+			'client_id' => $authCodeData['client_id'],
+			'redirect_uri' => $authCodeData['redirect_uri'],
 			'code_verifier' => $codeVerifier
 		]);
 
@@ -675,7 +677,7 @@ EOT
 
 		// Create an auth code.
 		$codeVerifier = generateRandomString(32);
-		$authCode = $storage->createAuthCode([
+		$authCodeData = [
 			'client_id' => 'https://client.example.com/',
 			'redirect_uri' => 'https://client.example.com/auth',
 			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
@@ -686,14 +688,15 @@ EOT
 			'profile' => [
 				'name' => 'Me'
 			]
-		]);
+		];
+		$authCode = $storage->createAuthCode($authCodeData);
 		
 		// Create what would by default be a successful request, then merge specific error-inducing params.
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 			'grant_type' => 'authorization_code',
-			'code' => $authCode->getKey(),
-			'client_id' => $authCode->getData()['client_id'],
-			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code' => $authCode,
+			'client_id' => $authCodeData['client_id'],
+			'redirect_uri' => $authCodeData['redirect_uri'],
 			'code_verifier' => $codeVerifier
 		]);
 
@@ -732,20 +735,22 @@ EOT
 
 		// Create an auth code.
 		$codeVerifier = generateRandomString(32);
-		$authCode = $storage->createAuthCode([
+		$authCodeData = [
 			'client_id' => 'https://client.example.com/',
 			'redirect_uri' => 'https://client.example.com/auth',
 			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
 			'state' => '12345',
-			'code_challenge_method' => 'S256'
-		]);
+			'code_challenge_method' => 'S256',
+			'me' => 'https://me.example.com'
+		];
+		$authCode = $storage->createAuthCode($authCodeData);
 		
 		// Create what would by default be a successful request, then merge specific error-inducing params.
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 			'grant_type' => 'authorization_code',
-			'code' => $authCode->getKey(),
-			'client_id' => $authCode->getData()['client_id'],
-			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code' => $authCode,
+			'client_id' => $authCodeData['client_id'],
+			'redirect_uri' => $authCodeData['redirect_uri'],
 			'code_verifier' => $codeVerifier
 		]);
 
@@ -762,7 +767,7 @@ EOT
 
 		// Create an auth code.
 		$codeVerifier = generateRandomString(32);
-		$authCode = $storage->createAuthCode([
+		$authCodeData = [
 			'client_id' => 'https://client.example.com/',
 			'redirect_uri' => 'https://client.example.com/auth',
 			'code_challenge' => generatePKCECodeChallenge($codeVerifier),
@@ -773,14 +778,15 @@ EOT
 			'profile' => [
 				'name' => 'Me'
 			]
-		]);
+		];
+		$authCode = $storage->createAuthCode($authCodeData);
 		
 		// Create what would by default be a successful request, then merge specific error-inducing params.
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 			'grant_type' => 'authorization_code',
-			'code' => $authCode->getKey(),
-			'client_id' => $authCode->getData()['client_id'],
-			'redirect_uri' => $authCode->getData()['redirect_uri'],
+			'code' => $authCode,
+			'client_id' => $authCodeData['client_id'],
+			'redirect_uri' => $authCodeData['redirect_uri'],
 			'code_verifier' => $codeVerifier
 		]);
 
@@ -789,11 +795,11 @@ EOT
 		$this->assertEquals(200, $res->getStatusCode());
 		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
-		$this->assertEquals(hash_hmac('sha256', $authCode->getKey(), SERVER_SECRET), $resJson['access_token']);
+		$this->assertEquals(hash_hmac('sha256', $authCode, SERVER_SECRET), $resJson['access_token']);
 		$this->assertEquals('Bearer', $resJson['token_type']);
-		$this->assertEquals($authCode->getData()['me'], $resJson['me']);
-		$this->assertEquals($authCode->getData()['profile'], $resJson['profile']);
-		$this->assertTrue(scopeEquals($authCode->getData()['scope'], $resJson['scope']));
+		$this->assertEquals($authCodeData['me'], $resJson['me']);
+		$this->assertEquals($authCodeData['profile'], $resJson['profile']);
+		$this->assertTrue(scopeEquals($authCodeData['scope'], $resJson['scope']));
 	}
 
 	/**
@@ -832,15 +838,15 @@ function scopeEquals($scope1, $scope2): bool {
 }
 
 class NullTokenStorage implements TokenStorageInterface {
-	public function createAuthCode(array $data): ?Token {
+	public function createAuthCode(array $data): ?string {
 		return null;
 	}
 
-	public function getAccessToken(string $token): ?Token {
+	public function getAccessToken(string $token): ?array {
 		return null;
 	}
 
-	public function exchangeAuthCodeForAccessToken(string $code): ?Token {
+	public function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
 		return null;
 	}
 
