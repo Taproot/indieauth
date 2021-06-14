@@ -369,7 +369,7 @@ class Server {
 					}
 
 					// Check that this token either grants at most the profile scope.
-					$requestedScopes = explode(' ', $authCode['scope'] ?? '');
+					$requestedScopes = array_filter(explode(' ', $authCode['scope'] ?? ''));
 					if (!empty($requestedScopes) && $requestedScopes != ['profile']) {
 						$this->logger->error("An exchange request for a token granting scopes other than “profile” was sent to the authorization endpoint.");
 						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);

@@ -40,7 +40,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	public function __construct(string $path, string $secret, ?int $authCodeTtl=null, ?int $accessTokenTtl=null, $cleanUpNow=false, ?LoggerInterface $logger=null) {
 		$this->logger = $logger ?? new NullLogger();
 
-		if (!is_string($secret) || strlen($secret) < 64) {
+		if (strlen($secret) < 64) {
 			throw new Exception("\$secret must be a string with a minimum length of 64 characters. Make one with Taproot\IndieAuth\generateRandomString(64)");
 		}
 		$this->secret = $secret;
