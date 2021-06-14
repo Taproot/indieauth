@@ -1,9 +1,9 @@
 name: PHPUnit Tests
 
 uses: shivammathur/setup-php@2.11.0
-  with:
-    php-version: '7.3'
-    extensions: 'xdebug'
+with:
+  php-version: '7.3'
+  extensions: 'xdebug'
 
 on:
   push:
