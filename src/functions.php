@@ -38,7 +38,7 @@ function generatePKCECodeChallenge($plaintext) {
 	return base64_urlencode(hash('sha256', $plaintext, true));
 }
 
-function base64_urlencode($string) {
+function base64_urlencode(string $string): string {
 	return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
 }
 
@@ -49,7 +49,7 @@ function hashAuthorizationRequestParameters(ServerRequestInterface $request, str
 	$queryParams = $request->getQueryParams();
 	$data = '';
 	foreach ($hashedParameters as $key) {
-		if (!array_key_exists($key, $queryParams)) {
+		if (!isset($queryParams[$key])) {
 			return null;
 		}
 		$data .= $queryParams[$key];

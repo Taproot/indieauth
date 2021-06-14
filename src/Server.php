@@ -442,7 +442,8 @@ class Server {
 					// order to know that, we need to also validate, fetch and parse the client_id.
 					// If the request lacks a hash, or if the provided hash was invalid, perform the validation.
 					$currentRequestHash = hashAuthorizationRequestParameters($request, $this->secret);
-					if (is_null($currentRequestHash) or !hash_equals($currentRequestHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+					if (!isset($queryParams[self::HASH_QUERY_STRING_KEY]) or is_null($currentRequestHash) or !hash_equals($currentRequestHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+
 						// All we need to know at this stage is whether the redirect_uri is valid. If it
 						// sufficiently matches the client_id, we don’t (yet) need to fetch the client_id.
 						if (!urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT])) {
@@ -561,7 +562,7 @@ class Server {
 							}
 
 							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
-							if (is_null($expectedHash) or !hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+							if (!isset($queryParams[self::HASH_QUERY_STRING_KEY]) or is_null($expectedHash) or !hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 								$this->logger->warning("The hash provided in the URL was invalid!", [
 									'expected' => $expectedHash,
 									'actual' => $queryParams[self::HASH_QUERY_STRING_KEY]

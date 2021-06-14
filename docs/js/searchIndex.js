@@ -646,11 +646,6 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Storage-FilesystemJsonStorage.html#property_logger"
         },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Storage\\Sqlite3Storage",
-            "name": "Sqlite3Storage",
-            "summary": "",
-            "url": "classes/Taproot-IndieAuth-Storage-Sqlite3Storage.html"
-        },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\TokenStorageInterface",
             "name": "TokenStorageInterface",
             "summary": "Token\u0020Storage\u0020Interface",
