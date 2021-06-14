@@ -108,10 +108,13 @@ class Server {
 
 	protected LoggerInterface $logger;
 
+	/** @var callable */
 	protected $httpGetWithEffectiveUrl;
 
+	/** @var callable */
 	protected $handleAuthenticationRequestCallback;
 
+	/** @var callable */
 	protected $handleNonIndieAuthRequest;
 
 	protected string $exceptionTemplatePath;
@@ -397,7 +400,7 @@ class Server {
 			return new Response(200, [
 				'content-type' => 'application/json',
 				'cache-control' => 'no-store',
-			], json_encode(array_filter($tokenData, function ($k) {
+			], json_encode(array_filter($tokenData, function (string $k) {
 				// Prevent codes exchanged at the authorization endpoint from returning any information other than
 				// me and profile.
 				return in_array($k, ['me', 'profile']);
@@ -438,7 +441,8 @@ class Server {
 					// How most errors are handled depends on whether or not the request has a valid redirect_uri. In
 					// order to know that, we need to also validate, fetch and parse the client_id.
 					// If the request lacks a hash, or if the provided hash was invalid, perform the validation.
-					if (!array_key_exists(self::HASH_QUERY_STRING_KEY, $queryParams) || !hash_equals(hashAuthorizationRequestParameters($request, $this->secret), $queryParams[self::HASH_QUERY_STRING_KEY])) {
+					$currentRequestHash = hashAuthorizationRequestParameters($request, $this->secret);
+					if (is_null($currentRequestHash) or !hash_equals($currentRequestHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 						// All we need to know at this stage is whether the redirect_uri is valid. If it
 						// sufficiently matches the client_id, we don’t (yet) need to fetch the client_id.
 						if (!urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT])) {
@@ -557,7 +561,7 @@ class Server {
 							}
 
 							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
-							if (!hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
+							if (is_null($expectedHash) or !hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 								$this->logger->warning("The hash provided in the URL was invalid!", [
 									'expected' => $expectedHash,
 									'actual' => $queryParams[self::HASH_QUERY_STRING_KEY]
@@ -754,7 +758,7 @@ class Server {
 			], json_encode(array_merge([
 				// Ensure that the token_type key is present, if tokenStorage doesn’t include it.
 				'token_type' => 'Bearer'
-			], array_filter($tokenData, function ($k) {
+			], array_filter($tokenData, function (string $k) {
 				// We should be able to trust the return data from tokenStorage, but there’s no harm in
 				// preventing code_challenges from leaking, per OAuth2.
 				return !in_array($k, ['code_challenge', 'code_challenge_method']);

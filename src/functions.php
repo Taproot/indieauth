@@ -46,7 +46,7 @@ function hashAuthorizationRequestParameters(ServerRequestInterface $request, str
 	$hashedParameters = $hashedParameters ?? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'];
 	$algo = $algo ?? 'sha256';
 
-	$queryParams = $request->getQueryParams() ?? [];
+	$queryParams = $request->getQueryParams();
 	$data = '';
 	foreach ($hashedParameters as $key) {
 		if (!array_key_exists($key, $queryParams)) {
@@ -57,25 +57,25 @@ function hashAuthorizationRequestParameters(ServerRequestInterface $request, str
 	return hash_hmac($algo, $data, $secret);
 }
 
-function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request) {
+function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $request): bool {
 	return strtolower($request->getMethod()) == 'post'
 			&& array_key_exists('grant_type', $request->getParsedBody() ?? [])
 			&& $request->getParsedBody()['grant_type'] == 'authorization_code';
 }
 
-function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, $permittedMethods=['get']) {
+function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, array $permittedMethods=['get']): bool {
 	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
 			&& array_key_exists('response_type', $request->getQueryParams() ?? [])
 			&& $request->getQueryParams()['response_type'] == 'code';
 }
 
-function isAuthorizationApprovalRequest(ServerRequestInterface $request) {
+function isAuthorizationApprovalRequest(ServerRequestInterface $request): bool {
 	return strtolower($request->getMethod()) == 'post'
 			&& array_key_exists('taproot_indieauth_action', $request->getParsedBody() ?? [])
 			&& $request->getParsedBody()[Server::APPROVE_ACTION_KEY] == Server::APPROVE_ACTION_VALUE;
 }
 
-function buildQueryString(array $parameters) {
+function buildQueryString(array $parameters): string {
 	$qs = [];
 	foreach ($parameters as $k => $v) {
 		$qs[] = urlencode($k) . '=' . urlencode($v);
@@ -83,7 +83,7 @@ function buildQueryString(array $parameters) {
 	return join('&', $qs);
 }
 
-function urlComponentsMatch($url1, $url2, ?array $components=null): bool {
+function urlComponentsMatch(string $url1, string $url2, ?array $components=null): bool {
 	$validComponents = [PHP_URL_HOST, PHP_URL_PASS, PHP_URL_PATH, PHP_URL_PORT, PHP_URL_USER, PHP_URL_QUERY, PHP_URL_SCHEME, PHP_URL_FRAGMENT];
 	$components = $components ?? $validComponents;
 
