@@ -23,7 +23,7 @@
     "require": {
         "psr/http-message": "^1.0",
         "psr/log": "^1.1",
-        "nyholm/psr7": "1.4.x-dev",
+        "nyholm/psr7": "^1.4",
         "indieauth/client": "^1.1",
         "psr/http-server-middleware": "^1.0",
         "dflydev/fig-cookies": "^3.0",
