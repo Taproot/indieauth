@@ -1,4 +1,4 @@
-name: PHP Composer
+name: PHPUnit Tests
 
 on:
   push:
@@ -33,4 +33,4 @@ jobs:
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
     - name: Run test suite
-      run: ./run_coverage.sh
+      run: XDEBUG_MODE=coverage ./vendor/bin/phpunit tests --coverage-filter src --coverage-text
