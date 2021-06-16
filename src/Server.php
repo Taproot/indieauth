@@ -498,14 +498,19 @@ class Server {
 					// reported by redirecting to redirect_uri with error parameters.
 
 					// Validate the state parameter.
-					if (!isValidState($queryParams['state'])) {
+					if (!isset($queryParams['state']) or !isValidState($queryParams['state'])) {
 						$this->logger->warning("The state provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_STATE, $request);
 					}
 
 					// Validate code_challenge parameter.
-					if (!isValidCodeChallenge($queryParams['code_challenge'])) {
+					if (!isset($queryParams['code_challenge']) or !isValidCodeChallenge($queryParams['code_challenge'])) {
 						$this->logger->warning("The code_challenge provided in an authorization request was not valid.", $queryParams);
+						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
+					}
+
+					if (!isset($queryParams['code_challenge_method']) or !in_array($queryParams['code_challenge_method'], ['S256', 'plain'])) {
+						$this->logger->error("The code_challenge_method parameter was missing or invalid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
 					}
 

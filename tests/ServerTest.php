@@ -56,7 +56,7 @@ class ServerTest extends TestCase {
 			'redirect_uri' => 'https://app.example.com/indieauth',
 			'state' => '12345',
 			'code_challenge' => hash('sha256', 'code'),
-			'code_challenge_method' => 'sha256'
+			'code_challenge_method' => 'S256'
 		], $params));
 	}
 
@@ -144,6 +144,31 @@ class ServerTest extends TestCase {
 	 * Authorization Request Tests
 	 */
 
+	public function testAuthorizationEndpointReturnsErrorOnMissingParameter() {
+		$missingParameters = [
+			'client_id' => 'static_error',
+			'redirect_uri' => 'static_error',
+			'code_challenge' => 'redirect_error',
+			'code_challenge_method' => 'redirect_error',
+			'state' => 'redirect_error',
+		];
+		$s = $this->getDefaultServer();
+		foreach ($missingParameters as $missingParam => $errorType) {
+			$req = $this->getIARequest();
+			$qp = $req->getQueryParams();
+			unset($qp[$missingParam]);
+			$req = $req->withQueryParams($qp);
+
+			$res = $s->handleAuthorizationEndpointRequest($req);
+
+			if ($errorType == 'static_error') {
+				$this->assertEquals(400, $res->getStatusCode(), $missingParam);
+			} else {
+				$this->assertEquals(302, $res->getStatusCode(), $missingParam);
+			}
+		}
+	}
+	
 	public function testAuthorizationRequestWithInvalidClientIdOrRedirectUriShowsErrorToUser() {
 		$testCases = [
 			'client_id not a URI' => [
