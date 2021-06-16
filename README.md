@@ -1,6 +1,6 @@
 # taproot/indieauth
 
-![Build Status](https://github.com/taproot/indieauth/actions/workflows/php.yml/badge.svg?branch=main)
+<a href="https://github.com/Taproot/indieauth/actions/workflows/php.yml"><img src="https://github.com/taproot/indieauth/actions/workflows/php.yml/badge.svg?branch=main" alt="" /></a>
 
 A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
 and token endpoints.
