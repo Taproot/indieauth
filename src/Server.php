@@ -247,7 +247,7 @@ class Server {
 		$httpGetWithEffectiveUrl = $config['httpGetWithEffectiveUrl'];
 		if (is_null($httpGetWithEffectiveUrl)) {
 			if (class_exists('\GuzzleHttp\Client')) {
-				$httpGetWithEffectiveUrl = function (string $uri) {
+				$httpGetWithEffectiveUrl = function (string $uri): array {
 					// This code can’t be tested, ignore it for coverage purposes.
 					// @codeCoverageIgnoreStart
 					$resp = (new \GuzzleHttp\Client([

@@ -8,7 +8,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
 // From https://github.com/indieweb/indieauth-client-php/blob/main/src/IndieAuth/Client.php, thanks aaronpk.
-function generateRandomString($numBytes) {
+function generateRandomString(int $numBytes): string {
 	if (function_exists('random_bytes')) {
 		$bytes = random_bytes($numBytes);
 		// We can’t easily test the following code.
@@ -25,7 +25,7 @@ function generateRandomString($numBytes) {
 	return bin2hex($bytes);
 }
 
-function generateRandomPrintableAsciiString(int $length) {
+function generateRandomPrintableAsciiString(int $length): string {
 	$chars = [];
 	while (count($chars) < $length) {
 		// 0x21 to 0x7E is the entire printable ASCII range, not including space (0x20).
@@ -34,7 +34,7 @@ function generateRandomPrintableAsciiString(int $length) {
 	return join('', $chars);
 }
 
-function generatePKCECodeChallenge($plaintext) {
+function generatePKCECodeChallenge(string $plaintext): string {
 	return base64_urlencode(hash('sha256', $plaintext, true));
 }
 
@@ -65,7 +65,7 @@ function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $re
 
 function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, array $permittedMethods=['get']): bool {
 	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
-			&& array_key_exists('response_type', $request->getQueryParams() ?? [])
+			&& array_key_exists('response_type', $request->getQueryParams())
 			&& $request->getQueryParams()['response_type'] == 'code';
 }
 
@@ -107,7 +107,7 @@ function urlComponentsMatch(string $url1, string $url2, ?array $components=null)
  * existing query string. Then appends the newly generated query string
  * with either ? or & as appropriate.
  */
-function appendQueryParams(string $uri, array $queryParams) {
+function appendQueryParams(string $uri, array $queryParams): string {
 	if (empty($queryParams)) {
 		return $uri;
 	}
@@ -123,6 +123,9 @@ function appendQueryParams(string $uri, array $queryParams) {
  * 
  * If `$target` implements `LoggerAwareInterface`, set it’s logger
  * to `$logger`. Returns `$target`.
+ * 
+ * @psalm-suppress MissingReturnType
+ * @psalm-suppress MissingParamType
  */
 function trySetLogger($target, LoggerInterface $logger) {
 	if ($target instanceof LoggerAwareInterface) {
