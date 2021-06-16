@@ -1,6 +1,6 @@
 # taproot/indieauth
 
-<a href="https://github.com/Taproot/indieauth/actions/workflows/php.yml"><img src="https://github.com/taproot/indieauth/actions/workflows/php.yml/badge.svg?branch=main" alt="" /></a>
+[![Latest Stable Version](http://poser.pugx.org/taproot/indieauth/v)](https://packagist.org/packages/taproot/indieauth) <a href="https://github.com/Taproot/indieauth/actions/workflows/php.yml"><img src="https://github.com/taproot/indieauth/actions/workflows/php.yml/badge.svg?branch=main" alt="" /></a> [![License](http://poser.pugx.org/taproot/indieauth/license)](https://packagist.org/packages/taproot/indieauth) [![Total Downloads](http://poser.pugx.org/taproot/indieauth/downloads)](https://packagist.org/packages/taproot/indieauth) 
 
 A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
 and token endpoints.
