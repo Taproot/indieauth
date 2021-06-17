@@ -186,6 +186,14 @@ class Server {
 	 *   Returning `null` will result in a standard `invalid_request` error being returned.
 	 * * `logger`: An instance of `LoggerInterface`. Will be used for internal logging, and will also be set
 	 *   as the logger for any objects passed in config which implement `LoggerAwareInterface`.
+	 * * `requirePKCE`: bool, default true. Setting this to `false` allows requests which don’t provide PKCE
+	 *   parameters (code_challenge, code_challenge_method, code_verifier), under the following conditions:
+	 *     * If any of the PKCE parameters are present in an authorization code request, all must be present
+	 *       and valid.
+	 *     * If an authorization code request lacks PKCE parameters, the created auth code can only be exchanged
+	 *       by an exchange request without parameters.
+	 *     * If authorization codes are stored without PKCE parameters, and then `requirePKCE` is set to `true`,
+	 *       these old authorization codes will no longer be redeemable.
 	 * 
 	 * @param array $config An array of configuration variables
 	 * @return self
