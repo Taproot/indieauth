@@ -121,6 +121,8 @@ class Server {
 
 	protected string $secret;
 
+	protected bool $requirePkce;
+
 	/**
 	 * Constructor
 	 * 
@@ -197,7 +199,10 @@ class Server {
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
 			'exceptionTemplatePath' => __DIR__ . '/../templates/default_exception_response.html.php',
+			'requirePKCE' => true,
 		], $config);
+
+		$this->requirePkce = $config['requirePKCE'];
 
 		if (!is_string($config['exceptionTemplatePath'])) {
 			throw new BadMethodCallException("\$config['exceptionTemplatePath'] must be a string (path).");
@@ -348,7 +353,7 @@ class Server {
 				// on the auth code before it gets exchanged.
 				$tokenData = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code'], function (array $authCode) use ($request, $bodyParams) {
 					// Verify that all required parameters are included.
-					$requiredParameters = ['client_id', 'redirect_uri', 'code_verifier'];
+					$requiredParameters = ($this->requirePkce or !empty($authCode['code_challenge'])) ? ['client_id', 'redirect_uri', 'code_verifier'] : ['client_id', 'redirect_uri'];
 					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
 						return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
 					});
@@ -364,11 +369,20 @@ class Server {
 						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
 					}
 
-					// Check that the supplied code_verifier hashes to the stored code_challenge
-					// TODO: support method = plain as well as S256.
-					if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
-						$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+					// If the auth code was requested with no code_challenge, but the exchange request provides a 
+					// code_verifier, return an error.
+					if (!empty($bodyParams['code_verifier']) && empty($authCode['code_challenge'])) {
+						$this->logger->error("A code_verifier was provided when trying to exchange an auth code requested without a code_challenge.");
 						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+					}
+
+					if ($this->requirePkce or !empty($authCode['code_challenge'])) {
+						// Check that the supplied code_verifier hashes to the stored code_challenge
+						// TODO: support method = plain as well as S256.
+						if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+							$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+							throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+						}
 					}
 
 					// Check that this token either grants at most the profile scope.
@@ -441,7 +455,7 @@ class Server {
 					// How most errors are handled depends on whether or not the request has a valid redirect_uri. In
 					// order to know that, we need to also validate, fetch and parse the client_id.
 					// If the request lacks a hash, or if the provided hash was invalid, perform the validation.
-					$currentRequestHash = hashAuthorizationRequestParameters($request, $this->secret);
+					$currentRequestHash = hashAuthorizationRequestParameters($request, $this->secret, null, null, $this->requirePkce);
 					if (!isset($queryParams[self::HASH_QUERY_STRING_KEY]) or is_null($currentRequestHash) or !hash_equals($currentRequestHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 
 						// All we need to know at this stage is whether the redirect_uri is valid. If it
@@ -502,21 +516,28 @@ class Server {
 						$this->logger->warning("The state provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_STATE, $request);
 					}
-
-					// Validate code_challenge parameter.
-					if (!isset($queryParams['code_challenge']) or !isValidCodeChallenge($queryParams['code_challenge'])) {
-						$this->logger->warning("The code_challenge provided in an authorization request was not valid.", $queryParams);
-						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
-					}
-
-					if (!isset($queryParams['code_challenge_method']) or !in_array($queryParams['code_challenge_method'], ['S256', 'plain'])) {
-						$this->logger->error("The code_challenge_method parameter was missing or invalid.", $queryParams);
-						throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
-					}
-
 					// From now on, any redirect error responses should include the state parameter.
 					// This is handled automatically in `handleException()` and is only noted here
 					// for reference.
+
+					// If either PKCE parameter is present, validate both.
+					if (isset($queryParams['code_challenge']) or isset($queryParams['code_challenge_method'])) {
+						if (!isset($queryParams['code_challenge']) or !isValidCodeChallenge($queryParams['code_challenge'])) {
+							$this->logger->warning("The code_challenge provided in an authorization request was not valid.", $queryParams);
+							throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
+						}
+	
+						if (!isset($queryParams['code_challenge_method']) or !in_array($queryParams['code_challenge_method'], ['S256', 'plain'])) {
+							$this->logger->error("The code_challenge_method parameter was missing or invalid.", $queryParams);
+							throw IndieAuthException::create(IndieAuthException::INVALID_CODE_CHALLENGE, $request);
+						}
+					} else {
+						// If neither PKCE parameter is defined, and PKCE is required, throw an error. Otherwise, proceed.
+						if ($this->requirePkce) {
+							$this->logger->warning("PKCE is required, and both code_challenge and code_challenge_method were missing.");
+							throw IndieAuthException::create(IndieAuthException::INVALID_REQUEST_REDIRECT, $request);
+						}
+					}
 
 					// Validate the scope parameter, if provided.
 					if (array_key_exists('scope', $queryParams) && !isValidScope($queryParams['scope'])) {
@@ -535,8 +556,9 @@ class Server {
 
 					// Build a URL containing the indieauth authorization request parameters, hashing them
 					// to protect them from being changed.
-					// Make a hash of the protected indieauth-specific parameters.
-					$hash = hashAuthorizationRequestParameters($request, $this->secret);
+					// Make a hash of the protected indieauth-specific parameters. If PKCE is in use, include 
+					// the PKCE parameters in the hash. Otherwise, leave them out.
+					$hash = hashAuthorizationRequestParameters($request, $this->secret, null, null, $this->requirePkce);
 					// Operate on a copy of $queryParams, otherwise requests will always have a valid hash!
 					$redirectQueryParams = $queryParams;
 					$redirectQueryParams[self::HASH_QUERY_STRING_KEY] = $hash;
@@ -566,7 +588,7 @@ class Server {
 								throw IndieAuthException::create(IndieAuthException::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH, $request);
 							}
 
-							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret);
+							$expectedHash = hashAuthorizationRequestParameters($request, $this->secret, null, null, $this->requirePkce);
 							if (!isset($queryParams[self::HASH_QUERY_STRING_KEY]) or is_null($expectedHash) or !hash_equals($expectedHash, $queryParams[self::HASH_QUERY_STRING_KEY])) {
 								$this->logger->warning("The hash provided in the URL was invalid!", [
 									'expected' => $expectedHash,
@@ -580,8 +602,8 @@ class Server {
 								'client_id' => $queryParams['client_id'],
 								'redirect_uri' => $queryParams['redirect_uri'],
 								'state' => $queryParams['state'],
-								'code_challenge' => $queryParams['code_challenge'],
-								'code_challenge_method' => $queryParams['code_challenge_method'],
+								'code_challenge' => $queryParams['code_challenge'] ?? null,
+								'code_challenge_method' => $queryParams['code_challenge_method'] ?? null,
 								'requested_scope' => $queryParams['scope'] ?? '',
 							]);
 
@@ -710,7 +732,7 @@ class Server {
 				// on the auth code before it gets exchanged.
 				$tokenData = $this->tokenStorage->exchangeAuthCodeForAccessToken($bodyParams['code'], function (array $authCode) use ($request, $bodyParams) {
 					// Verify that all required parameters are included.
-					$requiredParameters = ['client_id', 'redirect_uri', 'code_verifier'];
+					$requiredParameters = ($this->requirePkce or !empty($authCode['code_challenge'])) ? ['client_id', 'redirect_uri', 'code_verifier'] : ['client_id', 'redirect_uri'];
 					$missingRequiredParameters = array_filter($requiredParameters, function ($p) use ($bodyParams) {
 						return !array_key_exists($p, $bodyParams) || empty($bodyParams[$p]);
 					});
@@ -726,13 +748,22 @@ class Server {
 						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
 					}
 
-					// Check that the supplied code_verifier hashes to the stored code_challenge
-					// TODO: support method = plain as well as S256.
-					if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
-						$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+					// If the auth code was requested with no code_challenge, but the exchange request provides a 
+					// code_verifier, return an error.
+					if (!empty($bodyParams['code_verifier']) && empty($authCode['code_challenge'])) {
+						$this->logger->error("A code_verifier was provided when trying to exchange an auth code requested without a code_challenge.");
 						throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
 					}
 
+					if ($this->requirePkce or !empty($authCode['code_challenge'])) {
+						// Check that the supplied code_verifier hashes to the stored code_challenge
+						// TODO: support method = plain as well as S256.
+						if (!hash_equals($authCode['code_challenge'], generatePKCECodeChallenge($bodyParams['code_verifier']))) {
+							$this->logger->error("The provided code_verifier did not hash to the stored code_challenge");
+							throw IndieAuthException::create(IndieAuthException::INVALID_GRANT, $request);
+						}
+					}
+					
 					// Check that scope is not empty.
 					if (empty($authCode['scope'])) {
 						$this->logger->error("An exchange request for a token with an empty scope was sent to the token endpoint.");

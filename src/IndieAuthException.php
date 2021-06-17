@@ -21,6 +21,7 @@ class IndieAuthException extends Exception {
 	const INVALID_SCOPE = 11;
 	const INVALID_GRANT = 12;
 	const INVALID_REQUEST = 13;
+	const INVALID_REQUEST_REDIRECT = 14;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
@@ -38,6 +39,7 @@ class IndieAuthException extends Exception {
 		self::INVALID_SCOPE => ['statusCode' => 302, 'name' => 'Invalid scope Parameter', 'error' => 'invalid_request'],
 		self::INVALID_GRANT => ['statusCode' => 400, 'name' => 'The provided credentials were not valid.', 'error' => 'invalid_grant'],
 		self::INVALID_REQUEST => ['statusCode' => 400, 'name' => 'Invalid Request', 'error' => 'invalid_request'],
+		self::INVALID_REQUEST_REDIRECT => ['statusCode' => 302, 'name' => 'Invalid Request', 'error' => 'invalid_request'],
 	];
 
 	protected ServerRequestInterface $request;

@@ -168,6 +168,18 @@ class ServerTest extends TestCase {
 			}
 		}
 	}
+
+	public function testRequestsMissingBothPkceParametersReturnsError() {
+		$s = $this->getDefaultServer();
+		$req = $this->getIARequest();
+		$qp = $req->getQueryParams();
+		unset($qp['code_challenge']);
+		unset($qp['code_challenge_method']);
+		$req = $req->withQueryParams($qp);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		$this->assertEquals(302, $res->getStatusCode());
+	}
 	
 	public function testAuthorizationRequestWithInvalidClientIdOrRedirectUriShowsErrorToUser() {
 		$testCases = [
@@ -305,7 +317,7 @@ class ServerTest extends TestCase {
 			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
 				return ['me' => 'https://me.example.com'];
 			},
-			'httpGetWithEffectiveUrl' => function ($url): array {
+			'httpGetWithEffectiveUrl' => function (string $url): array {
 				// An empty response suffices for this test.
 				return [
 					new Response(200, ['content-type' => 'text/html'], '' ),
@@ -388,7 +400,7 @@ EOT
 			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
 				return ['me' => 'https://me.example.com'];
 			},
-			'httpGetWithEffectiveUrl' => function ($url): array {
+			'httpGetWithEffectiveUrl' => function (string $url): array {
 				return [
 					new Response(200, [
 							'content-type' => 'text/html',
@@ -417,7 +429,7 @@ EOT
 			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
 				return ['me' => 'https://me.example.com'];
 			},
-			'httpGetWithEffectiveUrl' => function ($url): array {
+			'httpGetWithEffectiveUrl' => function (string $url): array {
 				return [
 					new Response(200, ['content-type' => 'text/html'],
 						'<link rel="redirect_uri another_rel" href="https://link-element.example.com/auth" />'
@@ -447,7 +459,7 @@ EOT
 			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
 				return ['me' => 'https://me.example.com'];
 			},
-			'httpGetWithEffectiveUrl' => function ($url) use ($correctHAppPhoto, $correctHAppName, $correctHAppUrl) {
+			'httpGetWithEffectiveUrl' => function (string $url) use ($correctHAppPhoto, $correctHAppName, $correctHAppUrl): array {
 				return [
 					new Response(200, ['content-type' => 'text/html'],
 						<<<EOT
@@ -602,7 +614,7 @@ EOT
 	 * Test Authorization Token Exchange Requests
 	 */
 
-	public function testExchangeFlowsReturnErrorsIfParametersAreMissing() {
+	public function testExchangeFlowsReturnErrorsIfCodeParameterIsMissing() {
 		$s = $this->getDefaultServer();
 
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
@@ -618,6 +630,34 @@ EOT
 		$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
 		$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
 		$this->assertEquals('invalid_request', $tokenEndpointJson['error']);
+	}
+
+	public function testExchangeFlowsReturnErrorsIfParametersAreMissing() {
+		$s = $this->getDefaultServer();
+
+		foreach ([
+			[$s, 'handleAuthorizationEndpointRequest'],
+			[$s, 'handleTokenEndpointRequest']
+		] as $exchangeEndpoint) {
+			$authCode = $s->getTokenStorage()->createAuthCode([
+				'client_id' => 'https://client.example.com/',
+				'redirect_uri' => 'https://client.example.com/auth',
+				'code_challenge' => generatePKCECodeChallenge(generateRandomString(32)),
+				'state' => '12345',
+				'code_challenge_method' => 'S256',
+				'scope' => 'create update'
+			]);
+	
+			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+				'grant_type' => 'authorization_code',
+				'code' => $authCode
+			]);
+	
+			$res = $exchangeEndpoint($req);
+			$this->assertEquals(400, $res->getStatusCode());
+			$resJson = json_decode((string) $res->getBody(), true);
+			$this->assertEquals('invalid_request', $resJson['error']);
+		}
 	}
 
 	public function testExchangeFlowsReturnErrorOnInvalidParameters() {
@@ -858,6 +898,146 @@ EOT
 		])->handleAuthorizationEndpointRequest(new ServerRequest('GET', 'https://example.com'));
 
 		$this->assertEquals($responseBody, (string) $res->getBody());
+	}
+
+	/**
+	 * Test Backwards-compatibility
+	 */
+
+	public function testBackCompatRequestsWithoutPkceWorkCorrectlyWithBothExchangeFlows() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request) {
+				return ['me' => 'https://me.example.com/'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [new Response(200, ['content-type' => 'text/html'], ''), $url ];
+			},
+			'requirePKCE' => false
+		]);
+
+		foreach ([
+			'Auth Endpoint Exchange' => [$s, 'handleAuthorizationEndpointRequest'],
+			'Token Endpoint Exchange' => [$s, 'handleTokenEndpointRequest']
+		] as $testCase => $handleExchangeRequestEndpoint) {
+			// Clean up the test environment.
+			$this->setUp();
+			// Build a valid, hashed request without either PKCE parameter. This takes some faffing around
+			// due to the supposedly elegant immutable Request objects.
+			$req = $this->getApprovalRequest(true, true, null, [
+				'taproot_indieauth_server_scope[]' => ['profile']
+			]);
+			$params = $req->getQueryParams();
+			unset($params['code_challenge']);
+			unset($params['code_challenge_method']);
+			$req = $req->withQueryParams($params);
+			$hash = hashAuthorizationRequestParameters($req, SERVER_SECRET, null, null, false);
+			$params[Server::HASH_QUERY_STRING_KEY] = $hash;
+			$req = $req->withQueryParams($params);
+
+			$res = $s->handleAuthorizationEndpointRequest($req);
+
+			$this->assertEquals(302, $res->getStatusCode(), $testCase);
+			parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
+			$this->assertArrayNotHasKey('error', $redirectQueryParams, "$testCase");
+			$this->assertNotNull($redirectQueryParams['code'], $testCase);
+
+			// Now check that the token exchange works.
+			// Build 
+			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+				'grant_type' => 'authorization_code',
+				'code' => $redirectQueryParams['code'],
+				'client_id' => $params['client_id'],
+				'redirect_uri' => $params['redirect_uri']
+			]);
+
+			$res = $handleExchangeRequestEndpoint($req);
+			$resJson = json_decode((string) $res->getBody(), true);
+			$this->assertEquals(200, $res->getStatusCode(), "$testCase");
+			$this->assertIsArray($resJson, $testCase);
+			$this->assertArrayNotHasKey('error', $resJson, $testCase);
+			$this->assertEquals('https://me.example.com/', $resJson['me'], $testCase);
+			if ($testCase == 'Token Endpoint Exchange') {
+				$this->assertArrayHasKey('access_token', $resJson, $testCase);
+			}
+		}
+	}
+
+	public function testBackCompatNonPkceRequestMustLackBothPkceParameters() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request) {
+				return ['me' => 'https://me.example.com/'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [new Response(200, ['content-type' => 'text/html'], ''), $url ];
+			},
+			'requirePKCE' => false
+		]);
+		
+		// Build a valid, hashed request without either PKCE parameter. This takes some faffing around
+		// due to the supposedly elegant immutable Request objects.
+		$req = $this->getIARequest();
+		$params = $req->getQueryParams();
+		unset($params['code_challenge']);
+		$req = $req->withQueryParams($params);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals(302, $res->getStatusCode());
+		parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
+		$this->assertEquals('invalid_request', $redirectQueryParams['error']);
+	}
+
+	public function testBackCompatAuthCodeWithoutPkceCannotBeExchangedWithCodeVerifierBothExchangeEndpoints() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request) {
+				return ['me' => 'https://me.example.com/'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [new Response(200, ['content-type' => 'text/html'], ''), $url ];
+			},
+			'requirePKCE' => false
+		]);
+
+		foreach ([
+			'Auth Endpoint Exchange' => [$s, 'handleAuthorizationEndpointRequest'],
+			'Token Endpoint Exchange' => [$s, 'handleTokenEndpointRequest']
+		] as $testCase => $handleExchangeRequestEndpoint) {
+			// Clean up the test environment.
+			$this->setUp();
+			$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
+
+			// Create an auth code without PKCE
+			$authCodeData = [
+				'client_id' => 'https://client.example.com/',
+				'redirect_uri' => 'https://client.example.com/auth',
+				'code_challenge' => null,
+				'state' => '12345',
+				'code_challenge_method' => null,
+				'scope' => 'create update profile',
+				'me' => 'https://me.example.com/',
+				'profile' => [
+					'name' => 'Me'
+				]
+			];
+			$authCode = $storage->createAuthCode($authCodeData);
+
+			// Now check that the token exchange works.
+			// Build 
+			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
+				'grant_type' => 'authorization_code',
+				'code' => $authCode,
+				'client_id' => $authCodeData['client_id'],
+				'redirect_uri' => $authCodeData['redirect_uri'],
+				'code_verifier' => 'There is no valid value for this parameter, its mere presence should trigger an error.'
+			]);
+
+			$res = $handleExchangeRequestEndpoint($req);
+			$resJson = json_decode((string) $res->getBody(), true);
+			$this->assertEquals(400, $res->getStatusCode(), "$testCase");
+			$this->assertIsArray($resJson, $testCase);
+			$this->assertArrayHasKey('error', $resJson, $testCase);
+			$this->assertEquals('invalid_grant', $resJson['error'], $testCase);
+		}
 	}
 }
 

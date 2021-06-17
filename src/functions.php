@@ -42,11 +42,15 @@ function base64_urlencode(string $string): string {
 	return rtrim(strtr(base64_encode($string), '+/', '-_'), '=');
 }
 
-function hashAuthorizationRequestParameters(ServerRequestInterface $request, string $secret, ?string $algo=null, ?array $hashedParameters=null): ?string {
-	$hashedParameters = $hashedParameters ?? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'];
+function hashAuthorizationRequestParameters(ServerRequestInterface $request, string $secret, ?string $algo=null, ?array $hashedParameters=null, bool $requirePkce=true): ?string {
+	$queryParams = $request->getQueryParams();
+
+	if (is_null($hashedParameters)) {
+		$hashedParameters = ($requirePkce or isset($queryParams['code_challenge'])) ? ['client_id', 'redirect_uri', 'code_challenge', 'code_challenge_method'] : ['client_id', 'redirect_uri'];
+	}
+	
 	$algo = $algo ?? 'sha256';
 
-	$queryParams = $request->getQueryParams();
 	$data = '';
 	foreach ($hashedParameters as $key) {
 		if (!isset($queryParams[$key])) {

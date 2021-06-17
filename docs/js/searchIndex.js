@@ -291,6 +291,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AINVALID_REQUEST_REDIRECT",
+            "name": "INVALID_REQUEST_REDIRECT",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST_REDIRECT"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AEXC_INFO",
             "name": "EXC_INFO",
             "summary": "",
@@ -535,6 +540,11 @@ Search.appendIndex(
             "name": "secret",
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Server.html#property_secret"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003A\u0024requirePkce",
+            "name": "requirePkce",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Server.html#property_requirePkce"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage",
             "name": "FilesystemJsonStorage",
