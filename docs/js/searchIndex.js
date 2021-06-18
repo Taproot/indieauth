@@ -76,6 +76,16 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#constant_PASSWORD_FORM_PARAMETER"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003ALOGIN_HASH_COOKIE",
+            "name": "LOGIN_HASH_COOKIE",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#constant_LOGIN_HASH_COOKIE"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003ADEFAULT_COOKIE_TTL",
+            "name": "DEFAULT_COOKIE_TTL",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#constant_DEFAULT_COOKIE_TTL"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024csrfKey",
             "name": "csrfKey",
             "summary": "",
@@ -95,6 +105,16 @@ Search.appendIndex(
             "name": "hashedPassword",
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_hashedPassword"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024secret",
+            "name": "secret",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_secret"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024ttl",
+            "name": "ttl",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_ttl"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\generateRandomString\u0028\u0029",
             "name": "generateRandomString",
