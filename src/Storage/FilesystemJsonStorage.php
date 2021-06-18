@@ -66,9 +66,13 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	// TokenStorageInterface Methods.
 
 	public function createAuthCode(array $data): ?string {
+		$this->logger->info("Creating authorization code.", $data);
 		$authCode = generateRandomString(self::TOKEN_LENGTH);
 		$accessToken = $this->hash($authCode);
 
+		// TODO: valid_until should be expire_after(? — look up), and should not be set here,
+		// as it applies only to access tokens, not auth codes! Auth code TTL should always be 
+		// the default.
 		if (!array_key_exists('valid_until', $data)) {
 			$data['valid_until'] = time() + $this->authCodeTtl;
 		}
@@ -93,13 +97,22 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 
 			$data = json_decode($fileContents, true);
 			
-			if (!is_array($data)) { return null; }
+			if (!is_array($data)) { 
+				$this->logger->error('Authoriazation Code data could not be parsed as a JSON object.');
+				return null; 
+			}
 
 			// Make sure the auth code hasn’t already been redeemed.
-			if ($data['exchanged_at'] ?? false) { return null; }
+			if ($data['exchanged_at'] ?? false) {
+				$this->logger->error("This authorization code has already been exchanged.");
+				return null;
+			}
 
 			// Make sure the auth code isn’t expired.
-			if (($data['valid_until'] ?? 0) < time()) { return null; }
+			if (($data['valid_until'] ?? 0) < time()) {
+				$this->logger->error("This authorization code has expired.");
+				return null;
+			}
 
 			// The auth code is valid as far as we know, pass it to the validation callback passed from the
 			// Server.
@@ -109,6 +122,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 				// If there was an issue with the auth code, delete it before bubbling the exception
 				// up to the Server for handling. We currently have a lock on the file path, so pass
 				// false to $observeLock to prevent a deadlock.
+				$this->logger->info("Deleting authorization code, as it failed the Server-level validation.");
 				$this->delete($accessToken, false);
 				throw $e;
 			}
@@ -147,20 +161,30 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	public function getAccessToken(string $token): ?array {
 		$data = $this->get($token);
 
-		if (!is_array($data)) { return null; }
+		if (!is_array($data)) {
+			$this->logger->error("The access token could not be parsed as a JSON object.");
+			return null;
+		}
 
 		// Check that this is a redeemed access token.
-		if (($data['exchanged_at'] ?? false) === false) { return null; }
+		if (($data['exchanged_at'] ?? false) === false) {
+			$this->logger->error("This authorization code has not yet been exchanged for an access token.");
+			return null;
+		}
 
 		// Check that the access token is still valid. valid_until=null means it should live until
 		// explicitly revoked.
-		if (is_int($data['valid_until']) && $data['valid_until'] < time()) { return null; }
+		if (is_int($data['valid_until']) && $data['valid_until'] < time()) {
+			$this->logger->error("This access token has expired.");
+			return null;
+		}
 
 		// The token is valid!
 		return $data;
 	}
 
 	public function revokeAccessToken(string $token): bool {
+		$this->logger->info("Deleting access token {$token}");
 		return $this->delete($token);
 	}
 

@@ -617,6 +617,7 @@ class Server {
 
 							// Pass it to the auth code customisation callback.
 							$code = $this->authorizationForm->transformAuthorizationCode($request, $code);
+							$this->logger->info("Creating an authorization code:", ['data' => $code]);
 
 							// Store the authorization code.
 							$authCode = $this->tokenStorage->createAuthCode($code);
@@ -719,7 +720,7 @@ class Server {
 	 */
 	public function handleTokenEndpointRequest(ServerRequestInterface $request): ResponseInterface {
 		if (isIndieAuthAuthorizationCodeRedeemingRequest($request)) {
-			$this->logger->info('Handling a request to redeem an authorization code for profile information.');
+			$this->logger->info('Handling a request to redeem an authorization code for an access token.');
 			
 			$bodyParams = $request->getParsedBody();
 
