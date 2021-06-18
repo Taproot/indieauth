@@ -44,7 +44,7 @@ class ServerTest extends TestCase {
 			// With this template, IndieAuthException response bodies will contain only their IndieAuthException error code, for ease of comparison.
 			'exceptionTemplatePath' => CODE_EXCEPTION_TEMPLATE_PATH,
 			// Default to a simple single-user password authentication handler.
-			Server::HANDLE_AUTHENTICATION_REQUEST => new SingleUserPasswordAuthenticationCallback(['me' => 'https://example.com/'], password_hash('password', PASSWORD_DEFAULT), Server::DEFAULT_CSRF_KEY),
+			Server::HANDLE_AUTHENTICATION_REQUEST => new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, ['me' => 'https://example.com/'], password_hash('password', PASSWORD_DEFAULT), Server::DEFAULT_CSRF_KEY),
 			'authorizationForm' => new DefaultAuthorizationForm(AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH),
 		], $config));
 	}

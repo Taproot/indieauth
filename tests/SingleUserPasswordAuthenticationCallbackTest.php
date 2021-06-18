@@ -3,6 +3,7 @@
 namespace Taproot\IndieAuth\Test;
 
 use BadMethodCallException;
+use Dflydev\FigCookies;
 use Exception;
 use Nyholm\Psr7;
 use Nyholm\Psr7\ServerRequest;
@@ -13,7 +14,7 @@ use Taproot\IndieAuth\Server;
 class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 	public function testThrowsExceptionIfUserDataHasNoMeKey() {
 		try {
-			$c = new SingleUserPasswordAuthenticationCallback([
+			$c = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, [
 				'not_me' => 'blah'
 			], password_hash('password', PASSWORD_DEFAULT));
 			$this->fail();
@@ -22,9 +23,20 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 		}
 	}
 
+	public function testThrowsExceptionIfSecretIsTooShort() {
+		try {
+			$c = new SingleUserPasswordAuthenticationCallback('not long enough', [
+				'me' => 'blah'
+			], password_hash('password', PASSWORD_DEFAULT));
+			$this->fail();
+		} catch (BadMethodCallException $e) {
+			$this->assertEquals('$secret must be a string with a minimum length of 64 characters.', $e->getMessage());
+		}
+	}
+
 	public function testThrowsExceptionIfHashedPasswordIsInvalid() {
 		try {
-			$c = new SingleUserPasswordAuthenticationCallback([
+			$c = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, [
 				'me' => 'https://me.example.com/'
 			], 'definitely not a hashed password');
 			$this->fail();
@@ -34,7 +46,7 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 	}
 
 	public function testShowsAuthenticationFormOnUnauthenticatedRequest() {
-		$callback = new SingleUserPasswordAuthenticationCallback([
+		$callback = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, [
 			'me' => 'https://me.example.com/'
 		], password_hash('password', PASSWORD_DEFAULT));
 
@@ -48,7 +60,7 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 		$this->assertStringContainsString($formAction, (string) $res->getBody());
 	}
 
-	public function testReturnsUserDataOnAuthenticatedRequest() {
+	public function testReturnsCookieRedirectOnAuthenticatedRequest() {
 		$userData = [
 			'me' => 'https://me.example.com',
 			'profile' => ['name' => 'Me']
@@ -56,12 +68,37 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 
 		$password = 'my very secure password';
 
-		$callback = new SingleUserPasswordAuthenticationCallback($userData, password_hash($password, PASSWORD_DEFAULT));
+		$callback = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, $userData, password_hash($password, PASSWORD_DEFAULT));
 
 		$req = (new ServerRequest('POST', 'https://example.com/login'))
 				->withAttribute(Server::DEFAULT_CSRF_KEY, 'csrf token')
 				->withParsedBody([
 					SingleUserPasswordAuthenticationCallback::PASSWORD_FORM_PARAMETER => $password
+				]);
+		
+		$res = $callback($req, 'form_action');
+
+		$this->assertEquals(302, $res->getStatusCode());
+		$this->assertEquals('form_action', $res->getHeaderLine('location'));
+		$resCookies = FigCookies\SetCookies::fromResponse($res);
+		$hashCookie = $resCookies->get(SingleUserPasswordAuthenticationCallback::LOGIN_HASH_COOKIE);
+		$this->assertEquals(hash_hmac('SHA256', json_encode($userData), SERVER_SECRET), $hashCookie->getValue());
+	}
+
+	public function testReturnsUserDataOnResponseWithValidHashCookie() {
+		$userData = [
+			'me' => 'https://me.example.com',
+			'profile' => ['name' => 'Me']
+		];
+
+		$password = 'my very secure password';
+
+		$callback = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, $userData, password_hash($password, PASSWORD_DEFAULT));
+
+		$req = (new ServerRequest('POST', 'https://example.com/login'))
+				->withAttribute(Server::DEFAULT_CSRF_KEY, 'csrf token')
+				->withCookieParams([
+					SingleUserPasswordAuthenticationCallback::LOGIN_HASH_COOKIE => hash_hmac('SHA256', json_encode($userData), SERVER_SECRET)
 				]);
 		
 		$res = $callback($req, 'form_action');
