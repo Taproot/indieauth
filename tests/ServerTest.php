@@ -554,7 +554,7 @@ EOT
 			'scope' => 'create',
 			'redirect_uri' => 'https://app.example.com/indieauth?client_redirect_query_string_param=value'
 		], [
-			'taproot_indieauth_server_scope[]' => $grantedScopes
+			'taproot_indieauth_server_scope' => $grantedScopes
 		]);
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
@@ -924,7 +924,7 @@ EOT
 			// Build a valid, hashed request without either PKCE parameter. This takes some faffing around
 			// due to the supposedly elegant immutable Request objects.
 			$req = $this->getApprovalRequest(true, true, null, [
-				'taproot_indieauth_server_scope[]' => ['profile']
+				'taproot_indieauth_server_scope' => ['profile']
 			]);
 			$params = $req->getQueryParams();
 			unset($params['code_challenge']);

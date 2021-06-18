@@ -87,7 +87,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 
 	public function transformAuthorizationCode(ServerRequestInterface $request, array $code): array {
 		// Add any granted scopes from the form to the code.
-		$grantedScopes = $request->getParsedBody()['taproot_indieauth_server_scope[]'] ?? [];
+		$grantedScopes = $request->getParsedBody()['taproot_indieauth_server_scope'] ?? [];
 
 		// This default implementation naievely accepts any scopes it receives from the form.
 		// You may wish to perform some sort of validation.
