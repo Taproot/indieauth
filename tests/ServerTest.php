@@ -320,7 +320,7 @@ class ServerTest extends TestCase {
 			'httpGetWithEffectiveUrl' => function (string $url): array {
 				// An empty response suffices for this test.
 				return [
-					new Response(200, ['content-type' => 'text/html'], '' ),
+					new Response(200, ['content-type' => 'text/html'], '<html></html>' ),
 					$url
 				];
 			}
@@ -378,7 +378,7 @@ EOT
 			},
 			'httpGetWithEffectiveUrl' => function ($url): array {
 				return [
-					new Response(200, ['content-type' => 'text/html'], ''), // An empty response suffices for this test.
+					new Response(200, ['content-type' => 'text/html'], '<html></html>'), // An empty response suffices for this test.
 					$url
 				];
 			}
@@ -406,7 +406,7 @@ EOT
 							'content-type' => 'text/html',
 							'link' => '<https://link-header.example.com/auth>; rel="another_rel redirect_uri"'
 						],
-						''
+						'<html></html>'
 					),
 					$url
 				];
@@ -594,7 +594,7 @@ EOT
 			},
 			'httpGetWithEffectiveUrl' => function ($url): array {
 				return [
-					new Response(200, ['content-type' => 'text/html'], ''),
+					new Response(200, ['content-type' => 'text/html'], '<html></html>'),
 					$url
 				];
 			}
