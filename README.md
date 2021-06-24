@@ -93,7 +93,7 @@ If discussions lead to you wanting to submit a pull request, following this proc
 * Run `./run_coverage.sh` and ensure that all tests pass — you’ll need XDebug for code coverage data.
 * If applicable, write failing regression tests e.g. for a bug you’re fixing.
 * Make your changes.
-* Run `./run_coverage.sh` and `open docs/coverage/index.html`. Make sure that the changes you made are covered by tests. taproot/micropub-adapter had 100% test coverage from version 0.1.0, and that number should never go down!
+* Run `./run_coverage.sh` and `open docs/coverage/index.html`. Make sure that the changes you made are covered by tests. taproot/indieauth had nearly 100% test coverage from version 0.1.0, and that number should never go down!
 * Run `./vendor/bin/psalm` and and fix any warnings it brings up.
 * Install and run `./phpDocumentor.phar` to regenerate the documentation if applicable.
 * Push your changes and submit the PR.
