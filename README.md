@@ -81,6 +81,23 @@ documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.
 
 See the [taproot/micropub example app](https://github.com/Taproot/micropub-adapter/tree/main/example) for a working example of how to use taproot/indieauth.
 
+## Contributing
+
+If you have any questions about using this library, join the [indieweb chatroom](https://indieweb.org/discuss) and ping `barnaby`.
+
+If you find a bug or problem with the library, or want to suggest a feature, please [create an issue](https://github.com/Taproot/indieauth/issues/new).
+
+If discussions lead to you wanting to submit a pull request, following this process, while not required, will increase the chances of it quickly being accepted:
+
+* Fork this repo to your own github account, and clone it to your development computer.
+* Run `./run_coverage.sh` and ensure that all tests pass — you’ll need XDebug for code coverage data.
+* If applicable, write failing regression tests e.g. for a bug you’re fixing.
+* Make your changes.
+* Run `./run_coverage.sh` and `open docs/coverage/index.html`. Make sure that the changes you made are covered by tests. taproot/micropub-adapter had 100% test coverage from version 0.1.0, and that number should never go down!
+* Run `./vendor/bin/psalm` and and fix any warnings it brings up.
+* Install and run `./phpDocumentor.phar` to regenerate the documentation if applicable.
+* Push your changes and submit the PR.
+
 ## Changelog
 
 * v0.1.0 coming soon!
