@@ -42,7 +42,8 @@ class IndieAuthException extends Exception {
 		self::INVALID_REQUEST_REDIRECT => ['statusCode' => 302, 'name' => 'Invalid Request', 'error' => 'invalid_request'],
 	];
 
-	protected ServerRequestInterface $request;
+	/** @var ServerRequestInterface $request */
+	protected $request;
 
 	public static function create(int $code, ServerRequestInterface $request, ?Throwable $previous=null): self {
 		// Only accept known codes. Default to 0 (generic internal error) on an unrecognised code.

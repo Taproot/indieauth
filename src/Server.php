@@ -100,13 +100,17 @@ class Server {
 	 */
 	const APPROVE_ACTION_VALUE = 'approve';
 
-	protected Storage\TokenStorageInterface $tokenStorage;
+	/** @var Storage\TokenStorageInterface $tokenStorage */
+	protected $tokenStorage;
 
-	protected AuthorizationFormInterface $authorizationForm;
+	/** @var AuthorizationFormInterface $authorizationForm */
+	protected $authorizationForm;
 
-	protected MiddlewareInterface $csrfMiddleware;
+	/** @var MiddlewareInterface $csrfMiddleware */
+	protected $csrfMiddleware;
 
-	protected LoggerInterface $logger;
+	/** @var LoggerInterface $logger */
+	protected $logger;
 
 	/** @var callable */
 	protected $httpGetWithEffectiveUrl;
@@ -117,11 +121,14 @@ class Server {
 	/** @var callable */
 	protected $handleNonIndieAuthRequest;
 
-	protected string $exceptionTemplatePath;
+	/** @var string $exceptionTemplatePath */
+	protected $exceptionTemplatePath;
 
-	protected string $secret;
+	/** @var string $secret */
+	protected $secret;
 
-	protected bool $requirePkce;
+	/** @var bool $requirePkce */
+	protected $requirePkce;
 
 	/**
 	 * Constructor

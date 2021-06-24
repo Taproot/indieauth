@@ -49,12 +49,23 @@ class SingleUserPasswordAuthenticationCallback {
 	const LOGIN_HASH_COOKIE = 'taproot_indieauth_server_supauth_hash';
 	const DEFAULT_COOKIE_TTL = 60 * 5;
 
-	public string $csrfKey;
-	public string $formTemplate;
-	protected array $user;
-	protected string $hashedPassword;
-	protected string $secret;
-	protected int $ttl;
+	/** @var string $csrfKey */
+	public $csrfKey;
+
+	/** @var string $formTemplate */
+	public $formTemplate;
+
+	/** @var array $user */
+	protected $user;
+
+	/** @var string $hashedPassword */
+	protected $hashedPassword;
+
+	/** @var string $secret */
+	protected $secret;
+
+	/** @var int $ttl */
+	protected $ttl;
 	
 	/**
 	 * Constructor
@@ -78,7 +89,9 @@ class SingleUserPasswordAuthenticationCallback {
 			throw new BadMethodCallException('The $user array MUST contain a “me” key, the value which must be the user’s canonical URL as a string.');
 		}
 		
-		if (is_null(password_get_info($hashedPassword)['algo'])) {
+		$hashAlgo = password_get_info($hashedPassword)['algo'];
+		// Invalid algorithms are null in PHP 7.4, 0 in PHP 7.3.
+		if (is_null($hashAlgo) or 0 === $hashAlgo) {
 			throw new BadMethodCallException('The provided $hashedPassword was not a valid hash created by the password_hash() function.');
 		}
 		$this->user = $user;

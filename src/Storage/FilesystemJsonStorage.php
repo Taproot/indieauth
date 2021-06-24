@@ -29,13 +29,20 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 	
 	const TOKEN_LENGTH = 64;
 
-	protected string $path;
-	protected int $authCodeTtl;
-	protected int $accessTokenTtl;
-	protected string $secret;
+	/** @var string $path */
+	protected $path;
+	
+	/** @var int $authCodeTtl */
+	protected $authCodeTtl;
 
-	protected LoggerInterface $logger;
+	/** @var int $accessTokenTtl */
+	protected $accessTokenTtl;
 
+	/** @var string $secret */
+	protected $secret;
+
+	/** @var LoggerInterface $logger */
+	protected $logger;
 
 	public function __construct(string $path, string $secret, ?int $authCodeTtl=null, ?int $accessTokenTtl=null, $cleanUpNow=false, ?LoggerInterface $logger=null) {
 		$this->logger = $logger ?? new NullLogger();

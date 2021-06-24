@@ -33,11 +33,14 @@ use function Taproot\IndieAuth\renderTemplate;
  * may make sense to create your own implementation of `AuthorizationFormInterface`.
  */
 class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwareInterface {
-	public string $csrfKey;
+	/** @var string $csrfKey */
+	public $csrfKey;
 
-	public string $formTemplatePath;
+	/** @var string $formTemplatePath */
+	public $formTemplatePath;
 
-	public LoggerInterface $logger;
+	/** @var LoggerInterface $logger */
+	public $logger;
 
 	/**
 	 * Constructor

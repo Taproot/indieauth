@@ -41,15 +41,19 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 	const DEFAULT_ERROR_RESPONSE_STRING = 'Invalid or missing CSRF token!';
 	const CSRF_TOKEN_LENGTH = 128;
 	
-	public string $attribute;
+	/** @var string $attribute */
+	public $attribute;
 
-	public int $ttl;
+	/** @var int $ttl */
+	public $ttl;
 
 	public $errorResponse;
 
-	public int $tokenLength;
+	/** @var int $tokenLength */
+	public $tokenLength;
 
-	public LoggerInterface $logger;
+	/** @var LoggerInterface $logger */
+	public $logger;
 
 	/**
 	 * Constructor

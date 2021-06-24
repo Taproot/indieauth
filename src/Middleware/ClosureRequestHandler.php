@@ -9,7 +9,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 class ClosureRequestHandler implements RequestHandlerInterface {
 	protected $callable;
 
-	protected array $args;
+	/** @var array $args */
+	protected $args;
 
 	public function __construct(callable $callable) {
 		$this->callable = $callable;
