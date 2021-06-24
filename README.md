@@ -5,8 +5,25 @@
 A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
 and token endpoints.
 
-* [API Documentation](https://taproot.github.io/indieauth/)
+* [API Documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.html)
 * [Code Coverage](https://taproot.github.io/indieauth/coverage/)
+
+## Installation
+
+taproot/indieauth is currently tested against and compatible with PHP 7.3, 7.4, and 8.0.
+
+Install taproot/indieauth using [composer](https://getcomposer.org/):
+
+    composer.phar require taproot/indieauth
+    composer.phar install (or composer.phar update)
+
+Versioned releases are GPG signed so you can verify that the code hasn’t been tampered with.
+
+    gpg --recv-keys 1C00430B19C6B426922FE534BEF8CE58118AD524
+    cd vendor/taproot/indieauth
+    git tag -v v0.1.0 # Replace with the version you have installed
+
+## Usage
 
 Typical minimal usage looks something like this:
     
@@ -59,3 +76,11 @@ documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.
 * [Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html) for an example of how to implement an authentication callback, and it’s [corresponding template](https://github.com/Taproot/indieauth/blob/main/templates/single_user_password_authentication_form.html.php) for information on customising the template.
 * [Taproot\IndieAuth\Storage\TokenStorageInterface](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html) for details about implementing your own token storage
 * [Taproot\IndieAuth\Callback\AuthorizationFormInterface](https://taproot.github.io/indieauth/classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html) for infomation about implementing your own authorization form.
+
+### Example Application
+
+See the [taproot/micropub example app](https://github.com/Taproot/micropub-adapter/tree/main/example) for a working example of how to use taproot/indieauth.
+
+## Changelog
+
+* v0.1.0 coming soon!
