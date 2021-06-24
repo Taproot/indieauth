@@ -1,0 +1,16 @@
+{
+    "source": {
+        "directories": [
+            "src"
+        ],
+        "excludes": [
+            "test"
+        ]
+    },
+    "mutators": {
+        "@default": true
+    },
+    "logs": {
+        "text": "tests/tmp/infection.log"
+    }
+}
