@@ -100,4 +100,4 @@ If discussions lead to you wanting to submit a pull request, following this proc
 
 ## Changelog
 
-* v0.1.0 coming soon!
+* v0.1.0 2021-06-24
