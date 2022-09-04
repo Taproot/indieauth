@@ -67,6 +67,8 @@ if ($accessToken = $server->getAccessToken($bearerToken)) {
 }
 ```
 
+IndieAuth clients require some discovery metadata to be able to discover relevant URLs and configuration details. Providing this discovery is currently out of the scope of taproot/indieauth (we might consider semi-automating the generation of the indieauth-metadata endpoint in the future), so please refer to the [Discovery section of the specification](https://indieauth.spec.indieweb.org/#discovery) for more information.
+
 Refer to the `__construct` documentation for further configuration options, and to [the
 documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.html) for both handling methods for further documentation about them, specifically:
 
