@@ -1072,8 +1072,7 @@ EOT
 			},
 			'httpGetWithEffectiveUrl' => function ($url): array {
 				return [new Response(200, ['content-type' => 'text/html'], ''), $url ];
-			},
-			'requirePKCE' => false
+			}
 		]);
 
 		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest());
@@ -1081,6 +1080,22 @@ EOT
 		$this->assertEquals(302, $res->getStatusCode());
 		parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
 		$this->assertEquals('internal_error', $redirectQueryParams['error']);
+	}
+
+	// https://github.com/Taproot/indieauth/issues/3
+	public function testResponseTypeIdSupportedForBackCompat() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request) {
+				return ['me' => 'https://me.example.com/'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [new Response(200, ['content-type' => 'text/html'], '<html></html>'), $url ];
+			}
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest(['response_type' => 'id']));
+
+		$this->assertEquals(200, $res->getStatusCode());
 	}
 }
 

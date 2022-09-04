@@ -70,7 +70,7 @@ function isIndieAuthAuthorizationCodeRedeemingRequest(ServerRequestInterface $re
 function isIndieAuthAuthorizationRequest(ServerRequestInterface $request, array $permittedMethods=['get']): bool {
 	return in_array(strtolower($request->getMethod()), array_map('strtolower', $permittedMethods))
 			&& array_key_exists('response_type', $request->getQueryParams())
-			&& $request->getQueryParams()['response_type'] == 'code';
+			&& in_array($request->getQueryParams()['response_type'], ['code', 'id']);
 }
 
 function isAuthorizationApprovalRequest(ServerRequestInterface $request): bool {
