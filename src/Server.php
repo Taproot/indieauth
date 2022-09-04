@@ -463,7 +463,7 @@ class Server {
 
 					// Validate the redirect URI.
 					if (!isset($queryParams['redirect_uri']) || false === filter_var($queryParams['redirect_uri'], FILTER_VALIDATE_URL)) {
-						$this->logger->warning("The request_uri provided in an authorization request was not valid.", $queryParams);
+						$this->logger->warning("The redirect_uri provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_REDIRECT_URI, $request);
 					}
 
