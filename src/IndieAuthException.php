@@ -22,10 +22,12 @@ class IndieAuthException extends Exception {
 	const INVALID_GRANT = 12;
 	const INVALID_REQUEST = 13;
 	const INVALID_REQUEST_REDIRECT = 14;
+	const AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE = 15;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
 		self::INTERNAL_ERROR_REDIRECT => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
+		self::AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
 		self::AUTHENTICATION_CALLBACK_MISSING_ME_PARAM => ['statusCode' => 302, 'name' => 'Internal Server Error', 'error' => 'internal_error'],
 		self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH => ['statusCode' => 302, 'name' => 'Request Missing Hash', 'error' => 'internal_error'],
 		self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH => ['statusCode' => 302, 'name' => 'Request Hash Invalid', 'error' => 'internal_error'],

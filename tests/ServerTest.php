@@ -1063,6 +1063,25 @@ EOT
 			$this->assertEquals('invalid_grant', $resJson['error'], $testCase);
 		}
 	}
+
+	// https://github.com/Taproot/indieauth/issues/8
+	public function testUnexpectedAuthCallbackReturnValueResultsInInternalError() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request) {
+				return 'This string value is not one of the expected return values from this callback!';
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [new Response(200, ['content-type' => 'text/html'], ''), $url ];
+			},
+			'requirePKCE' => false
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest());
+
+		$this->assertEquals(302, $res->getStatusCode());
+		parse_str(parse_url($res->getHeaderLine('location'), PHP_URL_QUERY), $redirectQueryParams);
+		$this->assertEquals('internal_error', $redirectQueryParams['error']);
+	}
 }
 
 /**

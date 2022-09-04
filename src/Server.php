@@ -687,6 +687,10 @@ class Server {
 						// Present the authorization UI.
 						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHAppOrException)
 								->withAddedHeader('Cache-control', 'no-cache');
+					} else {
+						// The authentication callback function returned something other than an array or Response!
+						$this->logger->error('The authenticationHandler callback function returned an invalid value (not an array or Response)', ['array' => $authenticationResult]);
+						throw IndieAuthException::create(IndieAuthException::AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE, $request);
 					}
 				}
 
