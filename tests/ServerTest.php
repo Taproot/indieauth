@@ -35,7 +35,7 @@ const TMP_DIR = __DIR__ . '/tmp';
 
 class ServerTest extends TestCase {
 
-	protected ?LoggerInterface $logger = null;
+	protected LoggerInterface $logger;
 
 	/**
 	 * Utility Methods
