@@ -10,6 +10,8 @@ use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Request;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\TextUI\XmlConfiguration\File;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LoggerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Taproot\IndieAuth\Callback\DefaultAuthorizationForm;
 use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
@@ -18,7 +20,6 @@ use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
 use Taproot\IndieAuth\Storage\Token;
 use Taproot\IndieAuth\Storage\TokenStorageInterface;
-
 use function GuzzleHttp\Promise\exception_for;
 use function Taproot\IndieAuth\generatePKCECodeChallenge;
 use function Taproot\IndieAuth\generateRandomString;
@@ -34,11 +35,20 @@ const TMP_DIR = __DIR__ . '/tmp';
 
 class ServerTest extends TestCase {
 
+	protected ?LoggerInterface $logger = null;
+
 	/**
 	 * Utility Methods
 	 */
 
-	protected function getDefaultServer(array $config=[]) {
+	protected function getLogger() {
+		if (is_null($this->logger)) {
+			$this->logger = new PrintLogger();
+		}
+		return $this->logger;
+	}
+
+	protected function getDefaultServer(array $config=[], $printLogs = false) {
 		return new Server(array_merge([
 			'secret' => SERVER_SECRET,
 			'tokenStorage' => TOKEN_STORAGE_PATH,
@@ -47,6 +57,7 @@ class ServerTest extends TestCase {
 			// Default to a simple single-user password authentication handler.
 			Server::HANDLE_AUTHENTICATION_REQUEST => new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, ['me' => 'https://example.com/'], password_hash('password', PASSWORD_DEFAULT), Server::DEFAULT_CSRF_KEY),
 			'authorizationForm' => new DefaultAuthorizationForm(AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH),
+			'logger' => $printLogs ? $this->getLogger() : null
 		], $config));
 	}
 
@@ -657,7 +668,7 @@ EOT
 	}
 
 	public function testExchangeFlowsReturnErrorsIfParametersAreMissing() {
-		$s = $this->getDefaultServer();
+		$s = $this->getDefaultServer([]);
 
 		foreach ([
 			[$s, 'handleAuthorizationEndpointRequest'],
@@ -671,7 +682,8 @@ EOT
 				'code_challenge_method' => 'S256',
 				'scope' => 'create update'
 			]);
-	
+			
+			// client_id, redirect_uri and code_verifier are missing.
 			$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 				'grant_type' => 'authorization_code',
 				'code' => $authCode
@@ -781,7 +793,6 @@ EOT
 		];
 		$authCode = $storage->createAuthCode($authCodeData);
 		
-		// Create what would by default be a successful request, then merge specific error-inducing params.
 		$req = (new ServerRequest('POST', 'https://example.com'))->withParsedBody([
 			'grant_type' => 'authorization_code',
 			'code' => $authCode,
@@ -889,6 +900,7 @@ EOT
 		$this->assertEquals('Bearer', $resJson['token_type']);
 		$this->assertEquals($authCodeData['me'], $resJson['me']);
 		$this->assertEquals($authCodeData['profile'], $resJson['profile']);
+		$this->assertEquals(FilesystemJsonStorage::DEFAULT_ACCESS_TOKEN_TTL, $resJson['expires_in']);
 		$this->assertTrue(scopeEquals($authCodeData['scope'], $resJson['scope']));
 
 		// Make sure we can fetch the token from the token storage.
@@ -1130,5 +1142,12 @@ class NullTokenStorage implements TokenStorageInterface {
 
 	public function revokeAccessToken(string $token): bool {
 		return false;
+	}
+}
+
+
+class PrintLogger extends AbstractLogger {
+	public function log($level, $message, array $context = array()) {
+		echo "{$level}: {$message}\n";
 	}
 }

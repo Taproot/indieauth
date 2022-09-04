@@ -801,7 +801,7 @@ class Server {
 					'error_description' => $e->getMessage()
 				]));
 			}
-
+			
 			if (is_null($tokenData)) {
 				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
 				return new Response(400, ['content-type' => 'application/json'], json_encode([

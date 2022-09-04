@@ -49,8 +49,8 @@ class FilesystemJsonStorageTest extends TestCase {
 
 	public function testCleanUp() {
 		$s = new FilesystemJsonStorage(TMP_DIR, SECRET);
-		$s->put('t1', ['valid_until' => time() + 10]);
-		$s->put('t2', ['valid_until' => time() - 10]);
+		$s->put('t1', ['exp' => time() + 10]);
+		$s->put('t2', ['exp' => time() - 10]);
 		$s->deleteExpiredTokens();
 		$this->assertIsArray($s->get('t1'), 't1 was not expired and should not have been deleted.');
 		$this->assertNull($s->get('t2'), 't2 was not cleaned up after expiring.');

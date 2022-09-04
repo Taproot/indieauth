@@ -22,6 +22,25 @@ use function Taproot\IndieAuth\generateRandomString;
  * In practise, most people should probably be using an SQLite3 version of this
  * which I haven’t written yet. I haven’t extensively documented this class, as it
  * will likely be superceded by the SQLite version.
+ * 
+ * Each auth code/access token pair is stored in one file. The file name is the 
+ * access token. The auth code is the result of `$storage->hash($authCode)`.
+ * 
+ * The file format is as follows:
+ * 
+ *     {
+ *       "code_exp": int (epoch seconds), expiry time of the auth code
+ *       "_access_token_ttl": int, custom token-specific access token TTL
+ *       "iat": int (epoch seconds), time of code->token exchange
+ *       "exp": int (epoch seconds), access token expiry time,
+ *       "scope": string, comma separated scope values
+ *       "me": string, me URI
+ *       "profile": {
+ *         "name": string
+ *         "url": string
+ *         "photo": string
+ *       }
+ *     }
  */
 class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterface {
 	const DEFAULT_AUTH_CODE_TTL = 60 * 5; // Five minutes.
@@ -77,11 +96,11 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		$authCode = generateRandomString(self::TOKEN_LENGTH);
 		$accessToken = $this->hash($authCode);
 
-		// TODO: valid_until should be expire_after(? — look up), and should not be set here,
-		// as it applies only to access tokens, not auth codes! Auth code TTL should always be 
-		// the default.
-		if (!array_key_exists('valid_until', $data)) {
-			$data['valid_until'] = time() + $this->authCodeTtl;
+		// Store issued at and expiry times for the auth code. To keep a complete record of the history of the 
+		// code/token, the auth code and access token have their own iat and exp fields.
+		$data['code_iat'] = time();
+		if (!array_key_exists('code_exp', $data)) {
+			$data['code_exp'] = time() + $this->authCodeTtl;
 		}
 		
 		if (!$this->put($accessToken, $data)) {
@@ -105,18 +124,18 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			$data = json_decode($fileContents, true);
 			
 			if (!is_array($data)) { 
-				$this->logger->error('Authoriazation Code data could not be parsed as a JSON object.');
+				$this->logger->error('Authorization Code data could not be parsed as a JSON object.');
 				return null; 
 			}
 
 			// Make sure the auth code hasn’t already been redeemed.
-			if ($data['exchanged_at'] ?? false) {
+			if ($data['iat'] ?? false) {
 				$this->logger->error("This authorization code has already been exchanged.");
 				return null;
 			}
 
 			// Make sure the auth code isn’t expired.
-			if (($data['valid_until'] ?? 0) < time()) {
+			if (($data['code_exp'] ?? 0) < time()) {
 				$this->logger->error("This authorization code has expired.");
 				return null;
 			}
@@ -135,17 +154,20 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			}
 
 			// If the access token is valid, mark it as redeemed and set a new expiry time.
-			$data['exchanged_at'] = time();
+			$data['iat'] = time();
 
+			$expiresIn = null;
 			if (is_int($data['_access_token_ttl'] ?? null)) {
 				// This access token has a custom TTL, use that.
-				$data['valid_until'] = time() + $data['_access_code_ttl'];
+				$data['exp'] = time() + $data['_access_token_ttl'];
+				$expiresIn = (int) $data['_access_token_ttl'];
 			} elseif ($this->accessTokenTtl == 0) {
 				// The token should be valid until explicitly revoked.
-				$data['valid_until'] = null;
+				$data['exp'] = null;
 			} else {
 				// Use the default TTL.
-				$data['valid_until'] = time() + $this->accessTokenTtl;
+				$data['exp'] = time() + $this->accessTokenTtl;
+				$expiresIn = $this->accessTokenTtl;
 			}
 
 			// Write the new file contents, truncating afterwards in case the new data is shorter than the old data.
@@ -153,14 +175,15 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			if (rewind($fp) === false) { return null; }
 			if (fwrite($fp, $jsonData) === false) { return null; }
 			if (ftruncate($fp, strlen($jsonData)) === false) { return null; }
-
+			
 			// Return the OAuth2-compatible access token data to the Server for passing onto
-			// the client app. Passed via array_filter to remove the scope key if scope is null.
+			// the client app. Passed via array_filter to remove null keys.
 			return array_filter([
 				'access_token' => $accessToken,
-				'scope' => $data['scope'] ?? null,
+				'scope' => ($data['scope'] ?? null),
 				'me' => $data['me'],
-				'profile' => $data['profile'] ?? null
+				'profile' => ($data['profile'] ?? null),
+				'expires_in' => $expiresIn
 			]);
 		});
 	}
@@ -174,14 +197,14 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 		}
 
 		// Check that this is a redeemed access token.
-		if (($data['exchanged_at'] ?? false) === false) {
+		if (($data['iat'] ?? false) === false) {
 			$this->logger->error("This authorization code has not yet been exchanged for an access token.");
 			return null;
 		}
 
-		// Check that the access token is still valid. valid_until=null means it should live until
+		// Check that the access token is still valid. exp=null means it should live until
 		// explicitly revoked.
-		if (is_int($data['valid_until']) && $data['valid_until'] < time()) {
+		if (is_int($data['exp']) && $data['exp'] < time()) {
 			$this->logger->error("This access token has expired.");
 			return null;
 		}
@@ -213,7 +236,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 					if (!is_array($data)) { return; }
 					
 					// If valid_until is a valid time, and is in the past, delete the token.
-					if (is_int($data['valid_until'] ?? null) && $data['valid_until'] < time()) {
+					if (is_int($data['exp'] ?? null) && $data['exp'] < time()) {
 						return unlink($fileInfo->getPathname());
 					}
 				});
