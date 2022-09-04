@@ -4,7 +4,8 @@ use Taproot\IndieAuth\Server;
 
 /** @var string $formAction The URL to POST to to authorize the app, or to set as the redirect URL for a logout action if the user wants to continue as a different user. */
 /** @var Psr\Http\Message\ServerRequestInterface $request */
-/** @var array|null $clientHApp */
+/** @var array|null $clientHApp a flattened version of the h-app containing name, url and photo keys, or null if none was found */
+/** @var Exception|null $exception The exception thrown if fetching the client_id failed */
 /** @var array $user */
 /** @var array $scopes */
 /** @var string $clientId */
@@ -37,6 +38,16 @@ use Taproot\IndieAuth\Server;
 			</div>
 		<?php else: ?>
 			<h1>Authorize <span class="inline-url"><?= $clientId ?></span></h1>
+		<?php endif ?>
+
+		<?php if (!is_null($exception)): ?>
+		<div class="warning">
+			<p>The client URL <code><?= $clientId ?></code> couldn’t be fetched. This doesn’t necessarily mean that it’s insecure or broken,
+			but it’s recommended that you only proceed if you know that this isn’t an issue. If in doubt, contact the client app for more
+			information.</p>
+
+			<p>Technical details: <?= get_class($exception) ?>: <?= $exception->getMessage() ?></p>
+		</div>
 		<?php endif ?>
 		
 		<div class="user-details">

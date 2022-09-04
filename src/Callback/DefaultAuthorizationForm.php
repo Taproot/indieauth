@@ -3,6 +3,7 @@
 namespace Taproot\IndieAuth\Callback;
 
 use BarnabyWalters\Mf2 as M;
+use Exception;
 use Psr\Http\Message\ServerRequestInterface;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
@@ -55,7 +56,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 		$this->logger = $logger ?? new NullLogger;
 	}
 
-	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, ?array $clientHApp): ResponseInterface {
+	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, $clientHAppOrException): ResponseInterface {
 		// Show an authorization page. List all requested scopes, as this default
 		// function has now way of knowing which scopes are supported by the consumer.
 		$scopes = [];
@@ -63,25 +64,25 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 			$scopes[$s] = null; // Ideally there would be a description of the scope here, we don’t have one though.
 		}
 
-		if (is_null($clientHApp)) {
-			$clientHApp = [
-				'type' => ['h-app'],
-				'properties' => []
+		$exception = null;
+		$appData = null;
+		if ($clientHAppOrException instanceof Exception) {
+			$exception = $clientHAppOrException;
+		} elseif (M\isMicroformat($clientHAppOrException)) {
+			$appData = [
+				'name' => M\getProp($clientHAppOrException, 'name'),
+				'url' => M\getProp($clientHAppOrException, 'url'),
+				'photo' => M\getProp($clientHAppOrException, 'photo')
 			];
 		}
-
-		$hApp = [
-			'name' => M\getProp($clientHApp, 'name'),
-			'url' => M\getProp($clientHApp, 'url'),
-			'photo' => M\getProp($clientHApp, 'photo')
-		];
 
 		return new Response(200, ['content-type' => 'text/html'], renderTemplate($this->formTemplatePath, [
 			'scopes' => $scopes,
 			'user' => $authenticationResult,
 			'formAction' => $formAction,
 			'request' => $request,
-			'clientHApp' => $hApp,
+			'clientHApp' => $appData,
+			'exception' => $exception,
 			'clientId' => $request->getQueryParams()['client_id'],
 			'clientRedirectUri' => $request->getQueryParams()['redirect_uri'],
 			'csrfFormElement' => '<input type="hidden" name="' . htmlentities($this->csrfKey) . '" value="' . htmlentities($request->getAttribute($this->csrfKey)) . '" />'

@@ -204,6 +204,29 @@ class ServerTest extends TestCase {
 		}
 	}
 
+	// https://github.com/Taproot/indieauth/issues/14
+	public function testAuthorizationPageShownWithWarningIfClientIdIsntFetchable() {
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
+				return ['me' => 'https://me.example.com'];
+			},
+			'httpGetWithEffectiveUrl' => function (string $url): array {
+				// Simulate a failed attempt to fetch client_id;
+				throw new Exception('Oh no!');
+			}
+		]);
+
+		// In order to trigger this particular behaviour, the scheme, host and port of client_id and 
+		// redirect_uri must match. They do by default.
+		$req = $this->getIARequest();
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals(200, $res->getStatusCode());
+		$parsedResponse = json_decode((string) $res->getBody(), true);
+		$this->assertEquals('Exception', $parsedResponse['exception']);
+	}
+
 	public function testInvalidStateCodeChallengeOrScopeReturnErrorRedirects() {
 		$testCases = [
 			'Invalid state' => [
@@ -301,14 +324,15 @@ class ServerTest extends TestCase {
 				}
 			]);
 
-			$req = $this->getIARequest();
+			// Failing to fetch client_id is only a fatal error if client_id and redirect_uri do not sufficiently match
+			// i.e. differ in scheme, host or port. Provide mismatched client_id and redirect_uri to trigger this fetch.
+			$req = $this->getIARequest([
+				'client_id' => 'https://client.example.com/',
+				'redirect_uri' => 'https://not-the-client.example.com/auth'
+			]);
 			$res = $s->handleAuthorizationEndpointRequest($req);
 
-			$this->assertEquals(302, $res->getStatusCode());
-			$responseLocation = $res->getHeaderLine('Location');
-			$this->assertTrue(urlComponentsMatch($req->getQueryParams()['redirect_uri'], $responseLocation, [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PATH]));
-			parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
-			$this->assertEquals('internal_error', $redirectUriQueryParams['error']);
+			$this->assertEquals(500, $res->getStatusCode());
 		}
 	}
 
@@ -419,9 +443,8 @@ EOT
 		]);
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
-
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 	}
 
 	public function testReturnsAuthorizationFormIfClientIdExactlyMatchesParsedLinkElementRedirectUri() {

@@ -49,10 +49,10 @@ interface AuthorizationFormInterface {
 	 * @param ServerRequestInterface $request The current request.
 	 * @param array $authenticationResult The array returned from the Authentication Handler. Guaranteed to contain a 'me' key, may also contain additional keys e.g. 'profile'.
 	 * @param string $formAction The URL which your form MUST submit to. Can also be used as the redirect URL for a logout process.
-	 * @param array|null $clientHApp If available, the microformats-2 structure representing the client app.
+	 * @param array|Exception|null $clientHApp If available, the microformats-2 structure representing the client app. An instance of Exception if fetching the `client_id` failed.
 	 * @return ResponseInterface A response containing the authorization form.
 	 */
-	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, ?array $clientHApp): ResponseInterface;
+	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, $clientHAppOrException): ResponseInterface;
 
 	/**
 	 * Transform Authorization Code

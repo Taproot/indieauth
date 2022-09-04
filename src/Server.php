@@ -5,6 +5,7 @@ namespace Taproot\IndieAuth;
 use BadMethodCallException;
 use BarnabyWalters\Mf2 as M;
 use Exception;
+use finfo;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use IndieAuth\Client as IndieAuthClient;
 use Mf2;
@@ -158,8 +159,8 @@ class Server {
 	 *   `Callback\SingleUserPasswordAuthenticationCallback`.
 	 * * `secret`: A cryptographically random string with a minimum length of 64 characters. Used
 	 *   to hash and subsequently verify request query parameters which get passed around.
-	 * * `tokenStorage`: Either an object implementing `Storage\TokenStorageInterface`, or a string path,
-	 *   which will be passed to `Storage\FilesystemJsonStorage`. This object handles persisting authorization
+	 * * `tokenStorage`: Either an object implementing `Storage\TokenStorageInterface`, or a string path to a
+	 *   folder, which will be passed to `Storage\FilesystemJsonStorage`. This object handles persisting authorization
 	 *   codes and access tokens, as well as implementation-specific parts of the exchange process which are 
 	 *   out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the `Storage\TokenStorageInterface`
 	 *   documentation for more details.
@@ -171,7 +172,9 @@ class Server {
 	 *   `$effectiveUrl` is the final URL after following any redirects (unfortunately, neither the PSR-7
 	 *   Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
 	 *   data, hence the unusual return signature).  If `guzzlehttp/guzzle` is installed, this parameter
-	 *   will be created automatically. Otherwise, the user must provide their own callable.
+	 *   will be created automatically. Otherwise, the user must provide their own callable. In the event of
+	 *   an error, the callable must throw an exception implementing one of the PSR-18 client exception
+	 *   interfaces https://www.php-fig.org/psr/psr-18/#error-handling
 	 * 
 	 * The following keys are optional:
 	 * 
@@ -337,7 +340,7 @@ class Server {
 	 * 
 	 * Most user-facing errors are thrown as instances of `IndieAuthException`, which are passed off to
 	 * `handleException` to be turned into an instance of `ResponseInterface`. If you want to customise
-	 * error behaviour, one way to do so is to subclass `Server` and override that method.
+	 * error handling, one way to do so is to subclass `Server` and override that method.
 	 * 
 	 * @param ServerRequestInterface $request
 	 * @return ResponseInterface
@@ -653,35 +656,36 @@ class Server {
 						// the spec, errors should only be shown to the user if the client_id and redirect_uri parameters
 						// are missing or invalid. Otherwise, they should be sent back to the client with an error
 						// redirect response.
+						// 
+						// Per the spec, an un-fetchable client_id isn’t necessarily a hard fail. For maximum flexibility,
+						// pass the exception to the authorization form in place of the h-app/null we would pass if the
+						// request succeeded. Leave it up to the authorization form to decide what to do about it.
+						// https://github.com/Taproot/indieauth/issues/14
 						if (is_null($clientIdResponse) || is_null($clientIdEffectiveUrl) || is_null($clientIdMf2)) {
 							try {
 								/** @var ResponseInterface $clientIdResponse */
+								/** @var string $clientIdEffectiveUrl */
 								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
 								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
-							} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
-								$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
+							} catch (Exception $e) {
+								$this->logger->error("Caught non-fatal exception while trying to fetch the client_id. Passing exception to the authorization form.", [
 									'client_id' => $queryParams['client_id'],
 									'exception' => $e->__toString()
 								]);
 								
-								// At this point in the flow, we’ve already guaranteed that the redirect_uri is valid,
-								// so in theory we should report these errors by redirecting there.
-								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR_REDIRECT, $request, $e);
-							} catch (Exception $e) {
-								$this->logger->error("Caught an unknown exception while trying to fetch the client_id. Returning an error response.", [
-									'exception' => $e->__toString()
-								]);
-	
-								throw IndieAuthException::create(IndieAuthException::INTERNAL_ERROR_REDIRECT, $request, $e);
+								$clientHAppOrException = $e;
 							}
 						}
-						
-						// Search for an h-app with u-url matching the client_id.
-						$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client_id']);
-						$clientHApp = empty($clientHApps) ? null : $clientHApps[0];
+
+						if (M\isMicroformatCollection($clientIdMf2)) {
+							// Search for an h-app with u-url matching the client_id.
+							// TODO: if/when client_id gets normalised, we might have to do a normalised comparison rather than plain string comparison here.
+							$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client_id']);
+							$clientHAppOrException = empty($clientHApps) ? null : $clientHApps[0];
+						}
 
 						// Present the authorization UI.
-						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHApp)
+						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHAppOrException)
 								->withAddedHeader('Cache-control', 'no-cache');
 					}
 				}
