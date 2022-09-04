@@ -60,7 +60,7 @@ return $server->handleTokenEndpointRequest($request);
 // In another route (e.g. a micropub route), to authenticate the request:
 // (assuming $bearerToken is a token parsed from an “Authorization: Bearer XXXXXX” header
 // or access_token property from a request body)
-if ($accessToken = $server->getTokenStorage()->getAccessToken($bearerToken)) {
+if ($accessToken = $server->getAccessToken($bearerToken)) {
 	// Request is authenticated as $accessToken['me'], and is allowed to
 	// act according to the scopes listed in $accessToken['scope'].
 	$scopes = explode(' ', $accessToken['scope']);

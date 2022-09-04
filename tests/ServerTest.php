@@ -897,6 +897,10 @@ EOT
 		$this->assertEquals($accessToken['me'], $authCodeData['me']);
 		$this->assertEquals($accessToken['scope'], $authCodeData['scope']);
 
+		// Make sure that calling the getAccessToken shortcut returns the same token.
+		$shortcutAccessToken = $s->getAccessToken($resJson['access_token']);
+		$this->assertEquals($accessToken, $shortcutAccessToken);
+
 		// Make sure we can revoke the token and no longer fetch it.
 		$this->assertTrue($s->getTokenStorage()->revokeAccessToken($resJson['access_token']));
 		$this->assertNull($s->getTokenStorage()->getAccessToken($resJson['access_token']));

@@ -833,6 +833,15 @@ class Server {
 	}
 
 	/**
+	 * Get Access Token
+	 * 
+	 * A convenient shortcut for `$server->getTokenStorage()->getAccessToken()`
+	 */
+	public function getAccessToken(string $token): ?array {
+		return $this->getTokenStorage()->getAccessToken($token);
+	}
+
+	/**
 	 * Handle Exception
 	 * 
 	 * Turns an instance of `IndieAuthException` into an appropriate instance of `ResponseInterface`.
