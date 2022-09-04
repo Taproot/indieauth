@@ -5,3 +5,4 @@ tests/tmp/*
 phpDocumentor.phar
 phpdoc.xml
 .phpdoc
+.phpunit.result.cache
