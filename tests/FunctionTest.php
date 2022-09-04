@@ -129,9 +129,11 @@ class FunctionTest extends TestCase {
 		}
 	}
 
+	// https://github.com/Taproot/indieauth/issues/13
 	public function testIsValidCodeChallenge() {
 		$testCases = [
 			generatePKCECodeChallenge('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~') => true,
+			'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~' => true,
 			'has_bad_characters_in_*%#ü____' => false
 		];
 

@@ -22,6 +22,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
 use function GuzzleHttp\Promise\exception_for;
 use function Taproot\IndieAuth\generatePKCECodeChallenge;
 use function Taproot\IndieAuth\generateRandomString;
+use function Taproot\IndieAuth\isValidCodeChallenge;
 use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
 use function Taproot\IndieAuth\urlComponentsMatch;
 

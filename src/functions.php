@@ -216,7 +216,7 @@ function isValidState(string $state): bool {
  * @see https://indieauth.spec.indieweb.org/#authorization-request
  */
 function isValidCodeChallenge(string $challenge): bool {
-	return false !== filter_var($challenge, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[A-Za-z0-9_-]+$/']]);
+	return false !== filter_var($challenge, FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/^[A-Za-z0-9_\-.~]+$/']]);
 }
 
 /**
