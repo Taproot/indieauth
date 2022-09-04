@@ -51,7 +51,7 @@ use Taproot\IndieAuth\Server;
 		<?php endif ?>
 		
 		<div class="user-details">
-			<?php if (!is_null($user['profile'])): ?>
+			<?php if (!empty($user['profile']) && !is_null($user['profile'])): ?>
 				<?php if (!is_null($user['profile']['photo'])): ?>
 					<img class="user-photo" src="<?= htmlentities($user['profile']['photo']) ?>" alt="" />
 				<?php else: ?>
