@@ -58,7 +58,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 
 	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, $clientHAppOrException): ResponseInterface {
 		// Show an authorization page. List all requested scopes, as this default
-		// function has now way of knowing which scopes are supported by the consumer.
+		// function has no way of knowing which scopes are supported by the consumer.
 		$scopes = [];
 		foreach(explode(' ', $request->getQueryParams()['scope'] ?? '') as $s) {
 			$scopes[$s] = null; // Ideally there would be a description of the scope here, we don’t have one though.

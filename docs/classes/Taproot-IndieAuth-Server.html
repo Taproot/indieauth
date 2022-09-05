@@ -918,7 +918,7 @@ This function is called on IndieAuth authorization requests, after validating th
 canonical URL of the currently logged-in user. It may additionally have a <code class="prettyprint">profile</code> key. These
 keys will be stored in the authorization code and sent to the client, if successful.</li>
 <li>If it is not authenticated, either present or redirect to an authentication flow. This flow MUST
-redirect the logged-in used back to <code class="prettyprint">$authenticationRedirect</code>.</li>
+redirect the logged-in user back to <code class="prettyprint">$authenticationRedirect</code>.</li>
 </ul>
 <p>If the request has a valid <code class="prettyprint">me</code> parameter, the canonicalized version of it is passed as
 <code class="prettyprint">$normalizedMeUrl</code>. Otherwise, this parameter is null. This parameter can optionally be used

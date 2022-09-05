@@ -147,7 +147,7 @@ class Server {
 	 *       canonical URL of the currently logged-in user. It may additionally have a `profile` key. These
 	 *       keys will be stored in the authorization code and sent to the client, if successful.
 	 *     * If it is not authenticated, either present or redirect to an authentication flow. This flow MUST
-	 *       redirect the logged-in used back to `$authenticationRedirect`.
+	 *       redirect the logged-in user back to `$authenticationRedirect`.
 	 *   
 	 *   If the request has a valid `me` parameter, the canonicalized version of it is passed as
 	 *   `$normalizedMeUrl`. Otherwise, this parameter is null. This parameter can optionally be used 
