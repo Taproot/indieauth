@@ -24,7 +24,7 @@ use Taproot\IndieAuth\Server;
 	</head>
 	<body>
 		<?php if (!is_null($clientHApp)): ?>
-			<h1>Authorize <?= htmlentities($clientHApp['name']) ?> (<span class="inline-url"><?= $clientId ?></span>)</h1>
+			<h1>Authorize <?= htmlentities($clientHApp['name']) ?> (<span class="inline-url"><?= htmlentities($clientId) ?></span>)</h1>
 
 			<div class="client-app-details">
 				<?php if (!is_null($clientHApp['photo'])): ?>
@@ -37,16 +37,16 @@ use Taproot\IndieAuth\Server;
 				<p class="client-app-url"><?= htmlentities($clientHApp['url']) ?></p>
 			</div>
 		<?php else: ?>
-			<h1>Authorize <span class="inline-url"><?= $clientId ?></span></h1>
+			<h1>Authorize <span class="inline-url"><?= htmlentities($clientId) ?></span></h1>
 		<?php endif ?>
 
 		<?php if (!is_null($exception)): ?>
 		<div class="warning">
-			<p>The client URL <code><?= $clientId ?></code> couldn’t be fetched. This doesn’t necessarily mean that it’s insecure or broken,
+			<p>The client URL <code><?= htmlentities($clientId) ?></code> couldn’t be fetched. This doesn’t necessarily mean that it’s insecure or broken,
 			but it’s recommended that you only proceed if you know that this isn’t an issue. If in doubt, contact the client app for more
 			information.</p>
 
-			<p>Technical details: <?= get_class($exception) ?>: <?= $exception->getMessage() ?></p>
+			<p>Technical details: <?= htmlentities(get_class($exception)) ?>: <?= htmlentities($exception->getMessage()) ?></p>
 		</div>
 		<?php endif ?>
 		
@@ -78,12 +78,12 @@ use Taproot\IndieAuth\Server;
 
 				<input type="hidden" name="your_logout_redirect_parameter" value="<?= htmlentities($formAction) ?>" />
 
-				<p>Want to log into <span class="inline-url"><?= $clientId ?></span> as another user? <button type="submit">Log out and continue</button></p>
+				<p>Want to log into <span class="inline-url"><?= htmlentities($clientId) ?></span> as another user? <button type="submit">Log out and continue</button></p>
 			</form>
 			 -->
 		</div>
 
-		<form method="post" action="<?= $formAction ?>">
+		<form method="post" action="<?= htmlentities($formAction) ?>">
 		<?= $csrfFormElement ?>
 			<div class="scope-section">
 				<h2>Scope</h2>
@@ -118,7 +118,7 @@ use Taproot\IndieAuth\Server;
 
 				<p>
 					<!-- Forms should give the user a chance to cancel the authorization. This usually involves linking them back to the app they came from. -->
-					<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= $clientHApp['name'] ?? 'app' ?>)</a>
+					<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= htmlentities($clientHApp['name']) ?? 'app' ?>)</a>
 
 					<!-- Your form MUST be submitted with taproot_indieauth_action=approve for the approval submission to work. -->
 					<button type="submit" name="<?= Server::APPROVE_ACTION_KEY ?>" value="<?= Server::APPROVE_ACTION_VALUE ?>">Authorize</button>

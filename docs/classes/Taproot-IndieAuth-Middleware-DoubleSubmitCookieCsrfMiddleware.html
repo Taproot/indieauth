@@ -2,18 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Documentation</title>
+            <title>Documentation</title>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="../">
     <link rel="icon" href="images/favicon.ico"/>
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/base.css">
-            <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+            <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="css/template.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/css/all.min.css" integrity="sha256-ybRkN9dBjhcS2qrW1z+hfCxq+1aBdwyQM5wlQoQVt/0=" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/themes/prism-okaidia.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.css">
                 <script src="https://cdn.jsdelivr.net/npm/fuse.js@3.4.6"></script>
         <script src="https://cdn.jsdelivr.net/npm/css-vars-ponyfill@2"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/js/all.min.js" integrity="sha256-0vuk8LXoyrmCjp1f0O300qo1M75ZQyhH9X3J6d+scmk=" crossorigin="anonymous"></script>
         <script src="js/search.js"></script>
         <script defer src="js/searchIndex.js"></script>
     </head>
@@ -48,16 +53,27 @@
     Menu
 </label>
 <aside class="phpdocumentor-column -four phpdocumentor-sidebar">
-    
-    <section class="phpdocumentor-sidebar__category">
-        <h2 class="phpdocumentor-sidebar__category-header">Namespaces</h2>
-                                                <h4 class="phpdocumentor-sidebar__root-namespace"><a href="namespaces/taproot.html"><abbr title="\Taproot">Taproot</abbr></a></h4>
-                <ul class="phpdocumentor-list">
-                                            <li><a href="namespaces/taproot-indieauth.html"><abbr title="\Taproot\IndieAuth">IndieAuth</abbr></a></li>
-                                    </ul>
-                        </section>
+                    <section class="phpdocumentor-sidebar__category">
+            <h2 class="phpdocumentor-sidebar__category-header">Namespaces</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="namespaces/taproot.html" class="">Taproot</a>
+</h4>
+    <ul class="phpdocumentor-list">
+                    <li>
+                <a href="namespaces/taproot-indieauth.html" class="">IndieAuth</a>
+                
+            </li>
+            </ul>
 
-    
+                        </section>
+                <section class="phpdocumentor-sidebar__category">
+            <h2 class="phpdocumentor-sidebar__category-header">Packages</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="packages/Application.html" class="">Application</a>
+</h4>
+
+                        </section>
+            
     <section class="phpdocumentor-sidebar__category">
         <h2 class="phpdocumentor-sidebar__category-header">Reports</h2>
                 <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/deprecated.html">Deprecated</a></h3>
@@ -83,6 +99,12 @@
     DoubleSubmitCookieCsrfMiddleware
 
     
+            <div class="phpdocumentor-element__package">
+            in package
+            <ul class="phpdocumentor-breadcrumbs">
+                                    <li class="phpdocumentor-breadcrumb"><a href="packages/Application.html">Application</a></li>
+                            </ul>
+        </div>
     
             <span class="phpdocumentor-element__implements">
             implements
@@ -94,7 +116,8 @@
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">37</span>
-</aside>
+
+    </aside>
 
             <p class="phpdocumentor-summary">Double-Submit Cookie CSRF Middleware</p>
 
@@ -136,7 +159,7 @@ about customising the error response.</p>
 
 
 <h3 id="interfaces_class_traits">
-    Interfaces, Classes and Traits
+    Interfaces, Classes, Traits and Enums
     <a href="#interfaces_class_traits" class="headerlink"><i class="fas fa-link"></i></a>
 </h3>
 
@@ -145,6 +168,7 @@ about customising the error response.</p>
         <dd></dd>
             <dt class="phpdocumentor-table-of-contents__entry -interface"><abbr title="\Psr\Log\LoggerAwareInterface">LoggerAwareInterface</abbr></dt>
         <dd></dd>
+    
     
     
     </dl>
@@ -159,98 +183,98 @@ about customising the error response.</p>
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#constant_ATTRIBUTE">ATTRIBUTE</a>
     <span>
-        &nbsp;= &#039;csrf&#039;                    </span>
+        &nbsp;= &#039;csrf&#039;                            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#constant_CSRF_TOKEN_LENGTH">CSRF_TOKEN_LENGTH</a>
     <span>
-        &nbsp;= 128                    </span>
+        &nbsp;= 128                            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#constant_DEFAULT_ERROR_RESPONSE_STRING">DEFAULT_ERROR_RESPONSE_STRING</a>
     <span>
-        &nbsp;= &#039;Invalid or missing CSRF token!&#039;                    </span>
+        &nbsp;= &#039;Invalid or missing CSRF token!&#039;                            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#constant_READ_METHODS">READ_METHODS</a>
     <span>
-        &nbsp;= [&#039;HEAD&#039;, &#039;GET&#039;, &#039;OPTIONS&#039;]                    </span>
+        &nbsp;= [&#039;HEAD&#039;, &#039;GET&#039;, &#039;OPTIONS&#039;]                            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -constant -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#constant_TTL">TTL</a>
     <span>
-        &nbsp;= 60 * 20                    </span>
+        &nbsp;= 60 * 20                            </span>
 </dt>
 <dd></dd>
 
-                <dt class="phpdocumentor-table-of-contents__entry -property -public">
+                    <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_attribute">$attribute</a>
     <span>
-                &nbsp;: string            </span>
+                        &nbsp;: string            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_errorResponse">$errorResponse</a>
     <span>
-                &nbsp;: mixed            </span>
+                        &nbsp;: mixed            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_logger">$logger</a>
     <span>
-                &nbsp;: <abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>            </span>
+                        &nbsp;: <abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_tokenLength">$tokenLength</a>
     <span>
-                &nbsp;: int            </span>
+                        &nbsp;: int            </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_ttl">$ttl</a>
     <span>
-                &nbsp;: int            </span>
+                        &nbsp;: int            </span>
 </dt>
 <dd></dd>
 
                 <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#method___construct">__construct()</a>
     <span>
-                        &nbsp;: mixed    </span>
+                                &nbsp;: mixed    </span>
 </dt>
 <dd>Constructor</dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#method_process">process()</a>
     <span>
-                        &nbsp;: <abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr>    </span>
+                                &nbsp;: <abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr>    </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#method_setLogger">setLogger()</a>
     <span>
-                        &nbsp;: mixed    </span>
+                                &nbsp;: mixed    </span>
 </dt>
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -method -protected">
     <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#method_isValid">isValid()</a>
     <span>
-                        &nbsp;: mixed    </span>
+                                &nbsp;: mixed    </span>
 </dt>
 <dd></dd>
 
@@ -274,18 +298,22 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">40</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-signature phpdocumentor-code ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__type">mixed</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">ATTRIBUTE</span>
     = <span class="phpdocumentor-signature__default-value">&#039;csrf&#039;</span>
 </code>
 
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -299,18 +327,22 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">42</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-signature phpdocumentor-code ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__type">mixed</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">CSRF_TOKEN_LENGTH</span>
     = <span class="phpdocumentor-signature__default-value">128</span>
 </code>
 
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -324,18 +356,22 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">41</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-signature phpdocumentor-code ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__type">mixed</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">DEFAULT_ERROR_RESPONSE_STRING</span>
     = <span class="phpdocumentor-signature__default-value">&#039;Invalid or missing CSRF token!&#039;</span>
 </code>
 
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -349,18 +385,22 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">38</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-signature phpdocumentor-code ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__type">mixed</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">READ_METHODS</span>
     = <span class="phpdocumentor-signature__default-value">[&#039;HEAD&#039;, &#039;GET&#039;, &#039;OPTIONS&#039;]</span>
 </code>
 
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -374,18 +414,22 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">39</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-signature phpdocumentor-code ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__type">mixed</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">TTL</span>
     = <span class="phpdocumentor-signature__default-value">60 * 20</span>
 </code>
 
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -414,7 +458,8 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">45</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
@@ -423,8 +468,8 @@ about customising the error response.</p>
     <span class="phpdocumentor-signature__name">$attribute</span>
     </code>
 
-        <section class="phpdocumentor-description"></section>
-
+    
+    
     
 
 </article>
@@ -445,7 +490,8 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">50</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
@@ -454,7 +500,10 @@ about customising the error response.</p>
     <span class="phpdocumentor-signature__name">$errorResponse</span>
     </code>
 
-    
+        <section class="phpdocumentor-description"></section>
+
+        <section class="phpdocumentor-description"></section>
+
     
 
 </article>
@@ -475,7 +524,8 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">56</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
@@ -484,8 +534,8 @@ about customising the error response.</p>
     <span class="phpdocumentor-signature__name">$logger</span>
     </code>
 
-        <section class="phpdocumentor-description"></section>
-
+    
+    
     
 
 </article>
@@ -506,7 +556,8 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">53</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
@@ -515,8 +566,8 @@ about customising the error response.</p>
     <span class="phpdocumentor-signature__name">$tokenLength</span>
     </code>
 
-        <section class="phpdocumentor-description"></section>
-
+    
+    
     
 
 </article>
@@ -537,7 +588,8 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">48</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
@@ -546,8 +598,8 @@ about customising the error response.</p>
     <span class="phpdocumentor-signature__name">$ttl</span>
     </code>
 
-        <section class="phpdocumentor-description"></section>
-
+    
+    
     
 
 </article>
@@ -572,13 +624,14 @@ about customising the error response.</p>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">69</span>
-</aside>
+
+    </aside>
 
         <p class="phpdocumentor-summary">Constructor</p>
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$attribute</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::ATTRIBUTE</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">int|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$ttl</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::TTL</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$errorResponse</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::DEFAULT_ERROR_RESPONSE_STRING</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$tokenLength</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::CSRF_TOKEN_LENGTH</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$attribute</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::ATTRIBUTE</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">int|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$ttl</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::TTL</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$errorResponse</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::DEFAULT_ERROR_RESPONSE_STRING</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$tokenLength</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">self::CSRF_TOKEN_LENGTH</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
         <section class="phpdocumentor-description"><p>The <code class="prettyprint">$errorResponse</code> parameter can be used to customse the error response returned when a
 write request has invalid CSRF parameters. It can take the following forms:</p>
@@ -597,35 +650,40 @@ the return value of which will be returned as-is.</li>
                 : <span class="phpdocumentor-signature__argument__return-type">string|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">self::ATTRIBUTE</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$ttl</span>
                 : <span class="phpdocumentor-signature__argument__return-type">int|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">self::TTL</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$errorResponse</span>
                 : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
                  = <span class="phpdocumentor-signature__argument__default-value">self::DEFAULT_ERROR_RESPONSE_STRING</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$tokenLength</span>
                 : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
                  = <span class="phpdocumentor-signature__argument__default-value">self::CSRF_TOKEN_LENGTH</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$logger</span>
                 : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
                  = <span class="phpdocumentor-signature__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
             </dl>
 
@@ -634,8 +692,7 @@ the return value of which will be returned as-is.</li>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
     <span class="phpdocumentor-signature__response_type">mixed</span>
             &mdash;
-            <section class="phpdocumentor-description"></section>
-
+        
     
 </article>
                     <article
@@ -652,14 +709,16 @@ the return value of which will be returned as-is.</li>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">95</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                <span class="phpdocumentor-signature__name">process</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Server\RequestHandlerInterface">RequestHandlerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$handler</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span></code>
+                    <span class="phpdocumentor-signature__name">process</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Server\RequestHandlerInterface">RequestHandlerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$handler</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span></code>
 
-    
+        <section class="phpdocumentor-description"></section>
+
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
@@ -667,14 +726,16 @@ the return value of which will be returned as-is.</li>
                 : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr></span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-signature__argument__name">$handler</span>
                 : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Server\RequestHandlerInterface">RequestHandlerInterface</abbr></span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
             </dl>
 
@@ -683,8 +744,7 @@ the return value of which will be returned as-is.</li>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
     <span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Http\Message\ResponseInterface">ResponseInterface</abbr></span>
             &mdash;
-            <section class="phpdocumentor-description"></section>
-
+        
     
 </article>
                     <article
@@ -701,14 +761,16 @@ the return value of which will be returned as-is.</li>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">91</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
-    
+        <section class="phpdocumentor-description"></section>
+
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
@@ -716,7 +778,8 @@ the return value of which will be returned as-is.</li>
                 : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr></span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
             </dl>
 
@@ -725,8 +788,7 @@ the return value of which will be returned as-is.</li>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
     <span class="phpdocumentor-signature__response_type">mixed</span>
             &mdash;
-            <section class="phpdocumentor-description"></section>
-
+        
     
 </article>
                     <article
@@ -743,14 +805,16 @@ the return value of which will be returned as-is.</li>
     <abbr class="phpdocumentor-element-found-in__file" title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php"><a href="files/src-middleware-doublesubmitcookiecsrfmiddleware.html"><abbr title="src/Middleware/DoubleSubmitCookieCsrfMiddleware.php">DoubleSubmitCookieCsrfMiddleware.php</abbr></a></abbr>
     :
     <span class="phpdocumentor-element-found-in__line">118</span>
-</aside>
+
+    </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">protected</span>
-                <span class="phpdocumentor-signature__name">isValid</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">isValid</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$request</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
-    
+        <section class="phpdocumentor-description"></section>
+
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
@@ -758,7 +822,8 @@ the return value of which will be returned as-is.</li>
                 : <span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Http\Message\ServerRequestInterface">ServerRequestInterface</abbr></span>
                             </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"></section>
+
             </dd>
             </dl>
 
@@ -767,11 +832,72 @@ the return value of which will be returned as-is.</li>
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
     <span class="phpdocumentor-signature__response_type">mixed</span>
             &mdash;
-            <section class="phpdocumentor-description"></section>
-
+        
     
 </article>
             </section>
+
+        
+    <script type="text/javascript">
+        function loadExternalCodeSnippets(line) {
+            Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach((pre) => {
+                var src = pre.getAttribute('data-src').replace( /\\/g, '/');
+                var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+                var language = 'php';
+
+                var code = document.createElement('code');
+                code.className = 'language-' + language;
+
+                pre.textContent = '';
+
+                pre.setAttribute('data-line', line)
+                code.textContent = 'Loading…';
+
+                pre.appendChild(code);
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('GET', src, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+
+                        if (xhr.status < 400 && xhr.responseText) {
+                            code.textContent = xhr.responseText;
+
+                            Prism.highlightElement(code);
+                        }
+                        else if (xhr.status >= 400) {
+                            code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                        }
+                        else {
+                            code.textContent = '✖ Error: File does not exist, is empty or trying to view from localhost';
+                        }
+                    }
+                };
+
+                xhr.send(null);
+            });
+        }
+
+        var modals = document.querySelectorAll("[data-modal]");
+
+        modals.forEach(function (trigger) {
+            trigger.addEventListener("click", function (event) {
+                //event.preventDefault();
+                const modal = document.getElementById(trigger.dataset.modal);
+                modal.classList.add("phpdocumentor-modal__open");
+                loadExternalCodeSnippets(trigger.dataset.line)
+                const exits = modal.querySelectorAll("[data-exit-button]");
+                exits.forEach(function (exit) {
+                    exit.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        modal.classList.remove("phpdocumentor-modal__open");
+                    });
+                });
+            });
+        });
+    </script>
 
     </article>
                 <section data-search-results class="phpdocumentor-search-results phpdocumentor-search-results--hidden">
@@ -794,5 +920,9 @@ the return value of which will be returned as-is.</li>
     <script>
         cssVars({});
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.min.js"></script>
 </body>
 </html>

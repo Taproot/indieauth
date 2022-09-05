@@ -316,6 +316,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_INVALID_REQUEST_REDIRECT"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AAUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE",
+            "name": "AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-IndieAuthException.html#constant_AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\IndieAuthException\u003A\u003AEXC_INFO",
             "name": "EXC_INFO",
             "summary": "",
@@ -480,6 +485,11 @@ Search.appendIndex(
             "name": "handleTokenEndpointRequest",
             "summary": "Handle\u0020Token\u0020Endpoint\u0020Request",
             "url": "classes/Taproot-IndieAuth-Server.html#method_handleTokenEndpointRequest"
+        },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003AgetAccessToken\u0028\u0029",
+            "name": "getAccessToken",
+            "summary": "Get\u0020Access\u0020Token",
+            "url": "classes/Taproot-IndieAuth-Server.html#method_getAccessToken"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003AhandleException\u0028\u0029",
             "name": "handleException",
