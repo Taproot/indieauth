@@ -50,7 +50,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  *         
  *         // Otherwise, redirect the user to a login page, ensuring that they will be redirected
  *         // back to the IndieAuth flow with query parameters intact once logged in.
- *         return new Response('302', ['Location' => 'https://example.com/login?next=' . urlencode($authenticationRedirect)]);
+ *         return new Response(302, ['Location' => 'https://example.com/login?next=' . urlencode($authenticationRedirect)]);
  *       }
  *     ]);
  *     

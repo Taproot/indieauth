@@ -78,8 +78,7 @@ class IndieAuthException extends Exception {
 	 * page SHOULD NOT offer the user a link to them.
 	 */
 	public function trustQueryParams() {
-		return $this->code == self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH
-				|| $this->code == self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH;
+		return !in_array($this->code, [self::AUTHORIZATION_APPROVAL_REQUEST_INVALID_HASH, self::AUTHORIZATION_APPROVAL_REQUEST_MISSING_HASH]);
 	}
 
 	public function getRequest() {
