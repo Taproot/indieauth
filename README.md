@@ -2,11 +2,14 @@
 
 [![Latest Stable Version](http://poser.pugx.org/taproot/indieauth/v)](https://packagist.org/packages/taproot/indieauth) <a href="https://github.com/Taproot/indieauth/actions/workflows/php.yml"><img src="https://github.com/taproot/indieauth/actions/workflows/php.yml/badge.svg?branch=main" alt="" /></a> [![License](http://poser.pugx.org/taproot/indieauth/license)](https://packagist.org/packages/taproot/indieauth) [![Total Downloads](http://poser.pugx.org/taproot/indieauth/downloads)](https://packagist.org/packages/taproot/indieauth) 
 
-A PSR-7-compatible implementation of the request-handling logic for IndieAuth authorization endpoints
-and token endpoints.
+taproot/indieauth is a PSR-7-compatible IndieAuth server library. It allows you to quickly and easily turn your existing website into an IndieAuth Identity Provider, enabling you to log into websites using your domain, and to grant granular access to your website to external apps (e.g. to allow external apps to post to your site via micropub). It comes with sane defaults, but can be extensively customised.
 
+## Quick Links
+
+* [IndieAuth Living Standard](https://indieauth.spec.indieweb.org/)
 * [API Documentation](https://taproot.github.io/indieauth/namespaces/taproot-indieauth.html)
 * [Code Coverage](https://taproot.github.io/indieauth/coverage/)
+* [Support Chatroom](https://chat.indieweb.org/dev/) (ping `barnaby` or ask one of the other friendly people there)
 
 ## Installation
 
@@ -85,7 +88,7 @@ See the [taproot/micropub example app](https://github.com/Taproot/micropub-adapt
 
 ## Contributing
 
-If you have any questions about using this library, join the [indieweb chatroom](https://indieweb.org/discuss) and ping `barnaby`.
+If you have any questions about using this library, join the [indieweb dev chatroom](https://chat.indieweb.org/dev/), and ping `barnaby` or ask one of the other friendly people there.
 
 If you find a bug or problem with the library, or want to suggest a feature, please [create an issue](https://github.com/Taproot/indieauth/issues/new).
 
