@@ -105,4 +105,17 @@ If discussions lead to you wanting to submit a pull request, following this proc
 
 ## Changelog
 
-* v0.1.0 2021-06-24
+### v0.2.0
+2022-09-06
+* Allow supporting older clients with response_type=id (#3)
+* Changed FilesystemJsonStorage internal structure to better match terms used in OAuth (#5)
+* Allowed guzzle v2 (#7)
+* Improved authentication callback handling logic (#8)
+* Allowed . and ~ in plain text code challenge (#13)
+* No more hard fail if client_id cannot be fetched (#14)
+* Improved styling of all default templates
+* Minor fixes, regenerated documentation
+
+### v0.1.0
+2021-06-24
+* Initial release
