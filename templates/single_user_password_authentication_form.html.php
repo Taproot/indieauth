@@ -10,7 +10,41 @@
 		<title>IndieAuth • Log In</title>
 
 		<style>
+			* {
+				box-sizing: border-box;
+				max-width: 100%;
+				margin: 0;
+				padding: 0;
+			}
 
+			h1, h2, h3, h4, h5, h6, p { margin-bottom: 1em; }
+
+			body {
+				font-size: 1em;
+				font-family: Helvetica, sans-serif;
+				padding: 0;
+				margin: 0;
+			}
+
+			form {
+				margin: 1em auto;
+				padding: 1em;
+				max-width: 40em;
+			}
+
+			button[type=submit] {
+				padding: 0.5em;
+				cursor: pointer;
+			}
+
+			footer {
+				text-align: center;
+				margin: 5em 0 2em 0;
+				opacity: 0.6;
+				position: fixed;
+				bottom: 0;
+				width: 100%;
+			}
 		</style>
 	</head>
 	<body>
@@ -19,7 +53,7 @@
 			
 			<h1>Log In</h1>
 
-			<p><input type="password" name="<?= \Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback::PASSWORD_FORM_PARAMETER ?>" /></p>
+			<p><label>Password: <input type="password" name="<?= \Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback::PASSWORD_FORM_PARAMETER ?>" /></label></p>
 
 			<p><button type="submit">Log In</button></p>
 

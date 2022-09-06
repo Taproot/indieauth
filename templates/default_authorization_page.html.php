@@ -138,6 +138,9 @@ use Taproot\IndieAuth\Server;
 				text-align: center;
 				margin: 5em 0 2em 0;
 				opacity: 0.6;
+				position: fixed;
+				bottom: 0;
+				width: 100%;
 			}
 		</style>
 	</head>
