@@ -35,6 +35,10 @@ use Taproot\IndieAuth\Server;
 				margin: 0;
 			}
 
+			details summary { cursor: pointer; }
+
+			details[open] summary { margin-bottom: 0.5em; }
+
 			.inline-url {
 				font-family: monospace;
 			}
@@ -49,20 +53,20 @@ use Taproot\IndieAuth\Server;
 				display: flex;
 				background: #eee;
 				border: #ddd 2px solid;
-				padding: 1em;
+				padding: 0.5em;
 				margin-bottom: 1em;
 			}
 
 			.client-app-photo {
-				max-width: 5em;
-				max-height: 5em;
+				max-width: 4em;
+				max-height: 4em;
 				margin-right: 1em;
 			}
 
 			.client-app-name {
-				margin-top: 1rem;
+				margin-top: 0.5rem;
 				margin-bottom: 0.5rem;
-				font-size: 1.5rem;
+				font-size: 1.3rem;
 				font-weight: bold;
 			}
 
@@ -70,20 +74,20 @@ use Taproot\IndieAuth\Server;
 				display: flex;
 				background: #ceeacb;
 				border: #9ab098 2px solid;
-				padding: 1em;
+				padding: 0.5em;
 				margin-bottom: 1em;
 			}
 
 			.user-photo {
-				max-width: 5em;
-				max-height: 5em;
+				max-width: 4em;
+				max-height: 4em;
 				margin-right: 1em;
 			}
 
 			.user-name {
-				margin-top: 1rem;
+				margin-top: 0.5rem;
 				margin-bottom: 0.5rem;
-				font-size: 1.5rem;
+				font-size: 1.3rem;
 				font-weight: bold;
 			}
 
@@ -104,6 +108,7 @@ use Taproot\IndieAuth\Server;
 
 			.scope-list-item label:hover {
 				background: #efefef;
+				cursor: pointer;
 			}
 
 			.scope-name {
@@ -119,6 +124,7 @@ use Taproot\IndieAuth\Server;
 			
 			.cancel-submit-row button[type=submit] {
 				padding: 1em;
+				cursor: pointer;
 			}
 
 			.warning {
@@ -127,15 +133,21 @@ use Taproot\IndieAuth\Server;
 				padding: 1em;
 				margin-bottom: 1em;
 			}
+
+			footer {
+				text-align: center;
+				margin: 5em 0 2em 0;
+				opacity: 0.6;
+			}
 		</style>
 	</head>
 	<body>
 		<main>
-			<?php if (!is_null($clientHApp)): ?>
+			<?php if (!empty($clientHApp)): ?>
 				<h1>Authorize <?= htmlentities($clientHApp['name']) ?> <span class="inline-url"><?= htmlentities($clientId) ?></span></h1>
 
 				<div class="client-app-details">
-					<?php if (!is_null($clientHApp['photo'])): ?>
+					<?php if (!empty($clientHApp['photo'])): ?>
 						<img class="client-app-photo" src="<?= htmlentities($clientHApp['photo']) ?>" alt="" />
 					<?php else: ?>
 						<div class="client-app-photo client-app-photo-placeholder"></div>
@@ -152,7 +164,7 @@ use Taproot\IndieAuth\Server;
 
 			<?php if (!is_null($exception)): ?>
 			<div class="warning">
-				<p>The client URL <code><?= htmlentities($clientId) ?></code> couldn’t be fetched. This doesn’t necessarily mean that it’s insecure or broken,
+				<p>⚠️ The client URL <code><?= htmlentities($clientId) ?></code> couldn’t be fetched. This doesn’t necessarily mean that it’s insecure or broken,
 				but it’s recommended that you only proceed if you know that this isn’t an issue. If in doubt, contact the client app for more
 				information.</p>
 
@@ -164,15 +176,15 @@ use Taproot\IndieAuth\Server;
 			<?php endif ?>
 			
 			<div class="user-details">
-				<?php if (!empty($user['profile']) && !is_null($user['profile'])): ?>
-					<?php if (!is_null($user['profile']['photo'])): ?>
+				<?php if (!empty($user['profile'])): ?>
+					<?php if (!empty($user['profile']['photo'])): ?>
 						<img class="user-photo" src="<?= htmlentities($user['profile']['photo']) ?>" alt="" />
 					<?php else: ?>
 						<div class="user-photo user-photo-placeholder"></div>
 					<?php endif ?>
 					
 					<div>
-						<?php if (!is_null($user['profile']['name'])): ?>
+						<?php if (!empty($user['profile']['name'])): ?>
 							<p class="user-name"><?= htmlentities($user['profile']['name']) ?></p>
 						<?php endif ?>
 
@@ -228,11 +240,11 @@ use Taproot\IndieAuth\Server;
 						function to handle them. -->
 
 				<div class="submit-section">
-					<p>After approving, you will be redirected to <span class="inline-url"><?= htmlentities($clientRedirectUri) ?></span>.</p>
+					<p>After approving, you will be fowarded to <span class="inline-url"><?= htmlentities($clientRedirectUri) ?></span>.</p>
 
 					<div class="cancel-submit-row">
 						<!-- Forms should give the user a chance to cancel the authorization. This usually involves linking them back to the app they came from. -->
-						<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= htmlentities($clientHApp['name']) ?? 'app' ?>)</a>
+						<a class="cancel-link" href="<?= htmlentities($clientId) ?>">Cancel (back to <?= empty($clientHApp['name']) ? '<span class="inline-url">' . htmlentities($clientId) . '</span>' : htmlentities($clientHApp['name']) ?>)</a>
 
 						<!-- Your form MUST be submitted with taproot_indieauth_action=approve for the approval submission to work. -->
 						<button type="submit" name="<?= Server::APPROVE_ACTION_KEY ?>" value="<?= Server::APPROVE_ACTION_VALUE ?>">Authorize</button>

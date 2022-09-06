@@ -16,7 +16,8 @@ if (!array_key_exists('t', $_GET)) {
 	<?php
 } else {
 	if ($_GET['t'] == 'default_authorization_page.html') {
-		switch ($_GET['happ']) {
+		$_happ = empty($_GET['happ']) ? null : $_GET['happ'];
+		switch ($_happ) {
 			case 'photo':
 				$clientHApp = [
 					'name' => 'Demo App',
@@ -35,7 +36,8 @@ if (!array_key_exists('t', $_GET)) {
 				break;
 		}
 
-		switch ($_GET['profile']) {
+		$_profile = empty($_GET['profile']) ? null : $_GET['profile'];
+		switch ($_profile) {
 			case 'photo':
 				$user = [
 					'me' => 'https://me.example.com/',
@@ -59,7 +61,8 @@ if (!array_key_exists('t', $_GET)) {
 		}
 	}
 
-	switch ($_GET['scopes']) {
+	$_scopes = empty($_GET['scopes']) ? null : $_GET['scopes'];
+	switch ($_scopes) {
 		case 'descriptions':
 			$scopes = [
 				'profile' => 'Allow the app to access to your profile data',
