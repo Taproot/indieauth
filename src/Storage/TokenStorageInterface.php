@@ -113,7 +113,8 @@ interface TokenStorageInterface {
 	 * clients. If an access token is present, the server will add `token_type: Bearer`
 	 * automatically.
 	 * 
-	 * A typical implementation might look like this:
+	 * A typical implementation might look like this (where `isExpired` and the various methods
+	 * on `$this` are provided by your implementation):
 	 * 
 	 * ```php
 	 * function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {

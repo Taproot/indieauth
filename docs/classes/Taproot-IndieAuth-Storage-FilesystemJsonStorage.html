@@ -115,7 +115,7 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">45</span>
+    <span class="phpdocumentor-element-found-in__line">47</span>
 
     </aside>
 
@@ -129,9 +129,9 @@ In practise, most people should probably be using an SQLite3 version of this
 which I haven’t written yet. I haven’t extensively documented this class, as it
 will likely be superceded by the SQLite version.</p>
 <p>Each auth code/access token pair is stored in one file. The file name is the
-access token. The auth code is the result of <code class="prettyprint">$storage-&gt;hash($authCode)</code>.</p>
+access token, which is also the result of <code class="prettyprint">$storage-&gt;hash($authCode)</code>.</p>
 <p>The file format is as follows:</p>
-<pre class="prettyprint"><code class="prettyprint">{
+<pre class="prettyprint"><code class="language-json">{
   &quot;code_exp&quot;: int (epoch seconds), expiry time of the auth code
   &quot;_access_token_ttl&quot;: int, custom token-specific access token TTL
   &quot;iat&quot;: int (epoch seconds), time of code-&gt;token exchange
@@ -340,7 +340,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">47</span>
+    <span class="phpdocumentor-element-found-in__line">49</span>
 
     </aside>
 
@@ -369,7 +369,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">46</span>
+    <span class="phpdocumentor-element-found-in__line">48</span>
 
     </aside>
 
@@ -398,7 +398,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">49</span>
+    <span class="phpdocumentor-element-found-in__line">51</span>
 
     </aside>
 
@@ -442,7 +442,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">58</span>
+    <span class="phpdocumentor-element-found-in__line">60</span>
 
     </aside>
 
@@ -474,7 +474,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">55</span>
+    <span class="phpdocumentor-element-found-in__line">57</span>
 
     </aside>
 
@@ -506,7 +506,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">64</span>
+    <span class="phpdocumentor-element-found-in__line">66</span>
 
     </aside>
 
@@ -538,7 +538,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">52</span>
+    <span class="phpdocumentor-element-found-in__line">54</span>
 
     </aside>
 
@@ -570,7 +570,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">61</span>
+    <span class="phpdocumentor-element-found-in__line">63</span>
 
     </aside>
 
@@ -606,7 +606,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">66</span>
+    <span class="phpdocumentor-element-found-in__line">68</span>
 
     </aside>
 
@@ -690,7 +690,7 @@ access token. The auth code is the result of <code class="prettyprint">$storage-
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">94</span>
+    <span class="phpdocumentor-element-found-in__line">96</span>
 
     </aside>
 
@@ -776,7 +776,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">282</span>
+    <span class="phpdocumentor-element-found-in__line">284</span>
 
     </aside>
 
@@ -828,7 +828,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">223</span>
+    <span class="phpdocumentor-element-found-in__line">225</span>
 
     </aside>
 
@@ -861,7 +861,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">112</span>
+    <span class="phpdocumentor-element-found-in__line">114</span>
 
     </aside>
 
@@ -913,7 +913,8 @@ only pass the <code class="prettyprint">me</code> and <code class="prettyprint">
 out <code class="prettyprint">code_challenge</code> keys to prevent that data from accidentally being leaked to
 clients. If an access token is present, the server will add <code class="prettyprint">token_type: Bearer</code>
 automatically.</p>
-<p>A typical implementation might look like this:</p>
+<p>A typical implementation might look like this (where <code class="prettyprint">isExpired</code> and the various methods
+on <code class="prettyprint">$this</code> are provided by your implementation):</p>
 <pre class="prettyprint"><code class="language-php">function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
   if (is_null($authCodeData = $this-&gt;fetchAuthCode($code))) {
     return null;
@@ -982,7 +983,7 @@ reference.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">251</span>
+    <span class="phpdocumentor-element-found-in__line">253</span>
 
     </aside>
 
@@ -1026,7 +1027,7 @@ reference.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">191</span>
+    <span class="phpdocumentor-element-found-in__line">193</span>
 
     </aside>
 
@@ -1073,7 +1074,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">296</span>
+    <span class="phpdocumentor-element-found-in__line">298</span>
 
     </aside>
 
@@ -1117,7 +1118,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">273</span>
+    <span class="phpdocumentor-element-found-in__line">275</span>
 
     </aside>
 
@@ -1169,7 +1170,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">216</span>
+    <span class="phpdocumentor-element-found-in__line">218</span>
 
     </aside>
 
@@ -1216,7 +1217,7 @@ or false on error, including if the token did not exist.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">88</span>
+    <span class="phpdocumentor-element-found-in__line">90</span>
 
     </aside>
 
@@ -1260,7 +1261,7 @@ or false on error, including if the token did not exist.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">325</span>
+    <span class="phpdocumentor-element-found-in__line">327</span>
 
     </aside>
 
@@ -1304,7 +1305,7 @@ or false on error, including if the token did not exist.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/FilesystemJsonStorage.php"><a href="files/src-storage-filesystemjsonstorage.html"><abbr title="src/Storage/FilesystemJsonStorage.php">FilesystemJsonStorage.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">301</span>
+    <span class="phpdocumentor-element-found-in__line">303</span>
 
     </aside>
 

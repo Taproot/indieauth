@@ -291,7 +291,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">146</span>
+    <span class="phpdocumentor-element-found-in__line">147</span>
 
     </aside>
 
@@ -343,7 +343,8 @@ only pass the <code class="prettyprint">me</code> and <code class="prettyprint">
 out <code class="prettyprint">code_challenge</code> keys to prevent that data from accidentally being leaked to
 clients. If an access token is present, the server will add <code class="prettyprint">token_type: Bearer</code>
 automatically.</p>
-<p>A typical implementation might look like this:</p>
+<p>A typical implementation might look like this (where <code class="prettyprint">isExpired</code> and the various methods
+on <code class="prettyprint">$this</code> are provided by your implementation):</p>
 <pre class="prettyprint"><code class="language-php">function exchangeAuthCodeForAccessToken(string $code, callable $validateAuthCode): ?array {
   if (is_null($authCodeData = $this-&gt;fetchAuthCode($code))) {
     return null;
@@ -412,7 +413,7 @@ reference.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">154</span>
+    <span class="phpdocumentor-element-found-in__line">155</span>
 
     </aside>
 
@@ -459,7 +460,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">162</span>
+    <span class="phpdocumentor-element-found-in__line">163</span>
 
     </aside>
 

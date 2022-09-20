@@ -55,4 +55,36 @@ class FilesystemJsonStorageTest extends TestCase {
 		$this->assertIsArray($s->get('t1'), 't1 was not expired and should not have been deleted.');
 		$this->assertNull($s->get('t2'), 't2 was not cleaned up after expiring.');
 	}
+
+	public function testMigrateFromV0_1_0ToV0_2_0() {
+		$s = new FilesystemJsonStorage(TMP_DIR, SECRET);
+
+		$oldUnexchangedCode = [
+			'me' => 'https://example.com',
+			'valid_until' => time() + 60 * 5
+		];
+		$newUnexchangedCode = array_merge($oldUnexchangedCode, [
+			'code_exp' => $oldUnexchangedCode['valid_until']
+		]);
+
+		$oldExchangedCode = [
+			'me' => 'https://example.com',
+			'exchanged_at' => time() + 60 * 1,
+			'valid_until' => time() + 60 * 5
+		];
+		$newExchangedCode = array_merge($oldExchangedCode, [
+			'iat' => $oldExchangedCode['exchanged_at'],
+			'exp' => $oldExchangedCode['valid_until']
+		]);
+
+		$s->put('t1', $oldUnexchangedCode);
+		$s->put('t2', $oldExchangedCode);
+
+		$migrationFunctions = require_once __DIR__ . '/../bin/migrate.php';
+
+		$migrationFunctions['json_v0.1.0_v0.2.0'](TMP_DIR);
+
+		$this->assertEquals($s->get('t1'), $newUnexchangedCode);
+		$this->assertEquals($s->get('t2'), $newExchangedCode);
+	}
 }

@@ -24,23 +24,25 @@ use function Taproot\IndieAuth\generateRandomString;
  * will likely be superceded by the SQLite version.
  * 
  * Each auth code/access token pair is stored in one file. The file name is the 
- * access token. The auth code is the result of `$storage->hash($authCode)`.
+ * access token, which is also the result of `$storage->hash($authCode)`.
  * 
  * The file format is as follows:
  * 
- *     {
- *       "code_exp": int (epoch seconds), expiry time of the auth code
- *       "_access_token_ttl": int, custom token-specific access token TTL
- *       "iat": int (epoch seconds), time of code->token exchange
- *       "exp": int (epoch seconds), access token expiry time,
- *       "scope": string, comma separated scope values
- *       "me": string, me URI
- *       "profile": {
- *         "name": string
- *         "url": string
- *         "photo": string
- *       }
- *     }
+ * ```json
+ * {
+ *   "code_exp": int (epoch seconds), expiry time of the auth code
+ *   "_access_token_ttl": int, custom token-specific access token TTL
+ *   "iat": int (epoch seconds), time of code->token exchange
+ *   "exp": int (epoch seconds), access token expiry time,
+ *   "scope": string, comma separated scope values
+ *   "me": string, me URI
+ *   "profile": {
+ *     "name": string
+ *     "url": string
+ *     "photo": string
+ *   }
+ * }
+ * ```
  */
 class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterface {
 	const DEFAULT_AUTH_CODE_TTL = 60 * 5; // Five minutes.
@@ -177,7 +179,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 			if (ftruncate($fp, strlen($jsonData)) === false) { return null; }
 			
 			// Return the OAuth2-compatible access token data to the Server for passing onto
-			// the client app. Passed via array_filter to remove null keys.
+			// the client app. Passed via array_filter to remove keys with null values.
 			return array_filter([
 				'access_token' => $accessToken,
 				'scope' => ($data['scope'] ?? null),

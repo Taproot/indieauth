@@ -140,7 +140,7 @@ function trySetLogger($target, LoggerInterface $logger) {
 
 function renderTemplate(string $template, array $context=[]) {
 	$render = function ($__template, $__templateData) {
-		$render = function ($template, $data){
+		$render = function ($template, $data) {
 			return renderTemplate($template, $data);
 		};
 		ob_start();
