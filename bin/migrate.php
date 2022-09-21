@@ -42,16 +42,18 @@ function showHelp() {
 	global $migrations; // ew, global variables :(
 
 	echo <<<EOD
-taproot/indieauth Token Storage Migration Utility"
+taproot/indieauth Token Storage Migration Utility
 
 Usage: php migrate.php ../path/to/your/json/token/folder
 
 For the moment there is only one migration (JSON v0.1.0 -> v0.2.0). The utility
 will be expanded when more migrations become necessary, and the command line interface
 will change, so it’s not recommended to automate running this tool.
+
 EOD;
 }
 
+// If this file is being executed directly…
 if (!empty($argv) and str_contains($argv[0], 'migrate.php')) {
 	// Script currently only accepts a single JSON path argument. Expand when required.
 	if ($argc != 2) {
@@ -68,5 +70,5 @@ if (!empty($argv) and str_contains($argv[0], 'migrate.php')) {
 	}
 }
 
-// For automating migrations in the unlikely event anyone wants to do that.
+// For testing, and automating migrations (in the unlikely event anyone wants to do that).
 return $migrations;
