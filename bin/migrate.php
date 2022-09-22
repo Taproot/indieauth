@@ -17,7 +17,7 @@ $migrations = [
 				$tokenPath = $fileInfo->getPathname();
 				$token = json_decode(file_get_contents($tokenPath), true);
 				
-				if (array_key_exists('exp', $token)) {
+				if (array_key_exists('exp', $token) or array_key_exists('code_exp', $token)) {
 					// This token is new or has already been migrated.
 					continue;
 				}
