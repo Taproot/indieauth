@@ -54,7 +54,7 @@ EOD;
 }
 
 // If this file is being executed directly…
-if (!empty($argv) and str_contains($argv[0], 'migrate.php')) {
+if (!empty($argv) and trim($argv[0]) !== '' and strpos($argv[0], 'migrate.php') !== false) {
 	// Script currently only accepts a single JSON path argument. Expand when required.
 	if ($argc != 2) {
 		showHelp();
