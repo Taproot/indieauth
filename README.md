@@ -24,7 +24,7 @@ Versioned releases are GPG signed so you can verify that the code hasn’t been 
 
     gpg --recv-keys 1C00430B19C6B426922FE534BEF8CE58118AD524
     cd vendor/taproot/indieauth
-    git tag -v v0.2.0 # Replace with the version you have installed
+    git tag -v v0.2.1 # Replace with the version you have installed
 
 ## Usage
 
