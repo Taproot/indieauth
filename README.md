@@ -54,10 +54,10 @@ $server = new Taproot\IndieAuth\Server([
 	}
 ]);
 
-// In your authorization endpoint route:
+// In your authorization endpoint route, which must not be CSRF-protected:
 return $server->handleAuthorizationEndpointRequest($request);
 
-// In your token endpoint route:
+// In your token endpoint route, which must not be CSRF-protected:
 return $server->handleTokenEndpointRequest($request);
 
 // In another route (e.g. a micropub route), to authenticate the request:
