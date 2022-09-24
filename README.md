@@ -13,7 +13,7 @@ taproot/indieauth is a PSR-7-compatible IndieAuth server library. It allows you 
 
 ## Installation
 
-taproot/indieauth is currently tested against and compatible with PHP 7.3, 7.4, and 8.0.
+taproot/indieauth is currently tested against and compatible with PHP 7.3, 7.4, 8.0 and 8.1.
 
 Install taproot/indieauth using [composer](https://getcomposer.org/):
 
