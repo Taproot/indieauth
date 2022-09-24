@@ -461,7 +461,9 @@ class Server {
 					$this->logger->info('Handling an authorization request', ['method' => $request->getMethod()]);
 
 					// Validate the Client ID.
-					if (!isset($queryParams['client_id']) || false === filter_var($queryParams['client_id'], FILTER_VALIDATE_URL) || !isClientIdentifier($queryParams['client_id'])) {
+					// isClientIdentifier is strict about client IDs containing path segments. For the moment we want to
+					// be a little more lenient about that, so we normalize it to include a path segment before checking.
+					if (!isset($queryParams['client_id']) || false === filter_var($queryParams['client_id'], FILTER_VALIDATE_URL) || !isClientIdentifier(IndieAuthClient::normalizeMeURL($queryParams['client_id']))) {
 						$this->logger->warning("The client_id provided in an authorization request was not valid.", $queryParams);
 						throw IndieAuthException::create(IndieAuthException::INVALID_CLIENT_ID, $request);
 					}
@@ -485,7 +487,7 @@ class Server {
 							// we defined earlier, so they’re available to the approval request code path, which additionally
 							// needs to parse client_id for h-app markup.
 							try {
-								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
+								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, IndieAuthClient::normalizeMeURL($queryParams['client_id']));
 								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
 							} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
 								$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [

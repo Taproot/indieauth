@@ -702,7 +702,9 @@ EOT
 		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SERVER_SECRET);
 
 		$testCases = [
-			'Mismatched client_id' => ['client_id' => 'https://invalid-client.example.com/'],
+			// Client ID is the same as the original except missing a trailing slash, to check that raw strings are compared,
+			// not normalized URLs.
+			'Mismatched client_id' => ['client_id' => 'https://client.example.com'],
 			'Mismatched redirect_uri' => ['redirect_uri' => 'https://invalid-client.example.com/auth'],
 			'Invalid code_verifier' => ['code_verifier' => 'definitely_not_the_randomly_generated_string'],
 			'Wrong auth code' => ['code' => 'yeah_thats_not_the_right_code']
@@ -1113,6 +1115,60 @@ EOT
 		$res = $s->handleAuthorizationEndpointRequest($this->getIARequest(['response_type' => 'id']));
 
 		$this->assertEquals(200, $res->getStatusCode());
+	}
+
+	// https://github.com/Taproot/indieauth/issues/12
+	public function testNormalizesClientIdAndRedirectUriBeforeValidatingAndFetchingButStoresRawValues() {
+		$rawClientId = 'https://client.example.com';
+		$normalizedClientId = 'https://client.example.com/';
+		// Different host to force an early fetch of the client ID.
+		$rawRedirectUri = 'https://client-redirect.example.com';
+		$normalizedRedirectUri = 'https://client-redirect.example.com/';
+
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
+				return ['me' => 'https://me.example.com'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url) use ($normalizedClientId, $rawRedirectUri): array {
+				$this->assertEquals($normalizedClientId, $url, 'The client ID was not normalized before fetching.');
+				return [
+					new Response(200, [
+							'content-type' => 'text/html',
+							'link' => "<{$rawRedirectUri}>; rel=\"redirect_uri\""
+						],
+						'<html></html>'),
+					$url
+				];
+			}
+			//,'logger' => new PrintLogger()
+		]);
+
+		$req = $this->getIARequest([
+			'client_id' => $rawClientId,
+			'redirect_uri' => $rawRedirectUri
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		
+		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
+
+		$req = $this->getApprovalRequest(true, true, [
+			'client_id' => $rawClientId,
+			'redirect_uri' => $rawRedirectUri
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		$this->assertEquals(302, $res->getStatusCode(), 'The Response from a successful approval request must be a 302 redirect.');
+		
+		$responseLocation = $res->getHeaderLine('location');
+		$queryParams = $req->getQueryParams();
+		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
+		
+		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SECRET);
+		$storedCode = $storage->get(hash_hmac('sha256', $redirectUriQueryParams['code'], SECRET));
+		$this->assertEquals($rawClientId, $storedCode['client_id']);
+		$this->assertEquals($rawRedirectUri, $storedCode['redirect_uri']);
 	}
 }
 

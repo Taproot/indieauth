@@ -105,6 +105,17 @@ If discussions lead to you wanting to submit a pull request, following this proc
 
 ## Changelog
 
+### v0.2.1
+2022-09-24
+
+Added a migration script for updating FilesystemJsonStorage tokens from v0.1 to v0.2 format. Run it with:
+
+```bash
+php vendor/taproot/indieauth/bin/migrate.php ../path/to/your/json/token/storage/
+```
+
+Normalized client_id and redirect_uri before validation and fetching, but stored and used the raw strings for comparison purposes (Fixes #12)
+
 ### v0.2.0
 2022-09-06
 * Allow supporting older clients with response_type=id (#3)
