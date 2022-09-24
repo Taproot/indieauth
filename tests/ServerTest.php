@@ -1146,7 +1146,6 @@ class NullTokenStorage implements TokenStorageInterface {
 	}
 }
 
-
 class PrintLogger extends AbstractLogger {
 	public function log($level, $message, array $context = array()) {
 		echo "{$level}: {$message}\n";
