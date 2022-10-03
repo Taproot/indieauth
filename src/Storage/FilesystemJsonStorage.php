@@ -87,7 +87,7 @@ class FilesystemJsonStorage implements TokenStorageInterface, LoggerAwareInterfa
 
 	// LoggerAwareInterface method.
 
-	public function setLogger(LoggerInterface $logger) {
+	public function setLogger(LoggerInterface $logger): void {
 		$this->logger = $logger;
 	}
 

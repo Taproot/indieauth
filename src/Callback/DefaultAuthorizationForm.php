@@ -103,7 +103,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 		return $code;
 	}
 
-	public function setLogger(LoggerInterface $logger) {
+	public function setLogger(LoggerInterface $logger): void {
 		$this->logger = $logger;
 	}
 }

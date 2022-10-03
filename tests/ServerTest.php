@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php //declare(strict_types=1);
 
 namespace Taproot\IndieAuth\Test;
 
@@ -1203,7 +1203,7 @@ class NullTokenStorage implements TokenStorageInterface {
 }
 
 class PrintLogger extends AbstractLogger {
-	public function log($level, $message, array $context = array()) {
+	public function log($level, $message, array $context = array()): void {
 		echo "{$level}: {$message}\n";
 	}
 }
