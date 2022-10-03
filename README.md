@@ -24,7 +24,7 @@ Versioned releases are GPG signed so you can verify that the code hasn’t been 
 
     gpg --recv-keys 1C00430B19C6B426922FE534BEF8CE58118AD524
     cd vendor/taproot/indieauth
-    git tag -v v0.2.1 # Replace with the version you have installed
+    git tag -v v0.2.2 # Replace with the version you have installed
 
 ## Usage
 
@@ -104,6 +104,11 @@ If discussions lead to you wanting to submit a pull request, following this proc
 * Push your changes and submit the PR.
 
 ## Changelog
+
+### v0.2.2
+2022-10-03
+
+* Allowed installation with psr/log v2 and v3 in addition to v1.1
 
 ### v0.2.1
 2022-09-24

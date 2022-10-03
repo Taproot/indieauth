@@ -1,4 +1,4 @@
-<?php //declare(strict_types=1);
+<?php //declare(strict_types=1); NOT using strict_types here so that PrintLogger can work with all versions of psr/log.
 
 namespace Taproot\IndieAuth\Test;
 
