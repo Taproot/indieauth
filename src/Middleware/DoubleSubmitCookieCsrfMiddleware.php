@@ -55,6 +55,9 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 	/** @var LoggerInterface $logger */
 	public $logger;
 
+	/** @var bool $limitToOriginatingPath */
+	public $limitToOriginatingPath = true;
+
 	/**
 	 * Constructor
 	 * 
@@ -109,12 +112,17 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 		}
 
 		// Add the new CSRF cookie, restricting its scope to match the current request.
-		$response = FigCookies\FigResponseCookies::set($response, FigCookies\SetCookie::create($this->attribute)
-				->withValue($csrfToken)
-				->withMaxAge($this->ttl)
-				->withSecure($request->getUri()->getScheme() == 'https')
-				->withDomain($request->getUri()->getHost())
-				->withPath($request->getUri()->getPath()));
+		$setCookie = FigCookies\SetCookie::create($this->attribute)
+			->withValue($csrfToken)
+			->withMaxAge($this->ttl)
+			->withSecure($request->getUri()->getScheme() == 'https')
+			->withDomain($request->getUri()->getHost());
+			
+		if ($this->limitToOriginatingPath) {
+			$setCookie = $setCookie->withPath($request->getUri()->getPath());
+		}
+
+		$response = FigCookies\FigResponseCookies::set($response, $setCookie);
 
 		return $response;
 	}
