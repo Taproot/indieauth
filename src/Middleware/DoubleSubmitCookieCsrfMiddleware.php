@@ -97,6 +97,10 @@ class DoubleSubmitCookieCsrfMiddleware implements MiddlewareInterface, LoggerAwa
 		$csrfToken = generateRandomPrintableAsciiString($this->tokenLength);
 		$request = $request->withAttribute($this->attribute, $csrfToken);
 
+		// Add a pre-rendered CSRF form element to the request for convenience.
+		$csrfFormElement = '<input type="hidden" name="' . htmlentities($this->attribute) . '" value="' . htmlentities($csrfToken) . '" />';
+		$request = $request->withAttribute("{$this->attribute}FormElement", $csrfFormElement);
+
 		if (!in_array(strtoupper($request->getMethod()), self::READ_METHODS) && !$this->isValid($request)) {
 			// This request is a write method with invalid CSRF parameters.
 			$response = call_user_func($this->errorResponse, $request);
