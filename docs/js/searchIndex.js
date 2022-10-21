@@ -46,10 +46,10 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_csrfKey"
         },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm\u003A\u003A\u0024formTemplatePath",
-            "name": "formTemplatePath",
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm\u003A\u003A\u0024formTemplateCallable",
+            "name": "formTemplateCallable",
             "summary": "",
-            "url": "classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplatePath"
+            "url": "classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplateCallable"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\DefaultAuthorizationForm\u003A\u003A\u0024logger",
             "name": "logger",
@@ -91,10 +91,10 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_csrfKey"
         },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024formTemplate",
-            "name": "formTemplate",
+            "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024formTemplateCallable",
+            "name": "formTemplateCallable",
             "summary": "",
-            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_formTemplate"
+            "url": "classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html#property_formTemplateCallable"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Callback\\SingleUserPasswordAuthenticationCallback\u003A\u003A\u0024user",
             "name": "user",
@@ -431,6 +431,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_logger"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Middleware\\DoubleSubmitCookieCsrfMiddleware\u003A\u003A\u0024cookiePath",
+            "name": "cookiePath",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html#property_cookiePath"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\Middleware\\NoOpMiddleware",
             "name": "NoOpMiddleware",
             "summary": "No\u002DOp\u0020Middleware",
@@ -561,10 +566,10 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Server.html#property_handleNonIndieAuthRequest"
         },                {
-            "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003A\u0024exceptionTemplatePath",
-            "name": "exceptionTemplatePath",
+            "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003A\u0024exceptionTemplateCallback",
+            "name": "exceptionTemplateCallback",
             "summary": "",
-            "url": "classes/Taproot-IndieAuth-Server.html#property_exceptionTemplatePath"
+            "url": "classes/Taproot-IndieAuth-Server.html#property_exceptionTemplateCallback"
         },                {
             "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003A\u0024secret",
             "name": "secret",

@@ -121,18 +121,17 @@
 
             <p class="phpdocumentor-summary">Default Authorization Form</p>
 
-    <section class="phpdocumentor-description"><p>This implementation of <code class="prettyprint">AuthorizationFormInterface</code> is used by <code class="prettyprint">Server</code> if the user doesn’t
+    <section class="phpdocumentor-description"><p>This implementation of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a> is used by <code class="prettyprint">Server</code> if the user doesn’t
 provide one of their own. It presents the user with a simple consent screen, showing any
 available details about the client app, and allowing the user to grant any requested scopes.</p>
 <p>When the form is submitted, any granted scopes are then added to the authorization code data.</p>
-<p>You can customise the authorization template used by passing a path to your own template to
-the constructor. Refer to the default template <code class="prettyprint">/templates/default_authorization_page.html.php</code>
+<p>You can customise the authorization template used by passing either path to your own template or
+a custom callable to the constructor. Refer to the default template <code class="prettyprint">/templates/default_authorization_page.html.php</code>
 as a starting point.</p>
 <p>If you want to add additional form controls (e.g. configurable token lifetimes), as well as
-making a new template, you’ll need to make a subclass which overrides <code class="prettyprint">transformAuthorizationCode()</code>
+making a new template, you’ll need to make a subclass which overrides <abbr title="\Taproot\IndieAuth\Callback\transformAuthorizationCode()">transformAuthorizationCode()</abbr>
 to additionally handle your new form data.</p>
-<p>For any more involved customisation (for example using a templating library of your choice), it
-may make sense to create your own implementation of <code class="prettyprint">AuthorizationFormInterface</code>.</p>
+<p>For any more involved customisation, it may make sense to create your own implementation of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a>.</p>
 </section>
 
 
@@ -169,14 +168,14 @@ may make sense to create your own implementation of <code class="prettyprint">Au
 </dt>
 <dd></dd>
 
-            <dt class="phpdocumentor-table-of-contents__entry -property -public">
-    <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplatePath">$formTemplatePath</a>
+            <dt class="phpdocumentor-table-of-contents__entry -property -private">
+    <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplateCallable">$formTemplateCallable</a>
     <span>
-                        &nbsp;: string            </span>
+                        &nbsp;: callable            </span>
 </dt>
 <dd></dd>
 
-            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+            <dt class="phpdocumentor-table-of-contents__entry -property -private">
     <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_logger">$logger</a>
     <span>
                         &nbsp;: <abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>            </span>
@@ -193,7 +192,7 @@ may make sense to create your own implementation of <code class="prettyprint">Au
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#method_setLogger">setLogger()</a>
     <span>
-                                &nbsp;: mixed    </span>
+                                &nbsp;: void    </span>
 </dt>
 <dd></dd>
 
@@ -259,12 +258,12 @@ may make sense to create your own implementation of <code class="prettyprint">Au
         class="
             phpdocumentor-element
             -property
-            -public
+            -private
                                                         "
 >
-    <h4 class="phpdocumentor-element__name" id="property_formTemplatePath">
-        $formTemplatePath
-        <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplatePath" class="headerlink"><i class="fas fa-link"></i></a>
+    <h4 class="phpdocumentor-element__name" id="property_formTemplateCallable">
+        $formTemplateCallable
+        <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#property_formTemplateCallable" class="headerlink"><i class="fas fa-link"></i></a>
         <span class="phpdocumentor-element__modifiers">
                                 </span>
     </h4>
@@ -277,9 +276,9 @@ may make sense to create your own implementation of <code class="prettyprint">Au
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
-    <span class="phpdocumentor-signature__visibility">public</span>
-        <span class="phpdocumentor-signature__type">string</span>
-    <span class="phpdocumentor-signature__name">$formTemplatePath</span>
+    <span class="phpdocumentor-signature__visibility">private</span>
+        <span class="phpdocumentor-signature__type">callable</span>
+    <span class="phpdocumentor-signature__name">$formTemplateCallable</span>
     </code>
 
     
@@ -291,7 +290,7 @@ may make sense to create your own implementation of <code class="prettyprint">Au
         class="
             phpdocumentor-element
             -property
-            -public
+            -private
                                                         "
 >
     <h4 class="phpdocumentor-element__name" id="property_logger">
@@ -309,7 +308,7 @@ may make sense to create your own implementation of <code class="prettyprint">Au
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
-    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__visibility">private</span>
         <span class="phpdocumentor-signature__type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr></span>
     <span class="phpdocumentor-signature__name">$logger</span>
     </code>
@@ -347,17 +346,17 @@ may make sense to create your own implementation of <code class="prettyprint">Au
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$formTemplatePath</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$csrfKey</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__return-type">string|callable|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$formTemplate</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$csrfKey</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
     
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
     <dl class="phpdocumentor-argument-list">
                     <dt class="phpdocumentor-argument-list__entry">
-                <span class="phpdocumentor-signature__argument__name">$formTemplatePath</span>
-                : <span class="phpdocumentor-signature__argument__return-type">string|null</span>
+                <span class="phpdocumentor-signature__argument__name">$formTemplate</span>
+                : <span class="phpdocumentor-signature__argument__return-type">string|callable|null</span>
                  = <span class="phpdocumentor-signature__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                    <section class="phpdocumentor-description"><p>The path to a custom template. Uses the default if null.</p>
+                    <section class="phpdocumentor-description"><p>The path to a custom template, or a template callable with the signature <code class="prettyprint">function (array $context): string</code>. Uses the default if null.</p>
 </section>
 
             </dd>
@@ -402,14 +401,14 @@ may make sense to create your own implementation of <code class="prettyprint">Au
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">106</span>
+    <span class="phpdocumentor-element-found-in__line">131</span>
 
     </aside>
 
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
 
         <section class="phpdocumentor-description"></section>
 
@@ -428,7 +427,7 @@ may make sense to create your own implementation of <code class="prettyprint">Au
     
 
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
-    <span class="phpdocumentor-signature__response_type">mixed</span>
+    <span class="phpdocumentor-signature__response_type">void</span>
             &mdash;
         
     
@@ -446,7 +445,7 @@ may make sense to create your own implementation of <code class="prettyprint">Au
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">59</span>
+    <span class="phpdocumentor-element-found-in__line">70</span>
 
     </aside>
 
@@ -478,14 +477,12 @@ form are:</p>
 <p>The form MUST submit a POST request to <code class="prettyprint">$formAction</code>, with the <code class="prettyprint">taproot_indieauth_action</code>
 parameter set to <code class="prettyprint">approve</code>.</p>
 <p>The form MUST additionally include any CSRF tokens required to protect the submission.
-Refer to whatever CSRF protection code you’re using (e.g. <code class="prettyprint">\Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware</code>)
-and make sure to include the required element. This will usually involve getting a
-CSRF token with <code class="prettyprint">$request-&gt;getAttribute()</code> and including it in an <code class="prettyprint">&lt;input type=&quot;hidden&quot; …/&gt;</code>.</p>
+Refer to whatever CSRF protection code you’re using (e.g. \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware<code class="prettyprint">) and make sure to include the required element. This will usually involve getting a CSRF token with </code>$request-&gt;getAttribute()<code class="prettyprint">and including it in an</code>&lt;input type=&quot;hidden&quot; …/&gt;`.</p>
 <p>The form SHOULD offer the user the opportunity to choose which of the request scopes,
 if any, they wish to grant. It should describe what effect each scope grants. If no scopes are
 requested, tell the user that the app is only requesting authorization, not access to their data.</p>
 <p>The form MAY offer the user UIs for additional token configuration, e.g. a custom token lifetime.
-You may have to refer to the documentation for your instance of <code class="prettyprint">TokenStorageInterface</code> to ensure
+You may have to refer to the documentation for your instance of <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a> to ensure
 that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
 library, but, if stored on the access token, will be available to your app for use.</p>
 </section>
@@ -552,7 +549,7 @@ library, but, if stored on the access token, will be available to your app for u
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">92</span>
+    <span class="phpdocumentor-element-found-in__line">117</span>
 
     </aside>
 

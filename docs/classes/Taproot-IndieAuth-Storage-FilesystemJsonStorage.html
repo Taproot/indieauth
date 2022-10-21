@@ -303,7 +303,7 @@ access token, which is also the result of <code class="prettyprint">$storage-&gt
             <dt class="phpdocumentor-table-of-contents__entry -method -public">
     <a href="classes/Taproot-IndieAuth-Storage-FilesystemJsonStorage.html#method_setLogger">setLogger()</a>
     <span>
-                                &nbsp;: mixed    </span>
+                                &nbsp;: void    </span>
 </dt>
 <dd></dd>
 
@@ -725,7 +725,7 @@ with the keys listed above (with the exception of <code class="prettyprint">me</
 this is a <code class="prettyprint">profile</code> key, but you may choose to return additional data from the authentication
 callback, which will be present in <code class="prettyprint">$data</code>.</li>
 <li>Any keys added by the <code class="prettyprint">transformAuthorizationCode</code> method on the currently active instance
-of <code class="prettyprint">Taproot\IndieAuth\Callback\AuthorizationFormInterface</code>. Typically this is the <code class="prettyprint">scope</code>
+of <abbr title="\Taproot\IndieAuth\Storage\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr>. Typically this is the <code class="prettyprint">scope</code>
 key, which is a valid space-separated scope string listing the scopes granted by the user on
 the consent screen. Other implementations of <code class="prettyprint">AuthorizationFormInterface</code> may add additional
 data, such as custom token-specific settings, or a custom token lifetime.</li>
@@ -878,27 +878,39 @@ the client app on success, and null on error.</p>
 further error checking or validation is applied. It should proceed as
 follows.</p>
 <ul>
-<li>Attempt to fetch the authorization code data identified by $code. If
-it does not exist or has expired, return null;</li>
-<li>Pass the authorization code data array to $validateAuthCode for validation.
-If there is a problem with the code, a <code class="prettyprint">Taproot\IndieAuth\IndieAuthException</code>
+<li>
+<p>Attempt to fetch the authorization code data identified by $code. If
+it does not exist or has expired, return null;</p>
+</li>
+<li>
+<p>Pass the authorization code data array to $validateAuthCode for validation.
+If there is a problem with the code, a Taproot\IndieAuth\IndieAuthException`
 will be thrown. This method should catch it, invalidate the authorization
-code data, then re-throw the exception for handling by Server.</li>
-<li>If the authorization code data passed all checks, convert it into an access
+code data, then re-throw the exception for handling by the Server.</p>
+</li>
+<li>
+<p>If the authorization code data passed all checks, convert it into an access
 token, invalidate the auth code to prevent re-use, and store the access token
-data internally.</li>
-<li>Return an array of access token data to be passed onto the client app. It MUST
-contain the following keys:
+data internally.</p>
+</li>
+<li>
+<p>Return an array of access token data to be passed onto the client app. It MUST
+contain the following keys:</p>
 <ul>
 <li>
 <code class="prettyprint">me</code>
 </li>
 <li>
 <code class="prettyprint">access_token</code>
-Additonally, it SHOULD contain the following keys:</li>
+</li>
+</ul>
+<p>Additonally, it SHOULD contain the following keys:</p>
+<ul>
 <li>
-<code class="prettyprint">scope</code>, if the token grants any scope
-And MAY contain additional keys, such as:</li>
+<code class="prettyprint">scope</code>, if the token grants any scope</li>
+</ul>
+<p>And MAY contain additional keys, such as:</p>
+<ul>
 <li>
 <code class="prettyprint">profile</code>
 </li>
@@ -1224,7 +1236,7 @@ or false on error, including if the token did not exist.</p>
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">setLogger</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$logger</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
 
         <section class="phpdocumentor-description"></section>
 
@@ -1243,7 +1255,7 @@ or false on error, including if the token did not exist.</p>
     
 
         <h5 class="phpdocumentor-return-value__heading">Return values</h5>
-    <span class="phpdocumentor-signature__response_type">mixed</span>
+    <span class="phpdocumentor-signature__response_type">void</span>
             &mdash;
         
     

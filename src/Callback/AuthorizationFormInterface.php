@@ -33,7 +33,7 @@ interface AuthorizationFormInterface {
 	 * parameter set to `approve`.
 	 * 
 	 * The form MUST additionally include any CSRF tokens required to protect the submission.
-	 * Refer to whatever CSRF protection code you’re using (e.g. `\Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware`)
+	 * Refer to whatever CSRF protection code you’re using (e.g. {@see \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware`})
 	 * and make sure to include the required element. This will usually involve getting a
 	 * CSRF token with `$request->getAttribute()` and including it in an `<input type="hidden" …/>`.
 	 * 
@@ -42,7 +42,7 @@ interface AuthorizationFormInterface {
 	 * requested, tell the user that the app is only requesting authorization, not access to their data.
 	 * 
 	 * The form MAY offer the user UIs for additional token configuration, e.g. a custom token lifetime.
-	 * You may have to refer to the documentation for your instance of `TokenStorageInterface` to ensure
+	 * You may have to refer to the documentation for your instance of {@see \Taproot\IndieAuth\Storage\TokenStorageInterface} to ensure
 	 * that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
 	 * library, but, if stored on the access token, will be available to your app for use.
 	 * 

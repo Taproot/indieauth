@@ -131,7 +131,7 @@ validation, such as assigning and checking expiry times for auth codes and acces
 for lower-level querying, saving, updating and deletion of token data. These can be used to,
 for example, implement a UI for users to review and revoke currently valid access tokens.</p>
 <p>The behaviour of <code class="prettyprint">TokenStorageInterface</code> is somewhat coupled with the implementation of your
-authentication handler callback (documented in <code class="prettyprint">Server::__construct</code>) and <code class="prettyprint">AuthorizationFormInterface</code>,
+authentication handler callback (documented in <abbr title="\Taproot\IndieAuth\Storage\Server::__construct()">Server::__construct()</abbr>) and <abbr title="\Taproot\IndieAuth\Storage\AuthorizationFormInterface">AuthorizationFormInterface</abbr>,
 so you should refer to the documentation for both while implementing <code class="prettyprint">TokenStorageInterface</code>.</p>
 <p>Periodic deletion of expired tokens is out of the scope of this interface. Implementations may
 choose to offer a clean-up method, and potentially the option to call it once automatically
@@ -240,7 +240,7 @@ with the keys listed above (with the exception of <code class="prettyprint">me</
 this is a <code class="prettyprint">profile</code> key, but you may choose to return additional data from the authentication
 callback, which will be present in <code class="prettyprint">$data</code>.</li>
 <li>Any keys added by the <code class="prettyprint">transformAuthorizationCode</code> method on the currently active instance
-of <code class="prettyprint">Taproot\IndieAuth\Callback\AuthorizationFormInterface</code>. Typically this is the <code class="prettyprint">scope</code>
+of <abbr title="\Taproot\IndieAuth\Storage\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr>. Typically this is the <code class="prettyprint">scope</code>
 key, which is a valid space-separated scope string listing the scopes granted by the user on
 the consent screen. Other implementations of <code class="prettyprint">AuthorizationFormInterface</code> may add additional
 data, such as custom token-specific settings, or a custom token lifetime.</li>
@@ -291,7 +291,7 @@ throw exceptions.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">147</span>
+    <span class="phpdocumentor-element-found-in__line">149</span>
 
     </aside>
 
@@ -308,27 +308,39 @@ the client app on success, and null on error.</p>
 further error checking or validation is applied. It should proceed as
 follows.</p>
 <ul>
-<li>Attempt to fetch the authorization code data identified by $code. If
-it does not exist or has expired, return null;</li>
-<li>Pass the authorization code data array to $validateAuthCode for validation.
-If there is a problem with the code, a <code class="prettyprint">Taproot\IndieAuth\IndieAuthException</code>
+<li>
+<p>Attempt to fetch the authorization code data identified by $code. If
+it does not exist or has expired, return null;</p>
+</li>
+<li>
+<p>Pass the authorization code data array to $validateAuthCode for validation.
+If there is a problem with the code, a Taproot\IndieAuth\IndieAuthException`
 will be thrown. This method should catch it, invalidate the authorization
-code data, then re-throw the exception for handling by Server.</li>
-<li>If the authorization code data passed all checks, convert it into an access
+code data, then re-throw the exception for handling by the Server.</p>
+</li>
+<li>
+<p>If the authorization code data passed all checks, convert it into an access
 token, invalidate the auth code to prevent re-use, and store the access token
-data internally.</li>
-<li>Return an array of access token data to be passed onto the client app. It MUST
-contain the following keys:
+data internally.</p>
+</li>
+<li>
+<p>Return an array of access token data to be passed onto the client app. It MUST
+contain the following keys:</p>
 <ul>
 <li>
 <code class="prettyprint">me</code>
 </li>
 <li>
 <code class="prettyprint">access_token</code>
-Additonally, it SHOULD contain the following keys:</li>
+</li>
+</ul>
+<p>Additonally, it SHOULD contain the following keys:</p>
+<ul>
 <li>
-<code class="prettyprint">scope</code>, if the token grants any scope
-And MAY contain additional keys, such as:</li>
+<code class="prettyprint">scope</code>, if the token grants any scope</li>
+</ul>
+<p>And MAY contain additional keys, such as:</p>
+<ul>
 <li>
 <code class="prettyprint">profile</code>
 </li>
@@ -413,7 +425,7 @@ reference.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">155</span>
+    <span class="phpdocumentor-element-found-in__line">157</span>
 
     </aside>
 
@@ -460,7 +472,7 @@ null if it is expired or invalid.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Storage/TokenStorageInterface.php"><a href="files/src-storage-tokenstorageinterface.html"><abbr title="src/Storage/TokenStorageInterface.php">TokenStorageInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">163</span>
+    <span class="phpdocumentor-element-found-in__line">165</span>
 
     </aside>
 

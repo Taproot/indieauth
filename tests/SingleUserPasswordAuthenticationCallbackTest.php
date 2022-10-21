@@ -105,4 +105,20 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 
 		$this->assertEquals($userData, $res);
 	}
+
+	public function testAcceptsCallableTemplate()  {
+		$expected = 'the expected response';
+		$callback = new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, [
+			'me' => 'https://me.example.com/'
+		], password_hash('password', PASSWORD_DEFAULT), function (array $context) use ($expected): string {
+			return $expected;
+		});
+
+		$formAction = 'https://example.com/formaction';
+
+		$req = (new ServerRequest('GET', 'https://example.com/login'))->withAttribute(Server::DEFAULT_CSRF_KEY, 'csrf token');
+		$res = $callback($req, $formAction);
+
+		$this->assertEquals($expected, (string) $res->getBody());
+	}
 }

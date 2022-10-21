@@ -82,7 +82,9 @@ function isAuthorizationApprovalRequest(ServerRequestInterface $request): bool {
 function buildQueryString(array $parameters): string {
 	$qs = [];
 	foreach ($parameters as $k => $v) {
-		$qs[] = urlencode($k) . '=' . urlencode($v);
+		if (!is_null($k) and !is_null($v)) {
+			$qs[] = urlencode($k) . '=' . urlencode($v);
+		}
 	}
 	return join('&', $qs);
 }

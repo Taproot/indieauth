@@ -266,9 +266,9 @@ documentation for both handling methods for further documentation about them.</p
 <dd></dd>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -protected">
-    <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplatePath">$exceptionTemplatePath</a>
+    <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplateCallback">$exceptionTemplateCallback</a>
     <span>
-                        &nbsp;: string            </span>
+                        &nbsp;: callable            </span>
 </dt>
 <dd></dd>
 
@@ -626,9 +626,9 @@ documentation for both handling methods for further documentation about them.</p
             -protected
                                                         "
 >
-    <h4 class="phpdocumentor-element__name" id="property_exceptionTemplatePath">
-        $exceptionTemplatePath
-        <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplatePath" class="headerlink"><i class="fas fa-link"></i></a>
+    <h4 class="phpdocumentor-element__name" id="property_exceptionTemplateCallback">
+        $exceptionTemplateCallback
+        <a href="classes/Taproot-IndieAuth-Server.html#property_exceptionTemplateCallback" class="headerlink"><i class="fas fa-link"></i></a>
         <span class="phpdocumentor-element__modifiers">
                                 </span>
     </h4>
@@ -642,8 +642,8 @@ documentation for both handling methods for further documentation about them.</p
     
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">protected</span>
-        <span class="phpdocumentor-signature__type">string</span>
-    <span class="phpdocumentor-signature__name">$exceptionTemplatePath</span>
+        <span class="phpdocumentor-signature__type">callable</span>
+    <span class="phpdocumentor-signature__name">$exceptionTemplateCallback</span>
     </code>
 
     
@@ -895,7 +895,7 @@ documentation for both handling methods for further documentation about them.</p
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">213</span>
+    <span class="phpdocumentor-element-found-in__line">218</span>
 
     </aside>
 
@@ -926,17 +926,17 @@ as a suggestion for which user to log in as in a multi-user authentication flow,
 be considered valid data.</p>
 <p>If redirecting to an existing authentication flow, this callable can usually be implemented as a
 closure. The callable may also implement its own authentication logic. For an example, see
-<code class="prettyprint">Callback\SingleUserPasswordAuthenticationCallback</code>.</p>
+<a href="classes/Taproot-IndieAuth-Callback-SingleUserPasswordAuthenticationCallback.html"><abbr title="\Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback">SingleUserPasswordAuthenticationCallback</abbr></a>.</p>
 </li>
 <li>
 <p><code class="prettyprint">secret</code>: A cryptographically random string with a minimum length of 64 characters. Used
 to hash and subsequently verify request query parameters which get passed around.</p>
 </li>
 <li>
-<p><code class="prettyprint">tokenStorage</code>: Either an object implementing <code class="prettyprint">Storage\TokenStorageInterface</code>, or a string path to a
-folder, which will be passed to <code class="prettyprint">Storage\FilesystemJsonStorage</code>. This object handles persisting authorization
+<p><code class="prettyprint">tokenStorage</code>: Either an object implementing <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a>, or a string path to a
+folder, which will be passed to <a href="classes/Taproot-IndieAuth-Storage-FilesystemJsonStorage.html"><abbr title="\Taproot\IndieAuth\Storage\FilesystemJsonStorage">FilesystemJsonStorage</abbr></a>. This object handles persisting authorization
 codes and access tokens, as well as implementation-specific parts of the exchange process which are
-out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the <code class="prettyprint">Storage\TokenStorageInterface</code>
+out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a>
 documentation for more details.</p>
 </li>
 </ul>
@@ -949,24 +949,29 @@ documentation for more details.</p>
 Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
 data, hence the unusual return signature).  If <code class="prettyprint">guzzlehttp/guzzle</code> is installed, this parameter
 will be created automatically. Otherwise, the user must provide their own callable. In the event of
-an error, the callable must throw an exception implementing one of the PSR-18 client exception
-interfaces https://www.php-fig.org/psr/psr-18/#error-handling</li>
+an error, the callable must throw an exception implementing <a href="https://www.php-fig.org/psr/psr-18/#error-handling">one of the PSR-18 client exception
+interfaces</a>
+</li>
 </ul>
 <p>The following keys are optional:</p>
 <ul>
 <li>
-<code class="prettyprint">authorizationForm</code>: an instance of <code class="prettyprint">AuthorizationFormInterface</code>. Defaults to <code class="prettyprint">DefaultAuthorizationForm</code>.
+<code class="prettyprint">authorizationForm</code>: an instance of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a>. Defaults to <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html"><abbr title="\Taproot\IndieAuth\Callback\DefaultAuthorizationForm">DefaultAuthorizationForm</abbr></a>.
 Refer to that implementation if you wish to replace the consent screen/scope choosing/authorization form.</li>
 <li>
 <code class="prettyprint">csrfMiddleware</code>: an instance of <code class="prettyprint">MiddlewareInterface</code>, which will be used to CSRF-protect the
-user-facing authorization flow. By default an instance of <code class="prettyprint">DoubleSubmitCookieCsrfMiddleware</code>.
+user-facing authorization flow. By default an instance of <abbr title="\Taproot\IndieAuth\DoubleSubmitCookieCsrfMiddleware">DoubleSubmitCookieCsrfMiddleware</abbr>.
 Refer to that implementation if you want to replace it with your own middleware — you will
 likely have to either make sure your middleware sets the same request attribute, or alter your
 templates accordingly.</li>
 <li>
-<code class="prettyprint">exceptionTemplatePath</code>: string, path to a template which will be used for displaying user-facing
-errors. Defaults to <code class="prettyprint">../templates/default_exception_response.html.php</code>, refer to that if you wish
-to write your own template.</li>
+<code class="prettyprint">exceptionTemplate</code>: string or callable. Either the path to a template which will be used for displaying user-facing
+errors (defaults to <code class="prettyprint">../templates/default_exception_response.html.php</code>, refer to that if you wish
+to write your own template) or a user-provided function to render your chosen, with this signature:
+<pre class="prettyprint"><code class="prettyprint">function (array $context): string
+``` (again, see the default template to see what context variables are available)
+</code></pre>
+</li>
 <li>
 <code class="prettyprint">handleNonIndieAuthRequestCallback</code>: A callback with the following signature:
 <code class="prettyprint">function (ServerRequestInterface $request): ?ResponseInterface</code> which will be called if the
@@ -989,6 +994,11 @@ by an exchange request without parameters.</li>
 these old authorization codes will no longer be redeemable.</li>
 </ul>
 </li>
+</ul>
+<p>The following keys are deprecated and should no longer be used, but are still supported for now:</p>
+<ul>
+<li>
+<code class="prettyprint">exceptionTemplatePath</code>: replaced with <code class="prettyprint">exceptionTemplate</code>, can now either be a path or a callable.</li>
 </ul>
 </section>
 
@@ -1026,7 +1036,7 @@ these old authorization codes will no longer be redeemable.</li>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">844</span>
+    <span class="phpdocumentor-element-found-in__line">869</span>
 
     </aside>
 
@@ -1072,7 +1082,7 @@ these old authorization codes will no longer be redeemable.</li>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">311</span>
+    <span class="phpdocumentor-element-found-in__line">334</span>
 
     </aside>
 
@@ -1105,7 +1115,7 @@ these old authorization codes will no longer be redeemable.</li>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">350</span>
+    <span class="phpdocumentor-element-found-in__line">373</span>
 
     </aside>
 
@@ -1142,7 +1152,7 @@ return that, otherwise return an error response.</li>
 POST requests from the client. Make sure you call it from a route which is excluded from any
 CSRF-protection you might be using. To customise the CSRF protection used internally, refer to the
 <code class="prettyprint">__construct</code> config array documentation for the <code class="prettyprint">csrfMiddleware</code> key.</p>
-<p>Most user-facing errors are thrown as instances of <code class="prettyprint">IndieAuthException</code>, which are passed off to
+<p>Most user-facing errors are thrown as instances of <a href="classes/Taproot-IndieAuth-IndieAuthException.html"><abbr title="\Taproot\IndieAuth\IndieAuthException">IndieAuthException</abbr></a>, which are passed off to
 <code class="prettyprint">handleException</code> to be turned into an instance of <code class="prettyprint">ResponseInterface</code>. If you want to customise
 error handling, one way to do so is to subclass <code class="prettyprint">Server</code> and override that method.</p>
 </section>
@@ -1179,7 +1189,7 @@ error handling, one way to do so is to subclass <code class="prettyprint">Server
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">740</span>
+    <span class="phpdocumentor-element-found-in__line">765</span>
 
     </aside>
 
@@ -1234,7 +1244,7 @@ error handling, one way to do so is to subclass <code class="prettyprint">Server
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Server.php"><a href="files/src-server.html"><abbr title="src/Server.php">Server.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">853</span>
+    <span class="phpdocumentor-element-found-in__line">878</span>
 
     </aside>
 

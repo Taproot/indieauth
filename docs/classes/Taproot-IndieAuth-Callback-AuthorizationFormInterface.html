@@ -198,14 +198,12 @@ form are:</p>
 <p>The form MUST submit a POST request to <code class="prettyprint">$formAction</code>, with the <code class="prettyprint">taproot_indieauth_action</code>
 parameter set to <code class="prettyprint">approve</code>.</p>
 <p>The form MUST additionally include any CSRF tokens required to protect the submission.
-Refer to whatever CSRF protection code you’re using (e.g. <code class="prettyprint">\Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware</code>)
-and make sure to include the required element. This will usually involve getting a
-CSRF token with <code class="prettyprint">$request-&gt;getAttribute()</code> and including it in an <code class="prettyprint">&lt;input type=&quot;hidden&quot; …/&gt;</code>.</p>
+Refer to whatever CSRF protection code you’re using (e.g. \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware<code class="prettyprint">) and make sure to include the required element. This will usually involve getting a CSRF token with </code>$request-&gt;getAttribute()<code class="prettyprint">and including it in an</code>&lt;input type=&quot;hidden&quot; …/&gt;`.</p>
 <p>The form SHOULD offer the user the opportunity to choose which of the request scopes,
 if any, they wish to grant. It should describe what effect each scope grants. If no scopes are
 requested, tell the user that the app is only requesting authorization, not access to their data.</p>
 <p>The form MAY offer the user UIs for additional token configuration, e.g. a custom token lifetime.
-You may have to refer to the documentation for your instance of <code class="prettyprint">TokenStorageInterface</code> to ensure
+You may have to refer to the documentation for your instance of <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a> to ensure
 that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
 library, but, if stored on the access token, will be available to your app for use.</p>
 </section>

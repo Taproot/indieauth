@@ -124,8 +124,8 @@ class Server {
 	/** @var callable */
 	protected $handleNonIndieAuthRequest;
 
-	/** @var string $exceptionTemplatePath */
-	protected $exceptionTemplatePath;
+	/** @var callable $exceptionTemplateCallback */
+	protected $exceptionTemplateCallback;
 
 	/** @var string $secret */
 	protected $secret;
@@ -141,7 +141,7 @@ class Server {
 	 * The following keys are required:
 	 * 
 	 * * `authenticationHandler`: a callable with the signature
-	 *   `function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface`.
+	 *   ```function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface```.
 	 *   This function is called on IndieAuth authorization requests, after validating the query parameters.
 	 *   
 	 *   It should check to see if $request is authenticated, then:
@@ -158,40 +158,43 @@ class Server {
 	 *   
 	 *   If redirecting to an existing authentication flow, this callable can usually be implemented as a
 	 *   closure. The callable may also implement its own authentication logic. For an example, see 
-	 *   `Callback\SingleUserPasswordAuthenticationCallback`.
+	 *   {@see Callback\SingleUserPasswordAuthenticationCallback}.
 	 * * `secret`: A cryptographically random string with a minimum length of 64 characters. Used
 	 *   to hash and subsequently verify request query parameters which get passed around.
-	 * * `tokenStorage`: Either an object implementing `Storage\TokenStorageInterface`, or a string path to a
-	 *   folder, which will be passed to `Storage\FilesystemJsonStorage`. This object handles persisting authorization
+	 * * `tokenStorage`: Either an object implementing {@see Storage\TokenStorageInterface}, or a string path to a
+	 *   folder, which will be passed to {@see Storage\FilesystemJsonStorage}. This object handles persisting authorization
 	 *   codes and access tokens, as well as implementation-specific parts of the exchange process which are 
-	 *   out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the `Storage\TokenStorageInterface`
+	 *   out of the scope of the Server class (e.g. lifetimes and expiry). Refer to the {@see Storage\TokenStorageInterface}
 	 *   documentation for more details.
 	 * 
 	 * The following keys may be required depending on which packages you have installed:
 	 * 
 	 * * `httpGetWithEffectiveUrl`: must be a callable with the following signature:
-	 *   `function (string $url): array [ResponseInterface $response, string $effectiveUrl]`, where 
+	 *   ```function (string $url): array [ResponseInterface $response, string $effectiveUrl]```, where 
 	 *   `$effectiveUrl` is the final URL after following any redirects (unfortunately, neither the PSR-7
 	 *   Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
 	 *   data, hence the unusual return signature).  If `guzzlehttp/guzzle` is installed, this parameter
 	 *   will be created automatically. Otherwise, the user must provide their own callable. In the event of
-	 *   an error, the callable must throw an exception implementing one of the PSR-18 client exception
-	 *   interfaces https://www.php-fig.org/psr/psr-18/#error-handling
+	 *   an error, the callable must throw an exception implementing [one of the PSR-18 client exception
+	 *   interfaces](https://www.php-fig.org/psr/psr-18/#error-handling)
 	 * 
 	 * The following keys are optional:
 	 * 
-	 * * `authorizationForm`: an instance of `AuthorizationFormInterface`. Defaults to `DefaultAuthorizationForm`.
+	 * * `authorizationForm`: an instance of {@see AuthorizationFormInterface}. Defaults to {@see DefaultAuthorizationForm}.
 	 *   Refer to that implementation if you wish to replace the consent screen/scope choosing/authorization form.
 	 * * `csrfMiddleware`: an instance of `MiddlewareInterface`, which will be used to CSRF-protect the
-	 *   user-facing authorization flow. By default an instance of `DoubleSubmitCookieCsrfMiddleware`.
+	 *   user-facing authorization flow. By default an instance of {@see DoubleSubmitCookieCsrfMiddleware}.
 	 *   Refer to that implementation if you want to replace it with your own middleware — you will 
 	 *   likely have to either make sure your middleware sets the same request attribute, or alter your
 	 *   templates accordingly.
-	 * * `exceptionTemplatePath`: string, path to a template which will be used for displaying user-facing
-	 *   errors. Defaults to `../templates/default_exception_response.html.php`, refer to that if you wish
-	 *   to write your own template.
+	 * * `exceptionTemplate`: string or callable. Either the path to a template which will be used for displaying user-facing
+	 *   errors (defaults to `../templates/default_exception_response.html.php`, refer to that if you wish
+	 *   to write your own template) or a user-provided function to render your chosen, with this signature:
+	 *   ```
+	 *   function (array $context): string
+	 *   ``` (again, see the default template to see what context variables are available)
 	 * * `handleNonIndieAuthRequestCallback`: A callback with the following signature:
-	 *   `function (ServerRequestInterface $request): ?ResponseInterface` which will be called if the
+	 *   ```function (ServerRequestInterface $request): ?ResponseInterface``` which will be called if the
 	 *   authorization endpoint gets a request which is not identified as an IndieAuth request or authorization
 	 *   form submission request. You could use this to handle various requests e.g. client-side requests
 	 *   made by your authentication or authorization pages, if it’s not convenient to put them elsewhere.
@@ -207,6 +210,8 @@ class Server {
 	 *     * If authorization codes are stored without PKCE parameters, and then `requirePKCE` is set to `true`,
 	 *       these old authorization codes will no longer be redeemable.
 	 * 
+	 * The following keys are deprecated and should no longer be used, but are still supported for now:
+	 * * `exceptionTemplatePath`: replaced with `exceptionTemplate`, can now either be a path or a callable.
 	 * @param array $config An array of configuration variables
 	 * @return self
 	 */
@@ -218,16 +223,34 @@ class Server {
 			'tokenStorage' => null,
 			'httpGetWithEffectiveUrl' => null,
 			'authorizationForm' => new DefaultAuthorizationForm(),
-			'exceptionTemplatePath' => __DIR__ . '/../templates/default_exception_response.html.php',
+			'exceptionTemplate' => null,
+			'exceptionTemplatePath' => null,
 			'requirePKCE' => true,
 		], $config);
 
+		// Upgrade deprecated config parameter.
+		if ($config['exceptionTemplate'] and !empty($config['exceptionTemplatePath'])) {
+			$config['exceptionTemplate'] = $config['exceptionTemplatePath'];
+			unset($config['exceptionTemplatePath']);
+		}
+
+		if (empty($config['exceptionTemplate'])) {
+			$config['exceptionTemplate'] = __DIR__ . '/../templates/default_exception_response.html.php';
+		}
+
+		if (is_string($config['exceptionTemplate'])) {
+			$config['exceptionTemplate'] = function (array $context) use ($config): string {
+				return renderTemplate($config['exceptionTemplate'], $context);
+			};
+		}
+
+		if (!is_callable($config['exceptionTemplate'])) {
+			throw new BadMethodCallException("\$config['exceptionTemplatePath'] must be a string (path) or callable.");
+		}
+
 		$this->requirePkce = $config['requirePKCE'];
 
-		if (!is_string($config['exceptionTemplatePath'])) {
-			throw new BadMethodCallException("\$config['exceptionTemplatePath'] must be a string (path).");
-		}
-		$this->exceptionTemplatePath = $config['exceptionTemplatePath'];
+		$this->exceptionTemplateCallback = $config['exceptionTemplate'];
 
 		$secret = $config['secret'] ?? '';
 		if (!is_string($secret) || strlen($secret) < 64) {
@@ -340,7 +363,7 @@ class Server {
 	 * CSRF-protection you might be using. To customise the CSRF protection used internally, refer to the
 	 * `__construct` config array documentation for the `csrfMiddleware` key.
 	 * 
-	 * Most user-facing errors are thrown as instances of `IndieAuthException`, which are passed off to
+	 * Most user-facing errors are thrown as instances of {@see IndieAuthException}, which are passed off to
 	 * `handleException` to be turned into an instance of `ResponseInterface`. If you want to customise
 	 * error handling, one way to do so is to subclass `Server` and override that method.
 	 * 
@@ -872,7 +895,7 @@ class Server {
 			]);
 		} else {
 			// This exception should be shown to the user.
-			return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], renderTemplate($this->exceptionTemplatePath, [
+			return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], call_user_func($this->exceptionTemplateCallback, [
 				'request' => $exception->getRequest(),
 				'exception' => $exception
 			]));

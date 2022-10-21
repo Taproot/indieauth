@@ -24,7 +24,7 @@ namespace Taproot\IndieAuth\Storage;
  * for example, implement a UI for users to review and revoke currently valid access tokens.
  * 
  * The behaviour of `TokenStorageInterface` is somewhat coupled with the implementation of your
- * authentication handler callback (documented in `Server::__construct`) and `AuthorizationFormInterface`,
+ * authentication handler callback (documented in {@see Server::__construct()}) and {@see AuthorizationFormInterface},
  * so you should refer to the documentation for both while implementing `TokenStorageInterface`.
  * 
  * Periodic deletion of expired tokens is out of the scope of this interface. Implementations may
@@ -56,7 +56,7 @@ interface TokenStorageInterface {
 	 *   this is a `profile` key, but you may choose to return additional data from the authentication
 	 *   callback, which will be present in `$data`.
 	 * * Any keys added by the `transformAuthorizationCode` method on the currently active instance
-	 *   of `Taproot\IndieAuth\Callback\AuthorizationFormInterface`. Typically this is the `scope`
+	 *   of {@see Taproot\IndieAuth\Callback\AuthorizationFormInterface}. Typically this is the `scope`
 	 *   key, which is a valid space-separated scope string listing the scopes granted by the user on
 	 *   the consent screen. Other implementations of `AuthorizationFormInterface` may add additional 
 	 *   data, such as custom token-specific settings, or a custom token lifetime.
@@ -91,9 +91,9 @@ interface TokenStorageInterface {
 	 * * Attempt to fetch the authorization code data identified by $code. If
 	 *   it does not exist or has expired, return null;
 	 * * Pass the authorization code data array to $validateAuthCode for validation.
-	 *   If there is a problem with the code, a `Taproot\IndieAuth\IndieAuthException`
+	 *   If there is a problem with the code, a {@see Taproot\IndieAuth\IndieAuthException`}
 	 *   will be thrown. This method should catch it, invalidate the authorization
-	 *   code data, then re-throw the exception for handling by Server.
+	 *   code data, then re-throw the exception for handling by the Server.
 	 * * If the authorization code data passed all checks, convert it into an access
 	 *   token, invalidate the auth code to prevent re-use, and store the access token
 	 *   data internally.
@@ -101,8 +101,10 @@ interface TokenStorageInterface {
 	 *   contain the following keys:
 	 *     * `me`
 	 *     * `access_token`
+	 *   
 	 *   Additonally, it SHOULD contain the following keys:
 	 *     * `scope`, if the token grants any scope
+	 *   
 	 *   And MAY contain additional keys, such as:
 	 *     * `profile`
 	 *     * `expires_at`

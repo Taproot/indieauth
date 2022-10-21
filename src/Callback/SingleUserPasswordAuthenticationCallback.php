@@ -52,8 +52,8 @@ class SingleUserPasswordAuthenticationCallback {
 	/** @var string $csrfKey */
 	public $csrfKey;
 
-	/** @var string $formTemplate */
-	public $formTemplate;
+	/** @var string $formTemplateCallable */
+	protected $formTemplateCallable;
 
 	/** @var array $user */
 	protected $user;
@@ -73,11 +73,11 @@ class SingleUserPasswordAuthenticationCallback {
 	 * @param string $secret A secret key used to encrypt cookies. Can be the same as the secret passed to IndieAuth\Server.
 	 * @param array $user An array representing the user, which will be returned on a successful authentication. MUST include a 'me' key, may also contain a 'profile' key, or other keys at your discretion.
 	 * @param string $hashedPassword The password used to authenticate as $user, hashed by `password_hash($pass, PASSWORD_DEFAULT)`
-	 * @param string|null $formTemplate The path to a template used to render the sign-in form. Uses default if null.
+	 * @param string|callable|null $formTemplate The path to a template used to render the sign-in form, or a template callable with the signature `function (array $context): string`. Uses default if null.
 	 * @param string|null $csrfKey The key under which to fetch a CSRF token from `$request` attributes, and as the CSRF token name in submitted form data. Defaults to the Server default, only change if you’re using a custom CSRF middleware.
 	 * @param int|null $ttl The lifetime of the authentication cookie, in seconds. Defaults to five minutes.
 	 */
-	public function __construct(string $secret, array $user, string $hashedPassword, ?string $formTemplate=null, ?string $csrfKey=null, ?int $ttl=null) {
+	public function __construct(string $secret, array $user, string $hashedPassword, mixed $formTemplate=null, ?string $csrfKey=null, ?int $ttl=null) {
 		if (strlen($secret) < 64) {
 			throw new BadMethodCallException("\$secret must be a string with a minimum length of 64 characters.");
 		}
@@ -96,7 +96,19 @@ class SingleUserPasswordAuthenticationCallback {
 		}
 		$this->user = $user;
 		$this->hashedPassword = $hashedPassword;
-		$this->formTemplate = $formTemplate ?? __DIR__ . '/../../templates/single_user_password_authentication_form.html.php';
+
+		$formTemplate = $formTemplate ?? __DIR__ . '/../../templates/single_user_password_authentication_form.html.php';
+		if (is_string($formTemplate)) {
+			$formTemplate = function (array $context) use ($formTemplate): string {
+				return renderTemplate($formTemplate, $context);
+			};
+		}
+
+		if (!is_callable($formTemplate)) {
+			throw new BadMethodCallException("\$formTemplate must be a string (path), a callable, or null.");
+		}
+
+		$this->formTemplateCallable = $formTemplate;
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 	}
 
@@ -127,7 +139,7 @@ class SingleUserPasswordAuthenticationCallback {
 		}
 
 		// Otherwise, return a response containing the password form.
-		return new Response(200, ['content-type' => 'text/html'], renderTemplate($this->formTemplate, [
+		return new Response(200, ['content-type' => 'text/html'], call_user_func($this->formTemplateCallable, [
 			'formAction' => $formAction,
 			'request' => $request,
 			'csrfFormElement' => '<input type="hidden" name="' . htmlentities($this->csrfKey) . '" value="' . htmlentities($request->getAttribute($this->csrfKey)) . '" />'

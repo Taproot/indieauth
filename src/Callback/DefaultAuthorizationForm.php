@@ -2,6 +2,7 @@
 
 namespace Taproot\IndieAuth\Callback;
 
+use BadMethodCallException;
 use BarnabyWalters\Mf2 as M;
 use Exception;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,42 +17,52 @@ use function Taproot\IndieAuth\renderTemplate;
 /**
  * Default Authorization Form
  * 
- * This implementation of `AuthorizationFormInterface` is used by `Server` if the user doesn’t 
+ * This implementation of {@see AuthorizationFormInterface} is used by `Server` if the user doesn’t 
  * provide one of their own. It presents the user with a simple consent screen, showing any
  * available details about the client app, and allowing the user to grant any requested scopes.
  * 
  * When the form is submitted, any granted scopes are then added to the authorization code data.
  * 
- * You can customise the authorization template used by passing a path to your own template to
- * the constructor. Refer to the default template `/templates/default_authorization_page.html.php`
+ * You can customise the authorization template used by passing either path to your own template or 
+ * a custom callable to the constructor. Refer to the default template `/templates/default_authorization_page.html.php`
  * as a starting point.
  * 
  * If you want to add additional form controls (e.g. configurable token lifetimes), as well as
- * making a new template, you’ll need to make a subclass which overrides `transformAuthorizationCode()`
+ * making a new template, you’ll need to make a subclass which overrides {@see transformAuthorizationCode()}
  * to additionally handle your new form data.
  * 
- * For any more involved customisation (for example using a templating library of your choice), it
- * may make sense to create your own implementation of `AuthorizationFormInterface`.
+ * For any more involved customisation, it may make sense to create your own implementation of {@see AuthorizationFormInterface}.
  */
 class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwareInterface {
 	/** @var string $csrfKey */
 	public $csrfKey;
 
-	/** @var string $formTemplatePath */
-	public $formTemplatePath;
+	/** @var callable $formTemplateCallable */
+	private $formTemplateCallable;
 
 	/** @var LoggerInterface $logger */
-	public $logger;
+	private $logger;
 
 	/**
 	 * Constructor
 	 * 
-	 * @param string|null $formTemplatePath The path to a custom template. Uses the default if null.
+	 * @param string|callable|null $formTemplate The path to a custom template, or a template callable with the signature `function (array $context): string`. Uses the default if null.
 	 * @param string|null $csrfKey The key used to retrieve a CSRF token from the request attributes, and as its form data name. Uses the default defined in Server if null. Only change this if you’re using a custom CSRF middleware.
 	 * @param LoggerInterface|null $logger A logger.
 	 */
-	public function __construct(?string $formTemplatePath=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
-		$this->formTemplatePath = $formTemplatePath ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
+	public function __construct(mixed $formTemplate=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
+		$formTemplate = $formTemplate ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
+		if (is_string($formTemplate)) {
+			$formTemplate = function (array $context) use ($formTemplate): string {
+				return renderTemplate($formTemplate, $context);
+			};
+		}
+
+		if (!is_callable($formTemplate)) {
+			throw new BadMethodCallException("\$formTemplate must be a string (path), callable, or null.");
+		}
+
+		$this->formTemplateCallable = $formTemplate;
 		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
 		$this->logger = $logger ?? new NullLogger;
 	}
@@ -90,7 +101,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 			}
 		}
 
-		return new Response(200, ['content-type' => 'text/html'], renderTemplate($this->formTemplatePath, [
+		return new Response(200, ['content-type' => 'text/html'], call_user_func($this->formTemplateCallable, [
 			'scopes' => $scopes,
 			'user' => $authenticationResult,
 			'formAction' => $formAction,

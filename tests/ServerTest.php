@@ -9,7 +9,6 @@ use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Request;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\TextUI\XmlConfiguration\File;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,12 +17,9 @@ use Taproot\IndieAuth\Callback\SingleUserPasswordAuthenticationCallback;
 use Taproot\IndieAuth\IndieAuthException;
 use Taproot\IndieAuth\Server;
 use Taproot\IndieAuth\Storage\FilesystemJsonStorage;
-use Taproot\IndieAuth\Storage\Token;
 use Taproot\IndieAuth\Storage\TokenStorageInterface;
-use function GuzzleHttp\Promise\exception_for;
 use function Taproot\IndieAuth\generatePKCECodeChallenge;
 use function Taproot\IndieAuth\generateRandomString;
-use function Taproot\IndieAuth\isValidCodeChallenge;
 use function Taproot\IndieAuth\hashAuthorizationRequestParameters;
 use function Taproot\IndieAuth\urlComponentsMatch;
 
@@ -54,7 +50,7 @@ class ServerTest extends TestCase {
 			'secret' => SERVER_SECRET,
 			'tokenStorage' => TOKEN_STORAGE_PATH,
 			// With this template, IndieAuthException response bodies will contain only their IndieAuthException error code, for ease of comparison.
-			'exceptionTemplatePath' => CODE_EXCEPTION_TEMPLATE_PATH,
+			'exceptionTemplate' => CODE_EXCEPTION_TEMPLATE_PATH,
 			// Default to a simple single-user password authentication handler.
 			Server::HANDLE_AUTHENTICATION_REQUEST => new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, ['me' => 'https://example.com/'], password_hash('password', PASSWORD_DEFAULT), Server::DEFAULT_CSRF_KEY),
 			'authorizationForm' => new DefaultAuthorizationForm(AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH),
@@ -131,7 +127,8 @@ class ServerTest extends TestCase {
 
 	 public function testInvalidConfigRaisesException() {
 		 $badConfigs = [
-			 ['exceptionTemplatePath' => 21],
+			 ['exceptionTemplate' => 21],
+			 ['exceptionTemplatePath' => 21], // deprecated, still testing
 			 ['secret' => 12],
 			 ['secret' => 'too short'],
 			 ['logger' => 'not a logger'],
@@ -151,6 +148,47 @@ class ServerTest extends TestCase {
 				$this->assertTrue(true);
 			 }
 		 }
+	 }
+
+	 public function testAcceptsCallableForExceptionTemplate() {
+		$expected = 'the expected response';
+		$s = $this->getDefaultServer(['exceptionTemplate' => function (array $context) use ($expected): string {
+			return $expected;
+		}]);
+
+		// Do something which results in an exception.
+		$req = $this->getIARequest();
+		$qp = $req->getQueryParams();
+		unset($qp['client_id']);
+		$req = $req->withQueryParams($qp);
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		$this->assertEquals($expected, (string) $res->getBody());
+	 }
+
+	 public function testAcceptsCallableForAuthorizationFormTemplate() {
+		$expected = 'the expected response';
+		$s = $this->getDefaultServer([
+			'authorizationForm' => new DefaultAuthorizationForm(function (array $context) use ($expected): string {
+				return $expected;
+			}),
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction): array {
+				return ['me' => 'https://me.example.com'];
+			},
+			'httpGetWithEffectiveUrl' => function ($url): array {
+				return [
+					new Response(200, ['content-type' => 'text/html'], '<html></html>'), // An empty response suffices for this test.
+					$url
+				];
+			}
+		]);
+
+		$req = $this->getIARequest([
+			'client_id' => 'https://client.example.com/',
+			'redirect_uri' => 'https://client.example.com/auth'
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+		$this->assertEquals($expected, (string) $res->getBody());
 	 }
 
 	/**
