@@ -116,7 +116,7 @@ Breaking changes:
 * `issuer` key is now semi-required in the Server config array (omitting it will result in a warning)
 
 Other changes:
-* Everywhere which previously accepted a custom template path now additionaly support callables with the following signature (#18)
+* Everywhere which previously accepted a custom template path now additionally support callables with the following signature (#18)
   ```php
 	function (array $context): string
 	```
