@@ -150,6 +150,7 @@ class Server {
 	 *     * contain no query or fragment components
 	 *     * be a prefix of the your `indieauth-metadata` URL
 	 *     * exactly match the `issuer` key present in your `indieauth-metadata` endpoint
+	 *   
 	 *   See [4.1.1 IndieAuth Server Metadata](https://indieauth.spec.indieweb.org/#indieauth-server-metadata) for
 	 *   more information. As previous versions of the IndieAuth spec did not require that client redirects were
 	 *   sent with the `iss` parameter, omitting this key from the config will only result in a warning.
