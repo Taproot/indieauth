@@ -17,7 +17,7 @@ use function Taproot\IndieAuth\renderTemplate;
 /**
  * Default Authorization Form
  * 
- * This implementation of {@see AuthorizationFormInterface} is used by {@see Taproot\IndieAuth\Server} if the user doesn’t 
+ * This implementation of {@see AuthorizationFormInterface} is used by {@see \Taproot\IndieAuth\Server} if the user doesn’t 
  * provide one of their own. It presents the user with a simple consent screen, showing any
  * available details about the client app, and allowing the user to grant any requested scopes.
  * 

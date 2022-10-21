@@ -54,7 +54,8 @@ class ServerTest extends TestCase {
 			// Default to a simple single-user password authentication handler.
 			Server::HANDLE_AUTHENTICATION_REQUEST => new SingleUserPasswordAuthenticationCallback(SERVER_SECRET, ['me' => 'https://example.com/'], password_hash('password', PASSWORD_DEFAULT), Server::DEFAULT_CSRF_KEY),
 			'authorizationForm' => new DefaultAuthorizationForm(AUTHORIZATION_FORM_JSON_RESPONSE_TEMPLATE_PATH),
-			'logger' => $printLogs ? $this->getLogger() : null
+			'logger' => $printLogs ? $this->getLogger() : null,
+			'issuer' => 'https://iss.example.com/'
 		], $config));
 	}
 
@@ -137,7 +138,8 @@ class ServerTest extends TestCase {
 			 ['tokenStorage' => 34],
 			 ['csrfMiddleware' => 'not a middleware object'],
 			 ['httpGetWithEffectiveUrl' => 'not even a callable this time'],
-			 ['authorizationForm' => 'not an auth form instance']
+			 ['authorizationForm' => 'not an auth form instance'],
+			 ['issuer' => 102]
 		 ];
 
 		 foreach ($badConfigs as $testId => $badConfig) {
@@ -688,8 +690,9 @@ EOT
 		parse_str(parse_url($responseLocation, PHP_URL_QUERY), $redirectUriQueryParams);
 		
 		$this->assertTrue(urlComponentsMatch($responseLocation, $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_USER, PHP_URL_PORT, PHP_URL_HOST, PHP_URL_PORT, PHP_URL_PATH]), 'The successful redirect response location did not match the redirect URI up to the path.');
-		$this->assertEquals($redirectUriQueryParams['state'], $queryParams['state'], 'The redirect URI state parameter did not match the authorization request state parameter.');
+		$this->assertEquals($queryParams['state'], $redirectUriQueryParams['state'], 'The redirect URI state parameter did not match the authorization request state parameter.');
 		$this->assertEquals('value', $redirectUriQueryParams['client_redirect_query_string_param'], 'Query string params in the client app redirect_uri were not correctly preserved.');
+		$this->assertEquals('https://iss.example.com/', $redirectUriQueryParams['iss'], 'The iss(uer) redirect query param was not set to the server issuer value.');
 		
 		$storage = new FilesystemJsonStorage(TOKEN_STORAGE_PATH, SECRET);
 		$storedCode = $storage->get(hash_hmac('sha256', $redirectUriQueryParams['code'], SECRET));

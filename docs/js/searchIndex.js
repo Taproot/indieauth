@@ -581,6 +581,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Taproot-IndieAuth-Server.html#property_requirePkce"
         },                {
+            "fqsen": "\\Taproot\\IndieAuth\\Server\u003A\u003A\u0024issuer",
+            "name": "issuer",
+            "summary": "",
+            "url": "classes/Taproot-IndieAuth-Server.html#property_issuer"
+        },                {
             "fqsen": "\\Taproot\\IndieAuth\\Storage\\FilesystemJsonStorage",
             "name": "FilesystemJsonStorage",
             "summary": "Filesystem\u0020JSON\u0020Token\u0020Storage",

@@ -133,13 +133,23 @@ class Server {
 	/** @var bool $requirePkce */
 	protected $requirePkce;
 
+	/** @var ?string $issuer */
+	protected $issuer;
+
 	/**
 	 * Constructor
 	 * 
 	 * Server instances are configured by passing a config array to the constructor.
 	 * 
 	 * The following keys are required:
-	 * 
+	 * * `issuer`: the issuer identifier URL for your IndieAuth server. It must fulfil the following requirements:
+	 *     * use the `https` scheme
+	 *     * contain no query or fragment components
+	 *     * be a prefix of the your `indieauth-metadata` URL
+	 *     * exactly match the `issuer` key present in your `indieauth-metadata` endpoint
+	 *   See [4.1.1 IndieAuth Server Metadata](https://indieauth.spec.indieweb.org/#indieauth-server-metadata) for
+	 *   more information. As previous versions of the IndieAuth spec did not require that client redirects were
+	 *   sent with the `iss` parameter, omitting this key from the config will only result in a warning.
 	 * * `authenticationHandler`: a callable with the signature
 	 * 
 	 *   ```php
@@ -191,7 +201,7 @@ class Server {
 	 * * `authorizationForm`: an instance of {@see AuthorizationFormInterface}. Defaults to {@see DefaultAuthorizationForm}.
 	 *   Refer to that implementation if you wish to replace the consent screen/scope choosing/authorization form.
 	 * * `csrfMiddleware`: an instance of `MiddlewareInterface`, which will be used to CSRF-protect the
-	 *   user-facing authorization flow. By default an instance of {@see DoubleSubmitCookieCsrfMiddleware}.
+	 *   user-facing authorization flow. By default an instance of {@see Callback\DoubleSubmitCookieCsrfMiddleware}.
 	 *   Refer to that implementation if you want to replace it with your own middleware — you will 
 	 *   likely have to either make sure your middleware sets the same request attribute, or alter your
 	 *   templates accordingly.
@@ -241,6 +251,7 @@ class Server {
 			'exceptionTemplate' => null,
 			'exceptionTemplatePath' => null,
 			'requirePKCE' => true,
+			'issuer' => null
 		], $config);
 
 		// Upgrade deprecated config parameter.
@@ -262,6 +273,13 @@ class Server {
 		if (!is_callable($config['exceptionTemplate'])) {
 			throw new BadMethodCallException("\$config['exceptionTemplatePath'] must be a string (path) or callable.");
 		}
+
+		if (is_null($config['issuer'])) {
+			trigger_error("Taproot\IndieAuth\Server::__construct(): \$config was missing 'issuer' key, which is required for a spec-compliant IndieAuth implementation.", E_USER_WARNING);
+		} elseif (!is_string($config['issuer'])) {
+			throw new BadMethodCallException("\$config['issuer'] must be a string or null.");
+		}
+		$this->issuer = $config['issuer'];
 
 		$this->requirePkce = $config['requirePKCE'];
 
@@ -681,11 +699,15 @@ class Server {
 							}
 							
 							// Return a redirect to the client app.
+							$clientRedirectQueryParams = [
+								'code' => $authCode,
+								'state' => $code['state']
+							];
+							if ($this->issuer) {
+								$clientRedirectQueryParams['iss'] = $this->issuer;
+							}
 							return new Response(302, [
-								'Location' => appendQueryParams($queryParams['redirect_uri'], [
-									'code' => $authCode,
-									'state' => $code['state']
-								]),
+								'Location' => appendQueryParams($queryParams['redirect_uri'], $clientRedirectQueryParams),
 								'Cache-control' => 'no-cache'
 							]);
 						}
