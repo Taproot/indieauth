@@ -525,6 +525,39 @@ EOT
 		$this->assertEquals($correctHAppPhoto, $flatHApp['photo']);
 	}
 
+	// https://github.com/Taproot/indieauth/issues/17
+	public function testFindsHXAppInAdditionToHApp() {
+		$correctHAppUrl = 'https://client.example.com/';
+		$s = $this->getDefaultServer([
+			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
+				return ['me' => 'https://me.example.com'];
+			},
+			'httpGetWithEffectiveUrl' => function (string $url) use ($correctHAppUrl): array {
+				return [
+					new Response(200, ['content-type' => 'text/html'],
+						<<<EOT
+<a class="h-x-app" href="{$correctHAppUrl}">The App In Question</a>
+EOT
+					),
+					$url
+				];
+			}
+		]);
+
+		$req = $this->getIARequest([
+			'client_id' => $correctHAppUrl,
+			'redirect_uri' => 'https://client.example.com/auth'
+		]);
+
+		$res = $s->handleAuthorizationEndpointRequest($req);
+
+		$this->assertEquals(200, $res->getStatusCode());
+		
+		$parsedResponse = json_decode((string) $res->getBody(), true);
+		$flatHApp = $parsedResponse['clientHApp'];
+		$this->assertEquals($correctHAppUrl, $flatHApp['url']);
+	}
+
 	/**
 	 * Test Authorization Approval Requests
 	 */

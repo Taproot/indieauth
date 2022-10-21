@@ -682,9 +682,11 @@ class Server {
 						}
 
 						if (M\isMicroformatCollection($clientIdMf2)) {
-							// Search for an h-app with u-url matching the client_id.
+							// Search for an h-app or h-x-app with u-url matching the client_id.
 							// TODO: if/when client_id gets normalised, we might have to do a normalised comparison rather than plain string comparison here.
-							$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByType($clientIdMf2, 'h-app'), 'url', $queryParams['client_id']);
+							$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByCallable($clientIdMf2, function ($mf) {
+								return count(array_intersect($mf['type'], ['h-app', 'h-x-app'])) > 0;
+							}), 'url', $queryParams['client_id']);
 							$clientHAppOrException = empty($clientHApps) ? null : $clientHApps[0];
 						}
 
