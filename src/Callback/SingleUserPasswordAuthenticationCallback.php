@@ -52,7 +52,7 @@ class SingleUserPasswordAuthenticationCallback {
 	/** @var string $csrfKey */
 	public $csrfKey;
 
-	/** @var string $formTemplateCallable */
+	/** @var callable $formTemplateCallable */
 	protected $formTemplateCallable;
 
 	/** @var array $user */
