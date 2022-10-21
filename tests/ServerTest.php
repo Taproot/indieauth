@@ -486,22 +486,35 @@ EOT
 		$this->assertEquals(200, $res->getStatusCode());
 	}
 
+	// Now with author property testing per https://github.com/Taproot/indieauth/issues/16
 	public function testFindsFirstHAppExactlyMatchingClientId() {
 		$correctHAppName = 'Correct h-app!';
 		$correctHAppUrl = 'https://client.example.com/';
 		$correctHAppPhoto = 'https://client.example.com/logo.png';
+		$correctHAppAuthor = [
+			'name' => 'Barnaby Walters',
+			'photo' => 'https://waterpigs.co.uk/photo.jpg',
+			'url' => 'https://waterpigs.co.uk/'
+		];
 
 		$s = $this->getDefaultServer([
 			Server::HANDLE_AUTHENTICATION_REQUEST => function (ServerRequestInterface $request, string $formAction) {
 				return ['me' => 'https://me.example.com'];
 			},
-			'httpGetWithEffectiveUrl' => function (string $url) use ($correctHAppPhoto, $correctHAppName, $correctHAppUrl): array {
+			'httpGetWithEffectiveUrl' => function (string $url) use ($correctHAppPhoto, $correctHAppName, $correctHAppUrl, $correctHAppAuthor): array {
 				return [
 					new Response(200, ['content-type' => 'text/html'],
 						<<<EOT
 <a class="h-app" href="https://not-the-client.example.com/">Wrong</a>
 
-<a class="h-app" href="{$correctHAppUrl}"><img src="{$correctHAppPhoto}" alt="{$correctHAppName}" /></a>
+<div class="h-app">
+  <a class="u-url" href="{$correctHAppUrl}">
+    <img class="u-photo p-name" src="{$correctHAppPhoto}" alt="{$correctHAppName}" />
+  </a>
+by <a class="p-author h-card" href="{$correctHAppAuthor['url']}">
+  <img src="{$correctHAppAuthor['photo']}" alt="{$correctHAppAuthor['name']}" />
+  </a>
+</div>
 EOT
 					),
 					$url
@@ -523,6 +536,7 @@ EOT
 		$this->assertEquals($correctHAppUrl, $flatHApp['url']);
 		$this->assertEquals($correctHAppName, $flatHApp['name']);
 		$this->assertEquals($correctHAppPhoto, $flatHApp['photo']);
+		$this->assertEquals($correctHAppAuthor, $flatHApp['author']);
 	}
 
 	// https://github.com/Taproot/indieauth/issues/17

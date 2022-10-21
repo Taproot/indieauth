@@ -70,10 +70,24 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 			$exception = $clientHAppOrException;
 		} elseif (M\isMicroformat($clientHAppOrException)) {
 			$appData = [
-				'name' => M\getProp($clientHAppOrException, 'name'),
-				'url' => M\getProp($clientHAppOrException, 'url'),
-				'photo' => M\getProp($clientHAppOrException, 'photo')
+				'name' => M\getPlaintext($clientHAppOrException, 'name'),
+				'url' => M\getPlaintext($clientHAppOrException, 'url'),
+				'photo' => M\getPlaintext($clientHAppOrException, 'photo'),
+				'author' => null
 			];
+
+			if (M\hasProp($clientHAppOrException, 'author')) {
+				$rawAuthor = $clientHAppOrException['properties']['author'][0];
+				if (is_string($rawAuthor)) {
+					$appData['author'] = $rawAuthor;
+				} elseif (M\isMicroformat($rawAuthor)) {
+					$appData['author'] = [
+						'name' => M\getPlaintext($rawAuthor, 'name'),
+						'url' => M\getPlaintext($rawAuthor, 'url'),
+						'photo' => M\getPlaintext($rawAuthor, 'photo')
+					];
+				}
+			}
 		}
 
 		return new Response(200, ['content-type' => 'text/html'], renderTemplate($this->formTemplatePath, [

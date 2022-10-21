@@ -15,6 +15,8 @@ if (empty($_GET['t'])) {
 <p>Templates:</p>
 <ul>
 	<li><a href="?t=default_authorization_page.html&happ=photo&profile=photo&scopes=descriptions">Authorization Page with h-app w/photo, user details w/photo and scopes with descriptions</a></li>
+	<li><a href="?t=default_authorization_page.html&happ=photo,string-author&profile=photo&scopes=descriptions">Authorization Page with h-app w/photo+string author, user details w/photo and scopes with descriptions</a></li>
+	<li><a href="?t=default_authorization_page.html&happ=photo,full-author&profile=photo&scopes=descriptions">Authorization Page with h-app w/photo+full author, user details w/photo and scopes with descriptions</a></li>
 	<li><a href="?t=default_authorization_page.html&happ=name&profile=name&scopes=keys">Authorization Page with h-app, user details and scope list</a></li>
 	<li><a href="?t=default_authorization_page.html&exception=1">Authorization Page with no h-app, no profile and an exception</a></li>
 	<li><a href="?t=single_user_password_authentication_form.html">Single User Password Auth Form</a></li>
@@ -25,6 +27,26 @@ if (empty($_GET['t'])) {
 	if ($_GET['t'] == 'default_authorization_page.html') {
 		$_happ = empty($_GET['happ']) ? null : $_GET['happ'];
 		switch ($_happ) {
+			case 'photo,string-author':
+				$clientHApp = [
+					'name' => 'Demo App',
+					'url' => 'https://client.example.com/',
+					'photo' => 'http://waterpigs.co.uk/taproot/logo.png',
+					'author' => 'https://waterpigs.co.uk'
+				];
+				break;
+			case 'photo,full-author':
+				$clientHApp = [
+					'name' => 'Demo App',
+					'url' => 'https://client.example.com/',
+					'photo' => 'http://waterpigs.co.uk/taproot/logo.png',
+					'author' => [
+						'name' => 'Barnaby Walters',
+						'photo' => 'https://waterpigs.co.uk/photo-2021-04-22-719w.jpg',
+						'url' => 'https://waterpigs.co.uk'
+					]
+				];
+				break;
 			case 'photo':
 				$clientHApp = [
 					'name' => 'Demo App',

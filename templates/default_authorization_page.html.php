@@ -70,6 +70,12 @@ use Taproot\IndieAuth\Server;
 				font-weight: bold;
 			}
 
+			.client-app-author-photo {
+				width: 1.5em;
+				vertical-align: middle;
+				max-height: 1.5em;
+			}
+
 			.user-details {
 				display: flex;
 				background: #ceeacb;
@@ -138,7 +144,7 @@ use Taproot\IndieAuth\Server;
 				text-align: center;
 				margin: 5em 0 2em 0;
 				opacity: 0.6;
-				position: fixed;
+				position: static;
 				bottom: 0;
 				width: 100%;
 			}
@@ -159,6 +165,24 @@ use Taproot\IndieAuth\Server;
 					<div>
 						<p class="client-app-name"><?= htmlentities($clientHApp['name']) ?></p>
 						<p class="client-app-url inline-url"><?= htmlentities($clientHApp['url']) ?></p>
+						<?php if (!empty($clientHApp['author'])): $author = $clientHApp['author']; ?>
+						<p class="client-app-author">by 
+							<?php if (is_string($author)): ?>
+								<span class="inline-url"><?= htmlentities($author) ?></span>
+							<?php elseif (is_array($author)): ?>
+								<?php if (!empty($author['photo'])): ?>
+									<img class="client-app-author-photo" src="<?= htmlentities($author['photo']) ?>" alt="" />
+								<?php endif ?>
+								<?php if (!empty($author['url'])): ?>
+									<a class="client-app-author-url" href="<?= htmlentities($author['url']) ?>">
+								<?php endif ?>
+								<?= htmlentities($author['name'] ?? '(name missing)') ?>
+								<?php if (!empty($author['url'])): ?>
+									</a>
+								<?php endif ?>
+							<?php endif ?>
+						</p>
+						<?php endif ?>
 					</div>
 				</div>
 			<?php else: ?>
