@@ -24,7 +24,7 @@ Versioned releases are GPG signed so you can verify that the code hasn’t been 
 
     gpg --recv-keys 1C00430B19C6B426922FE534BEF8CE58118AD524
     cd vendor/taproot/indieauth
-    git tag -v v0.2.2 # Replace with the version you have installed
+    git tag -v v0.3.0 # Replace with the version you have installed
 
 ## Usage
 
@@ -33,6 +33,9 @@ Typical minimal usage looks something like this:
 ```php
 // Somewhere in your app set-up code:
 $server = new Taproot\IndieAuth\Server([
+	// Your server’s issuer ID URL (see __construct() docs for more details)
+ 	'issuer' => 'https://example.com/',
+
 	// A secret key, >= 64 characters long.
 	'secret' => YOUR_APP_INDIEAUTH_SECRET,
 
@@ -104,6 +107,24 @@ If discussions lead to you wanting to submit a pull request, following this proc
 * Push your changes and submit the PR.
 
 ## Changelog
+
+### v0.3.0
+2022-10-21
+
+Breaking changes:
+* various public members of classes are now protected and can only be configured on instantiation
+* `issuer` key is now semi-required in the Server config array (omitting it will result in a warning)
+
+Other changes:
+* Everywhere which previously accepted a custom template path now additionaly support callables with the following signature (#18)
+  ```php
+	function (array $context): string
+	```
+* Client ID web pages are now searched for matching h-x-app microformats in addition to h-app (#17)
+* If a valid author property is present on the client ID h-(x-)app, DefaultAuthorizationForm and its corresponding template make it available and present it (#16)
+* Improved documentation with internal links, better formatting
+* Allowed DoubleSubmitCookieCsrfMiddleware’s cookie path to be set to arbitrary values (not useful for internal IndieAuth use, but handy for reusing that code elsewhere)
+* DoubleSubmitCookieCsrfMiddleware adds a pre-rendered CSRF form element attribute to $request for convenience
 
 ### v0.2.2
 2022-10-03

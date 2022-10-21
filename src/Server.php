@@ -34,6 +34,9 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  * ```php
  * // Somewhere in your app set-up code:
  * $server = new Taproot\IndieAuth\Server([
+ *   // Your server’s issuer ID URL (see __construct() docs for more details)
+ *   'issuer' => 'https://example.com/',
+ *  
  *   // A secret key, >= 64 characters long.
  *   'secret' => YOUR_APP_INDIEAUTH_SECRET,
  *
