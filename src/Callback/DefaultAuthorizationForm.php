@@ -17,7 +17,7 @@ use function Taproot\IndieAuth\renderTemplate;
 /**
  * Default Authorization Form
  * 
- * This implementation of {@see AuthorizationFormInterface} is used by `Server` if the user doesn’t 
+ * This implementation of {@see AuthorizationFormInterface} is used by {@see Taproot\IndieAuth\Server} if the user doesn’t 
  * provide one of their own. It presents the user with a simple consent screen, showing any
  * available details about the client app, and allowing the user to grant any requested scopes.
  * 
@@ -28,7 +28,7 @@ use function Taproot\IndieAuth\renderTemplate;
  * as a starting point.
  * 
  * If you want to add additional form controls (e.g. configurable token lifetimes), as well as
- * making a new template, you’ll need to make a subclass which overrides {@see transformAuthorizationCode()}
+ * making a new template, you’ll need to make a subclass which overrides {@see DefaultAuthorizationForm::transformAuthorizationCode()}
  * to additionally handle your new form data.
  * 
  * For any more involved customisation, it may make sense to create your own implementation of {@see AuthorizationFormInterface}.

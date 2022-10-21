@@ -91,7 +91,7 @@ interface TokenStorageInterface {
 	 * * Attempt to fetch the authorization code data identified by $code. If
 	 *   it does not exist or has expired, return null;
 	 * * Pass the authorization code data array to $validateAuthCode for validation.
-	 *   If there is a problem with the code, a {@see Taproot\IndieAuth\IndieAuthException`}
+	 *   If there is a problem with the code, a {@see \Taproot\IndieAuth\IndieAuthException}
 	 *   will be thrown. This method should catch it, invalidate the authorization
 	 *   code data, then re-throw the exception for handling by the Server.
 	 * * If the authorization code data passed all checks, convert it into an access

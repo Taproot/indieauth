@@ -71,7 +71,7 @@ use Taproot\IndieAuth\Storage\TokenStorageInterface;
  * }
  * ```
  * 
- * Refer to the `__construct` documentation for further configuration options, and to the
+ * Refer to the {@see Server::__construct()} documentation for further configuration options, and to the
  * documentation for both handling methods for further documentation about them.
  * 
  * @link https://indieauth.spec.indieweb.org/
@@ -141,7 +141,11 @@ class Server {
 	 * The following keys are required:
 	 * 
 	 * * `authenticationHandler`: a callable with the signature
-	 *   ```function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface```.
+	 * 
+	 *   ```php
+	 *   function (ServerRequestInterface $request, string $authenticationRedirect, ?string $normalizedMeUrl): array|ResponseInterface
+	 *   ```
+	 * 
 	 *   This function is called on IndieAuth authorization requests, after validating the query parameters.
 	 *   
 	 *   It should check to see if $request is authenticated, then:
@@ -170,8 +174,12 @@ class Server {
 	 * The following keys may be required depending on which packages you have installed:
 	 * 
 	 * * `httpGetWithEffectiveUrl`: must be a callable with the following signature:
-	 *   ```function (string $url): array [ResponseInterface $response, string $effectiveUrl]```, where 
-	 *   `$effectiveUrl` is the final URL after following any redirects (unfortunately, neither the PSR-7
+	 *   
+	 *   ```php
+	 *   function (string $url): array [ResponseInterface $response, string $effectiveUrl]
+	 *   ```
+	 *   
+	 *   where `$effectiveUrl` is the final URL after following any redirects (unfortunately, neither the PSR-7
 	 *   Response nor the PSR-18 Client interfaces offer a standard way of getting this very important
 	 *   data, hence the unusual return signature).  If `guzzlehttp/guzzle` is installed, this parameter
 	 *   will be created automatically. Otherwise, the user must provide their own callable. In the event of
@@ -190,13 +198,20 @@ class Server {
 	 * * `exceptionTemplate`: string or callable. Either the path to a template which will be used for displaying user-facing
 	 *   errors (defaults to `../templates/default_exception_response.html.php`, refer to that if you wish
 	 *   to write your own template) or a user-provided function to render your chosen, with this signature:
-	 *   ```
+	 *   
+	 *   ```php
 	 *   function (array $context): string
-	 *   ``` (again, see the default template to see what context variables are available)
+	 *   ```
+	 *   
+	 *   (again, see the default template to see what context variables are available)
 	 * * `handleNonIndieAuthRequestCallback`: A callback with the following signature:
-	 *   ```function (ServerRequestInterface $request): ?ResponseInterface``` which will be called if the
-	 *   authorization endpoint gets a request which is not identified as an IndieAuth request or authorization
-	 *   form submission request. You could use this to handle various requests e.g. client-side requests
+	 *   
+	 *   ```php
+	 *   function (ServerRequestInterface $request): ?ResponseInterface
+	 *   ```
+	 *   
+	 *   which will be called if the authorization endpoint gets a request which is not identified as an IndieAuth
+	 *   request or authorization form submission request. You could use this to handle various requests e.g. client-side requests
 	 *   made by your authentication or authorization pages, if it’s not convenient to put them elsewhere.
 	 *   Returning `null` will result in a standard `invalid_request` error being returned.
 	 * * `logger`: An instance of `LoggerInterface`. Will be used for internal logging, and will also be set
@@ -361,7 +376,7 @@ class Server {
 	 * This route should NOT be wrapped in additional CSRF-protection, due to the need to handle API 
 	 * POST requests from the client. Make sure you call it from a route which is excluded from any
 	 * CSRF-protection you might be using. To customise the CSRF protection used internally, refer to the
-	 * `__construct` config array documentation for the `csrfMiddleware` key.
+	 * {@see Server::__construct()} config array documentation for the `csrfMiddleware` key.
 	 * 
 	 * Most user-facing errors are thrown as instances of {@see IndieAuthException}, which are passed off to
 	 * `handleException` to be turned into an instance of `ResponseInterface`. If you want to customise
@@ -873,7 +888,7 @@ class Server {
 	/**
 	 * Handle Exception
 	 * 
-	 * Turns an instance of `IndieAuthException` into an appropriate instance of `ResponseInterface`.
+	 * Turns an instance of {@see IndieAuthException} into an appropriate instance of `ResponseInterface`.
 	 */
 	protected function handleException(IndieAuthException $exception): ResponseInterface {
 		$exceptionData = $exception->getInfo();

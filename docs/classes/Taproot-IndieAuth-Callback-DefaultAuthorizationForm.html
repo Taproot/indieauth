@@ -121,7 +121,7 @@
 
             <p class="phpdocumentor-summary">Default Authorization Form</p>
 
-    <section class="phpdocumentor-description"><p>This implementation of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a> is used by <code class="prettyprint">Server</code> if the user doesn’t
+    <section class="phpdocumentor-description"><p>This implementation of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a> is used by <abbr title="\Taproot\IndieAuth\Callback\Taproot\IndieAuth\Server">Server</abbr> if the user doesn’t
 provide one of their own. It presents the user with a simple consent screen, showing any
 available details about the client app, and allowing the user to grant any requested scopes.</p>
 <p>When the form is submitted, any granted scopes are then added to the authorization code data.</p>
@@ -129,7 +129,7 @@ available details about the client app, and allowing the user to grant any reque
 a custom callable to the constructor. Refer to the default template <code class="prettyprint">/templates/default_authorization_page.html.php</code>
 as a starting point.</p>
 <p>If you want to add additional form controls (e.g. configurable token lifetimes), as well as
-making a new template, you’ll need to make a subclass which overrides <abbr title="\Taproot\IndieAuth\Callback\transformAuthorizationCode()">transformAuthorizationCode()</abbr>
+making a new template, you’ll need to make a subclass which overrides <a href="classes/Taproot-IndieAuth-Callback-DefaultAuthorizationForm.html#method_transformAuthorizationCode"><abbr title="\Taproot\IndieAuth\Callback\DefaultAuthorizationForm::transformAuthorizationCode()">DefaultAuthorizationForm::transformAuthorizationCode()</abbr></a>
 to additionally handle your new form data.</p>
 <p>For any more involved customisation, it may make sense to create your own implementation of <a href="classes/Taproot-IndieAuth-Callback-AuthorizationFormInterface.html"><abbr title="\Taproot\IndieAuth\Callback\AuthorizationFormInterface">AuthorizationFormInterface</abbr></a>.</p>
 </section>
