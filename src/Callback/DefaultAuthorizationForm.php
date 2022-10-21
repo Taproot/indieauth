@@ -50,7 +50,7 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 	 * @param string|null $csrfKey The key used to retrieve a CSRF token from the request attributes, and as its form data name. Uses the default defined in Server if null. Only change this if you’re using a custom CSRF middleware.
 	 * @param LoggerInterface|null $logger A logger.
 	 */
-	public function __construct(mixed $formTemplate=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
+	public function __construct($formTemplate=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
 		$formTemplate = $formTemplate ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
 		if (is_string($formTemplate)) {
 			$formTemplate = function (array $context) use ($formTemplate): string {

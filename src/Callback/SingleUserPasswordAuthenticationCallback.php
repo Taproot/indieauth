@@ -77,7 +77,7 @@ class SingleUserPasswordAuthenticationCallback {
 	 * @param string|null $csrfKey The key under which to fetch a CSRF token from `$request` attributes, and as the CSRF token name in submitted form data. Defaults to the Server default, only change if you’re using a custom CSRF middleware.
 	 * @param int|null $ttl The lifetime of the authentication cookie, in seconds. Defaults to five minutes.
 	 */
-	public function __construct(string $secret, array $user, string $hashedPassword, mixed $formTemplate=null, ?string $csrfKey=null, ?int $ttl=null) {
+	public function __construct(string $secret, array $user, string $hashedPassword, $formTemplate=null, ?string $csrfKey=null, ?int $ttl=null) {
 		if (strlen($secret) < 64) {
 			throw new BadMethodCallException("\$secret must be a string with a minimum length of 64 characters.");
 		}
