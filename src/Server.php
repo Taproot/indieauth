@@ -9,7 +9,7 @@ use finfo;
 use GuzzleHttp\Psr7\Header as HeaderParser;
 use IndieAuth\Client as IndieAuthClient;
 use Mf2;
-use Nyholm\Psr7\Response;
+use GuzzleHttp\Psr7\Response;
 use PDO;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;

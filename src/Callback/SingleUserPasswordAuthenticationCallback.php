@@ -4,7 +4,7 @@ namespace Taproot\IndieAuth\Callback;
 
 use BadMethodCallException;
 use Dflydev\FigCookies;
-use Nyholm\Psr7\Response;
+use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 
 use function Taproot\IndieAuth\renderTemplate;

@@ -3,8 +3,8 @@
 namespace Taproot\IndieAuth\Test;
 
 use Dflydev\FigCookies\FigResponseCookies;
-use Nyholm\Psr7\Response;
-use Nyholm\Psr7\ServerRequest;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Taproot\IndieAuth\Middleware\ClosureRequestHandler;

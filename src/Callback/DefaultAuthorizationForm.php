@@ -6,7 +6,7 @@ use BadMethodCallException;
 use BarnabyWalters\Mf2 as M;
 use Exception;
 use Psr\Http\Message\ServerRequestInterface;
-use Nyholm\Psr7\Response;
+use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
