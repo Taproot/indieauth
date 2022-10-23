@@ -418,7 +418,11 @@ class Server {
 
 			if (!isset($bodyParams['code'])) {
 				$this->logger->warning('The exchange request was missing the code parameter. Returning an error response.');
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => 'invalid_request',
 					'error_description' => 'The code parameter was missing.'
 				]));
@@ -474,7 +478,11 @@ class Server {
 				});
 			} catch (IndieAuthException $e) {
 				// If an exception was thrown, return a corresponding error response.
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => $e->getInfo()['error'],
 					'error_description' => $e->getMessage()
 				]));
@@ -482,7 +490,11 @@ class Server {
 
 			if (is_null($tokenData)) {
 				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => 'invalid_grant',
 					'error_description' => 'The provided credentials were not valid.'
 				]));
@@ -492,8 +504,9 @@ class Server {
 
 			// If everything checked out, return {"me": "https://example.com"} response
 			return new Response(200, [
-				'content-type' => 'application/json',
-				'cache-control' => 'no-store',
+				'Content-Type' => 'application/json',
+				'Cache-control' => 'no-store',
+				'Pragma' => 'no-cache'
 			], json_encode(array_filter($tokenData, function (string $k) {
 				// Prevent codes exchanged at the authorization endpoint from returning any information other than
 				// me and profile.
@@ -711,8 +724,7 @@ class Server {
 								$clientRedirectQueryParams['iss'] = $this->issuer;
 							}
 							return new Response(302, [
-								'Location' => appendQueryParams($queryParams['redirect_uri'], $clientRedirectQueryParams),
-								'Cache-control' => 'no-cache'
+								'Location' => appendQueryParams($queryParams['redirect_uri'], $clientRedirectQueryParams)
 							]);
 						}
 
@@ -756,7 +768,10 @@ class Server {
 
 						// Present the authorization UI.
 						return $this->authorizationForm->showForm($request, $authenticationResult, $authenticationRedirect, $clientHAppOrException)
-								->withAddedHeader('Cache-control', 'no-cache');
+								->withAddedHeader('Cache-control', 'no-store')
+								->withAddedHeader('Pragma', 'no-cache')
+								->withAddedHeader('X-Frame-Options', 'DENY')
+								->withAddedHeader('Content-Security-Policy', "frame-ancestors 'none'");
 					} else {
 						// The authentication callback function returned something other than an array or Response!
 						$this->logger->error('The authenticationHandler callback function returned an invalid value (not an array or Response)', ['array' => $authenticationResult]);
@@ -811,7 +826,11 @@ class Server {
 
 			if (!isset($bodyParams['code'])) {
 				$this->logger->warning('The exchange request was missing the code parameter. Returning an error response.');
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-Control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => 'invalid_request',
 					'error_description' => 'The code parameter was missing.'
 				]));
@@ -866,7 +885,11 @@ class Server {
 				});
 			} catch (IndieAuthException $e) {
 				// If an exception was thrown, return a corresponding error response.
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-Control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => $e->getInfo()['error'],
 					'error_description' => $e->getMessage()
 				]));
@@ -874,7 +897,11 @@ class Server {
 			
 			if (is_null($tokenData)) {
 				$this->logger->error('Attempting to exchange an auth code for a token resulted in null.', $bodyParams);
-				return new Response(400, ['content-type' => 'application/json'], json_encode([
+				return new Response(400, [
+					'Content-Type' => 'application/json',
+					'Cache-Control' => 'no-store',
+					'Pragma' => 'no-cache'
+				], json_encode([
 					'error' => 'invalid_grant',
 					'error_description' => 'The provided credentials were not valid.'
 				]));
@@ -884,8 +911,9 @@ class Server {
 
 			// If everything checked out, return {"me": "https://example.com"} response
 			return new Response(200, [
-				'content-type' => 'application/json',
-				'cache-control' => 'no-store',
+				'Content-Type' => 'application/json',
+				'Cache-Control' => 'no-store',
+				'Pragma' => 'no-cache'
 			], json_encode(array_merge([
 				// Ensure that the token_type key is present, if tokenStorage doesn’t include it.
 				'token_type' => 'Bearer'
@@ -896,7 +924,11 @@ class Server {
 			}, ARRAY_FILTER_USE_KEY))));
 		}
 
-		return new Response(400, ['content-type' => 'application/json'], json_encode([
+		return new Response(400, [
+			'Content-Type' => 'application/json',
+			'Cache-Control' => 'no-store',
+			'Pragma' => 'no-cache'
+		], json_encode([
 			'error' => 'invalid_request',
 			'error_description' => 'Request to token endpoint was not a valid code exchange request.'
 		]));
@@ -936,7 +968,11 @@ class Server {
 			]);
 		} else {
 			// This exception should be shown to the user.
-			return new Response($exception->getStatusCode(), ['content-type' => 'text/html'], call_user_func($this->exceptionTemplateCallback, [
+			return new Response($exception->getStatusCode(), [
+				'Content-Type' => 'text/html',
+				'Cache-Control' => 'no-store',
+				'Pragma' => 'no-cache'
+			], call_user_func($this->exceptionTemplateCallback, [
 				'request' => $exception->getRequest(),
 				'exception' => $exception
 			]));

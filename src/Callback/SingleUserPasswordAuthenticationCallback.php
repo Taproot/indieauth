@@ -139,10 +139,13 @@ class SingleUserPasswordAuthenticationCallback {
 		}
 
 		// Otherwise, return a response containing the password form.
-		return new Response(200, ['content-type' => 'text/html'], call_user_func($this->formTemplateCallable, [
+		return (new Response(200, ['content-type' => 'text/html'], call_user_func($this->formTemplateCallable, [
 			'formAction' => $formAction,
 			'request' => $request,
 			'csrfFormElement' => '<input type="hidden" name="' . htmlentities($this->csrfKey) . '" value="' . htmlentities($request->getAttribute($this->csrfKey)) . '" />'
-		]));
+		])))->withAddedHeader('Cache-control', 'no-store')
+			->withAddedHeader('Pragma', 'no-cache')
+			->withAddedHeader('X-Frame-Options', 'DENY')
+			->withAddedHeader('Content-Security-Policy', "frame-ancestors 'none'");
 	}
 }

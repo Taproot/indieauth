@@ -56,8 +56,11 @@ class SingleUserPasswordAuthenticationCallbackTest extends TestCase {
 		$res = $callback($req, $formAction);
 
 		$this->assertEquals(200, $res->getStatusCode());
-		// For the moment, just do a very naieve test.
 		$this->assertStringContainsString($formAction, (string) $res->getBody());
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertStringContainsString("frame-ancestors 'none'", $res->getHeaderLine('content-security-policy'));
+		$this->assertStringContainsString("DENY", $res->getHeaderLine('x-frame-options'));
 	}
 
 	public function testReturnsCookieRedirectOnAuthenticatedRequest() {

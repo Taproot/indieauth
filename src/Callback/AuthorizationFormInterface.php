@@ -46,6 +46,19 @@ interface AuthorizationFormInterface {
 	 * that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
 	 * library, but, if stored on the access token, will be available to your app for use.
 	 * 
+	 * {@see \Taproot\IndieAuth\Server} adds the following headers to the response returned from `showForm()`:
+	 * 
+	 * ```
+	 * Cache-Control: no-store
+	 * Pragma: no-cache
+	 * X-Frame-Options: DENY
+	 * Content-Security-Policy: frame-ancestors 'none'
+	 * ```
+	 * 
+	 * These headers prevent the authorization form from being cached or embedded into a malicious webpage.
+	 * It may make sense for you to add additional `Content-Security-Policy` values appropriate to your implementation,
+	 * for example to prevent the execution of inline or 3rd party scripts.
+	 * 
 	 * @param ServerRequestInterface $request The current request.
 	 * @param array $authenticationResult The array returned from the Authentication Handler. Guaranteed to contain a 'me' key, may also contain additional keys e.g. 'profile'.
 	 * @param string $formAction The URL which your form MUST submit to. Can also be used as the redirect URL for a logout process.

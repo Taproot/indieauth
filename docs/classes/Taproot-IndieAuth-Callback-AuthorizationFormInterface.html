@@ -166,7 +166,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/AuthorizationFormInterface.php"><a href="files/src-callback-authorizationforminterface.html"><abbr title="src/Callback/AuthorizationFormInterface.php">AuthorizationFormInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">55</span>
+    <span class="phpdocumentor-element-found-in__line">68</span>
 
     </aside>
 
@@ -206,6 +206,15 @@ requested, tell the user that the app is only requesting authorization, not acce
 You may have to refer to the documentation for your instance of <a href="classes/Taproot-IndieAuth-Storage-TokenStorageInterface.html"><abbr title="\Taproot\IndieAuth\Storage\TokenStorageInterface">TokenStorageInterface</abbr></a> to ensure
 that lifetime configuration works correctly. Any other additional data is not used by the IndieAuth
 library, but, if stored on the access token, will be available to your app for use.</p>
+<p><a href="classes/Taproot-IndieAuth-Server.html"><abbr title="\Taproot\IndieAuth\Server">Server</abbr></a> adds the following headers to the response returned from <code class="prettyprint">showForm()</code>:</p>
+<pre class="prettyprint"><code class="prettyprint">Cache-Control: no-store
+Pragma: no-cache
+X-Frame-Options: DENY
+Content-Security-Policy: frame-ancestors 'none'
+</code></pre>
+<p>These headers prevent the authorization form from being cached or embedded into a malicious webpage.
+It may make sense for you to add additional <code class="prettyprint">Content-Security-Policy</code> values appropriate to your implementation,
+for example to prevent the execution of inline or 3rd party scripts.</p>
 </section>
 
         <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
@@ -270,7 +279,7 @@ library, but, if stored on the access token, will be available to your app for u
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/AuthorizationFormInterface.php"><a href="files/src-callback-authorizationforminterface.html"><abbr title="src/Callback/AuthorizationFormInterface.php">AuthorizationFormInterface.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">90</span>
+    <span class="phpdocumentor-element-found-in__line">103</span>
 
     </aside>
 

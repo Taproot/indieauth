@@ -468,7 +468,10 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertStringContainsString("frame-ancestors 'none'", $res->getHeaderLine('content-security-policy'));
+		$this->assertStringContainsString("DENY", $res->getHeaderLine('x-frame-options'));
 		$this->assertEquals(200, $res->getStatusCode());
 	}
 
@@ -497,7 +500,10 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		$this->assertEquals(200, $res->getStatusCode());
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertStringContainsString("frame-ancestors 'none'", $res->getHeaderLine('content-security-policy'));
+		$this->assertStringContainsString("DENY", $res->getHeaderLine('x-frame-options'));
 	}
 
 	public function testReturnsAuthorizationFormIfClientIdExactlyMatchesParsedLinkElementRedirectUri() {
@@ -522,8 +528,11 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertStringContainsString("frame-ancestors 'none'", $res->getHeaderLine('content-security-policy'));
+		$this->assertStringContainsString("DENY", $res->getHeaderLine('x-frame-options'));
 	}
 
 	// Now with author property testing per https://github.com/Taproot/indieauth/issues/16
@@ -682,7 +691,6 @@ EOT
 
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
 		$this->assertEquals(302, $res->getStatusCode(), 'The Response from a successful approval request must be a 302 redirect.');
 		
 		$responseLocation = $res->getHeaderLine('location');
@@ -749,11 +757,15 @@ EOT
 		$this->assertEquals(400, $authEndpointResponse->getStatusCode());
 		$authEndpointJson = json_decode((string) $authEndpointResponse->getBody(), true);
 		$this->assertEquals('invalid_request', $authEndpointJson['error']);
+		$this->assertEquals('no-cache', $authEndpointResponse->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $authEndpointResponse->getHeaderLine('cache-control'));
 
 		$tokenEndpointResponse = $s->handleTokenEndpointRequest($req);
 		$this->assertEquals(400, $tokenEndpointResponse->getStatusCode());
 		$tokenEndpointJson = json_decode((string) $tokenEndpointResponse->getBody(), true);
 		$this->assertEquals('invalid_request', $tokenEndpointJson['error']);
+		$this->assertEquals('no-cache', $tokenEndpointResponse->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $tokenEndpointResponse->getHeaderLine('cache-control'));
 	}
 
 	public function testExchangeFlowsReturnErrorsIfParametersAreMissing() {
@@ -782,6 +794,8 @@ EOT
 			$this->assertEquals(400, $res->getStatusCode());
 			$resJson = json_decode((string) $res->getBody(), true);
 			$this->assertEquals('invalid_request', $resJson['error']);
+			$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+			$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		}
 	}
 
@@ -828,6 +842,8 @@ EOT
 				$this->assertEquals(400, $res->getStatusCode());
 				$resJson = json_decode((string) $res->getBody(), true);
 				$this->assertEquals('invalid_grant', $resJson['error']);
+				$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+				$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 			}
 		}
 	}
@@ -860,6 +876,8 @@ EOT
 		$res = $s->handleAuthorizationEndpointRequest($req);
 
 		$this->assertEquals(400, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals('invalid_grant', $resJson['error']);
 	}
@@ -896,6 +914,7 @@ EOT
 
 		$this->assertEquals(200, $res->getStatusCode());
 		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals([
 			'me' => 'https://me.example.com/',
@@ -916,6 +935,8 @@ EOT
 		foreach ($badRequests as $badRequest) {
 			$res = $s->handleTokenEndpointRequest($badRequest);
 			$this->assertEquals(400, $res->getStatusCode());
+			$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+			$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 			$resJson = json_decode((string) $res->getBody(), true);
 			$this->assertEquals('invalid_request', $resJson['error']);
 		}
@@ -949,6 +970,8 @@ EOT
 		$res = $s->handleTokenEndpointRequest($req);
 
 		$this->assertEquals(400, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals('invalid_grant', $resJson['error']);
 	}
@@ -985,6 +1008,7 @@ EOT
 		$res = $s->handleTokenEndpointRequest($req);
 
 		$this->assertEquals(200, $res->getStatusCode());
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
 		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
 		$resJson = json_decode((string) $res->getBody(), true);
 		$this->assertEquals(hash_hmac('sha256', $authCode, SERVER_SECRET), $resJson['access_token']);
@@ -1239,7 +1263,10 @@ EOT
 		$res = $s->handleAuthorizationEndpointRequest($req);
 		
 		$this->assertEquals(200, $res->getStatusCode());
-		$this->assertEquals('no-cache', $res->getHeaderLine('cache-control'));
+		$this->assertEquals('no-cache', $res->getHeaderLine('pragma'));
+		$this->assertEquals('no-store', $res->getHeaderLine('cache-control'));
+		$this->assertStringContainsString("frame-ancestors 'none'", $res->getHeaderLine('content-security-policy'));
+		$this->assertStringContainsString("DENY", $res->getHeaderLine('x-frame-options'));
 
 		$req = $this->getApprovalRequest(true, true, [
 			'client_id' => $rawClientId,
