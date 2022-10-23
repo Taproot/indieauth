@@ -401,7 +401,7 @@ to additionally handle your new form data.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">131</span>
+    <span class="phpdocumentor-element-found-in__line">140</span>
 
     </aside>
 
@@ -477,7 +477,9 @@ form are:</p>
 <p>The form MUST submit a POST request to <code class="prettyprint">$formAction</code>, with the <code class="prettyprint">taproot_indieauth_action</code>
 parameter set to <code class="prettyprint">approve</code>.</p>
 <p>The form MUST additionally include any CSRF tokens required to protect the submission.
-Refer to whatever CSRF protection code you’re using (e.g. \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware<code class="prettyprint">) and make sure to include the required element. This will usually involve getting a CSRF token with </code>$request-&gt;getAttribute()<code class="prettyprint">and including it in an</code>&lt;input type=&quot;hidden&quot; …/&gt;`.</p>
+Refer to whatever CSRF protection code you’re using (e.g. <a href="classes/Taproot-IndieAuth-Middleware-DoubleSubmitCookieCsrfMiddleware.html"><abbr title="\Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware">DoubleSubmitCookieCsrfMiddleware</abbr></a>)
+and make sure to include the required element. This will usually involve getting a
+CSRF token with <code class="prettyprint">$request-&gt;getAttribute()</code> and including it in an <code class="prettyprint">&lt;input type=&quot;hidden&quot; …/&gt;</code>.</p>
 <p>The form SHOULD offer the user the opportunity to choose which of the request scopes,
 if any, they wish to grant. It should describe what effect each scope grants. If no scopes are
 requested, tell the user that the app is only requesting authorization, not access to their data.</p>
@@ -558,7 +560,7 @@ for example to prevent the execution of inline or 3rd party scripts.</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Callback/DefaultAuthorizationForm.php"><a href="files/src-callback-defaultauthorizationform.html"><abbr title="src/Callback/DefaultAuthorizationForm.php">DefaultAuthorizationForm.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">117</span>
+    <span class="phpdocumentor-element-found-in__line">126</span>
 
     </aside>
 

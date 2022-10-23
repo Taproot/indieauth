@@ -33,7 +33,7 @@ interface AuthorizationFormInterface {
 	 * parameter set to `approve`.
 	 * 
 	 * The form MUST additionally include any CSRF tokens required to protect the submission.
-	 * Refer to whatever CSRF protection code you’re using (e.g. {@see \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware`})
+	 * Refer to whatever CSRF protection code you’re using (e.g. {@see \Taproot\IndieAuth\Middleware\DoubleSubmitCookieCsrfMiddleware})
 	 * and make sure to include the required element. This will usually involve getting a
 	 * CSRF token with `$request->getAttribute()` and including it in an `<input type="hidden" …/>`.
 	 * 
