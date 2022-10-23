@@ -21,16 +21,15 @@
         }
     },
     "require": {
+        "php": ">= 7.3.0",
         "psr/http-message": "^1.0",
         "psr/log": "^1.1||^2.0||^3.0",
-        "indieauth/client": "^1.1",
         "psr/http-server-middleware": "^1.0",
+        "indieauth/client": "^1.1",
         "dflydev/fig-cookies": "^3.0",
-        "mf2/mf2": "^0.4.6",
+        "mf2/mf2": "^0.4.6||^0.5",
         "barnabywalters/mf-cleaner": "^0.1.4",
-        "guzzlehttp/psr7": "^1.8||^2.0",
-        "webmozart/path-util": "^2.3",
-        "php": ">= 7.3.0"
+        "guzzlehttp/psr7": "^1.8||^2.0"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^7.3",
