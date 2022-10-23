@@ -24,7 +24,7 @@ Versioned releases are GPG signed so you can verify that the code hasn’t been 
 
     gpg --recv-keys 1C00430B19C6B426922FE534BEF8CE58118AD524
     cd vendor/taproot/indieauth
-    git tag -v v0.3.0 # Replace with the version you have installed
+    git tag -v v0.3.1 # Replace with the version you have installed
 
 ## Usage
 
@@ -107,6 +107,13 @@ If discussions lead to you wanting to submit a pull request, following this proc
 * Push your changes and submit the PR.
 
 ## Changelog
+
+### v0.3.1
+2022-10-23
+
+* Corrected Cache-Control headers, added CSP and X-Frame-Options headers to user-facing responses (#21)
+* Removed hard dependencies on nyholm/psr7 and webmozart/path-util (#20)
+* Allowed installation alongside mf2/mf2 ^0.5, added code for handling img+alt parsing of photos
 
 ### v0.3.0
 2022-10-21
