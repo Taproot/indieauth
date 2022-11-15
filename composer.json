@@ -28,7 +28,7 @@
         "indieauth/client": "^1.1",
         "dflydev/fig-cookies": "^3.0",
         "mf2/mf2": "^0.4.6||^0.5",
-        "barnabywalters/mf-cleaner": "^0.1.4",
+        "barnabywalters/mf-cleaner": "^0.2",
         "guzzlehttp/psr7": "^1.8||^2.0"
     },
     "require-dev": {

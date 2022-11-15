@@ -87,11 +87,6 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 				'author' => null
 			];
 
-			// Double-check in case an old version of mf-cleaner is installed at the same time as mf2/mf2 ≥ v0.5
-			if (is_array($appData['photo'])) {
-				$appData['photo'] = $appData['photo']['value'];
-			}
-
 			if (M\hasProp($clientHAppOrException, 'author')) {
 				$rawAuthor = $clientHAppOrException['properties']['author'][0];
 				if (is_string($rawAuthor)) {
@@ -102,10 +97,6 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 						'url' => M\getPlaintext($rawAuthor, 'url'),
 						'photo' => M\getPlaintext($rawAuthor, 'photo')
 					];
-
-					if (is_array($appData['author']['photo'])) {
-						$appData['author']['photo'] = $appData['author']['photo']['value'];
-					}
 				}
 			}
 		}
