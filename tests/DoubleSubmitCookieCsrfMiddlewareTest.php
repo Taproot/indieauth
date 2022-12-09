@@ -16,18 +16,23 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['GET', 'HEAD', 'OPTIONS'] as $method) {
-			$request = new ServerRequest($method, 'https://example.com');
-			$preparedResponse = new Response();
+			$request = new ServerRequest($method, 'https://example.com/');
+			$preparedResponse = new Response(200, ['X-Example-header' => 'test data'], 'Example body');
 			$token = null;
 			$returnedResponse = $mw->process($request, new ClosureRequestHandler(function (ServerRequestInterface $request) use ($preparedResponse, $mw, &$token) {
 				$this->assertNotEmpty($request->getAttribute($mw->attribute), "The $mw->attribute on \$request was empty.");
 				$token = $request->getAttribute($mw->attribute);
 				return $preparedResponse;
 			}));
-			$this->assertEquals($preparedResponse->getStatusCode(), $returnedResponse->getStatusCode(), "Prepared response was not passed through for $method request.");
-			$responseCsrfCookieValue = FigResponseCookies::get($returnedResponse, $mw->attribute)->getValue();
-			$this->assertNotNull($responseCsrfCookieValue, "The $mw->attribute cookie on the response should not be null.");
-			$this->assertEquals($token, $responseCsrfCookieValue, "The $mw->attribute cookie attached to the response did not have the same value as the one in the request attribute.");
+			$this->assertEquals($preparedResponse, $returnedResponse->withoutHeader('set-cookie'), "Prepared response was not passed through for $method request.");
+			$responseCsrfCookie = FigResponseCookies::get($returnedResponse, $mw->attribute);
+			$this->assertNotNull($responseCsrfCookie->getValue(), "The $mw->attribute cookie on the response should not be null.");
+			$this->assertEquals($token, $responseCsrfCookie->getValue(), "The $mw->attribute cookie attached to the response did not have the same value as the one in the request attribute.");
+			$this->assertEquals('/', $responseCsrfCookie->getPath());
+			$this->assertEquals('example.com', $responseCsrfCookie->getDomain());
+			$this->assertTrue($responseCsrfCookie->getSecure());
+			$this->assertEquals(DoubleSubmitCookieCsrfMiddleware::TTL, $responseCsrfCookie->getMaxAge());
+			$this->assertTrue($responseCsrfCookie->getHttpOnly());
 		}
 	}
 
@@ -35,9 +40,9 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['PUT', 'POST', 'DELETE', 'PATCH'] as $method) {
-			$request = new ServerRequest($method, 'https://example.com');
+			$request = new ServerRequest($method, 'https://example.com/');
 			$returnedResponse = $mw->process($request, new ResponseRequestHandler(new Response(200)));
-			$this->assertEquals(400, $returnedResponse->getStatusCode(), "Default error response was not returned for CSRF-less $method request.");
+			$this->assertEquals(400, $returnedResponse->getStatusCode(), "Default error response should have been returned for CSRF-less $method request.");
 		}
 	}
 
@@ -45,7 +50,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['PUT', 'POST', 'DELETE', 'PATCH'] as $method) {
-			$request = (new ServerRequest($method, 'https://example.com'))->withCookieParams([
+			$request = (new ServerRequest($method, 'https://example.com/'))->withCookieParams([
 				$mw->attribute => 'Invalid unmatched CSRF token!'
 			]);
 			$returnedResponse = $mw->process($request, new ResponseRequestHandler(new Response(200)));
@@ -57,7 +62,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['PUT', 'POST', 'DELETE', 'PATCH'] as $method) {
-			$request = (new ServerRequest($method, 'https://example.com'))->withParsedBody([
+			$request = (new ServerRequest($method, 'https://example.com/'))->withParsedBody([
 				$mw->attribute => 'Invalid unmatched CSRF token!'
 			]);
 			$returnedResponse = $mw->process($request, new ResponseRequestHandler(new Response(200)));
@@ -69,7 +74,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['PUT', 'POST', 'DELETE', 'PATCH'] as $method) {
-			$request = (new ServerRequest($method, 'https://example.com'))->withParsedBody([
+			$request = (new ServerRequest($method, 'https://example.com/'))->withParsedBody([
 				$mw->attribute => 'Invalid unmatched CSRF token!'
 			])->withCookieParams([
 				$mw->attribute => 'INVALID UNMATCHED CSRF TOKEN!!!!!'
@@ -83,7 +88,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 		$mw = new DoubleSubmitCookieCsrfMiddleware();
 
 		foreach (['PUT', 'POST', 'DELETE', 'PATCH'] as $method) {
-			$request = (new ServerRequest($method, 'https://example.com'))->withParsedBody([
+			$request = (new ServerRequest($method, 'https://example.com/'))->withParsedBody([
 				$mw->attribute => 'Valid matching CSRF token :D'
 			])->withCookieParams([
 				$mw->attribute => 'Valid matching CSRF token :D'
@@ -97,7 +102,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 	public function acceptsCustomStringErrorResponse() {
 		$errorResponseBody = 'ERROR!';
 		$mw = new DoubleSubmitCookieCsrfMiddleware(null, null, $errorResponseBody);
-		$response = $mw->process(new ServerRequest('POST', 'https://example.com'), new ResponseRequestHandler(new Response(200)));
+		$response = $mw->process(new ServerRequest('POST', 'https://example.com/'), new ResponseRequestHandler(new Response(200)));
 		$this->assertEquals(400, $response->getStatusCode(), "An error response should have been returned.");
 		$this->assertEquals($errorResponseBody, $response->getBody()->getContents(), "The error response should have the predefined body contents.");
 	}
@@ -105,7 +110,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 	public function acceptsCustomErrorResponse() {
 		$errorResponseBody = 'ERROR!';
 		$mw = new DoubleSubmitCookieCsrfMiddleware(null, null, new Response(400, [], $errorResponseBody));
-		$response = $mw->process(new ServerRequest('POST', 'https://example.com'), new ResponseRequestHandler(new Response(200)));
+		$response = $mw->process(new ServerRequest('POST', 'https://example.com/'), new ResponseRequestHandler(new Response(200)));
 		$this->assertEquals(400, $response->getStatusCode(), "An error response should have been returned.");
 		$this->assertEquals($errorResponseBody, $response->getBody()->getContents(), "The error response should have the predefined body contents.");
 	}
@@ -116,7 +121,7 @@ class DoubleSubmitCookieCsrfMiddlewareTest extends TestCase {
 			$this->assertInstanceOf('\Psr\Http\Message\ServerRequestInterface', $request, "The request should be available within the error response callback.");
 			return new Response(400, [], $errorResponseBody);
 		});
-		$response = $mw->process(new ServerRequest('POST', 'https://example.com'), new ResponseRequestHandler(new Response(200)));
+		$response = $mw->process(new ServerRequest('POST', 'https://example.com/'), new ResponseRequestHandler(new Response(200)));
 		$this->assertEquals(400, $response->getStatusCode(), "An error response should have been returned.");
 		$this->assertEquals($errorResponseBody, $response->getBody()->getContents(), "The error response should have the predefined body contents.");
 	}
