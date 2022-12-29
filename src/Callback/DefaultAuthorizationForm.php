@@ -51,8 +51,14 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 	 * @param LoggerInterface|null $logger A logger.
 	 */
 	public function __construct($formTemplate=null, ?string $csrfKey=null, ?LoggerInterface $logger=null) {
+		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
+		$this->logger = $logger ?? new NullLogger;
+
 		$formTemplate = $formTemplate ?? __DIR__ . '/../../templates/default_authorization_page.html.php';
 		if (is_string($formTemplate)) {
+			if (!file_exists($formTemplate)) {
+				$this->logger->warning("\$formTemplate string passed to DefaultAuthorizationForm was not a valid path.", ['formTemplate' => $formTemplate]);
+			}
 			$formTemplate = function (array $context) use ($formTemplate): string {
 				return renderTemplate($formTemplate, $context);
 			};
@@ -63,8 +69,6 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 		}
 
 		$this->formTemplateCallable = $formTemplate;
-		$this->csrfKey = $csrfKey ?? \Taproot\IndieAuth\Server::DEFAULT_CSRF_KEY;
-		$this->logger = $logger ?? new NullLogger;
 	}
 
 	public function showForm(ServerRequestInterface $request, array $authenticationResult, string $formAction, $clientHAppOrException): ResponseInterface {
