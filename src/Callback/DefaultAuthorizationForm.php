@@ -83,6 +83,14 @@ class DefaultAuthorizationForm implements AuthorizationFormInterface, LoggerAwar
 		$appData = null;
 		if ($clientHAppOrException instanceof Exception) {
 			$exception = $clientHAppOrException;
+		} elseif (is_array($clientHAppOrException)) {
+			// https://indieauth.spec.indieweb.org/#client-metadata
+			$appData = [
+				'name' => $clientHAppOrException['client_name'],
+				'url' => $clientHAppOrException['client_uri'],
+				'photo' => $clientHAppOrException['logo_uri'],
+				'author' => null
+			];
 		} elseif (M\isMicroformat($clientHAppOrException)) {
 			$appData = [
 				'name' => M\getPlaintext($clientHAppOrException, 'name'),

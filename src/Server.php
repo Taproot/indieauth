@@ -523,8 +523,8 @@ class Server {
 
 				/** @var ResponseInterface|null $clientIdResponse */
 				/** @var string|null $clientIdEffectiveUrl */
-				/** @var array|null $clientIdMf2 */
-				list($clientIdResponse, $clientIdEffectiveUrl, $clientIdMf2) = [null, null, null];
+				/** @var array|null $clientIdMetadata */
+				list($clientIdResponse, $clientIdEffectiveUrl, $clientIdMetadata) = [null, null, null];
 
 				// If this is an authorization or approval request (allowing POST requests as well to accommodate 
 				// approval requests and custom auth form submission.
@@ -556,10 +556,37 @@ class Server {
 						if (!urlComponentsMatch($queryParams['client_id'], $queryParams['redirect_uri'], [PHP_URL_SCHEME, PHP_URL_HOST, PHP_URL_PORT])) {
 							// If we do need to fetch the client_id, store the response and effective URL in variables
 							// we defined earlier, so they’re available to the approval request code path, which additionally
-							// needs to parse client_id for h-app markup.
+							// needs to parse client_id for JSON oauth client metadata or h-app markup.
 							try {
 								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, IndieAuthClient::normalizeMeURL($queryParams['client_id']));
-								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+								$contentType = $clientIdResponse->getHeader('content-type')[0] ?? null;
+								if (strpos($contentType, 'application/json') !== false) {
+									// JSON means client_id should contain an oauth client metadata document
+									// https://indieauth.spec.indieweb.org/#client-metadata
+									$clientIdMetadata = json_decode((string) $clientIdResponse->getBody(), true);
+									if ( (! array_key_exists('client_id', $clientIdMetadata))
+										|| ($queryParams['client_id'] !== $clientIdMetadata['client_id'])
+									){
+										$this->logger->error("client_id in JSON oauth client metadata did not match. Returning an error response.", [
+											'client_id' => $queryParams['client_id'],
+											'metadata_client_id' => $clientIdMetadata['client_id'],
+										]);
+
+										throw IndieAuthException::create(IndieAuthException::OAUTH_METADATA_MISMATCH_CLIENT_ID, $request, $e);
+									}
+									if ( (! array_key_exists('clienturi', $clientIdMetadata))
+										|| (mb_strpos($queryParams['client_id'], $clientIdMetadata['clienturi']) === 0)
+									){
+										$this->logger->error("clienturi in JSON oauth client metadata was not a prefix of client_id. Returning an error response.", [
+											'client_id' => $queryParams['client_id'],
+											'metadata_clienturi' => $clientIdMetadata['clienturi'],
+										]);
+
+										throw IndieAuthException::create(IndieAuthException::OAUTH_METADATA_MISMATCH_CLIENT_URI, $request, $e);
+									}
+								} else {
+									$clientIdMetadata = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+								}
 							} catch (ClientExceptionInterface | RequestExceptionInterface | NetworkExceptionInterface $e) {
 								$this->logger->error("Caught an HTTP exception while trying to fetch the client_id. Returning an error response.", [
 									'client_id' => $queryParams['client_id'],
@@ -577,8 +604,14 @@ class Server {
 							
 							// Search for all link@rel=redirect_uri at the client_id.
 							$clientIdRedirectUris = [];
-							if (array_key_exists('redirect_uri', $clientIdMf2['rels'])) {
-								$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMf2['rels']['redirect_uri']);
+							if (array_key_exists('redirect_uris', $clientIdMetadata)) {
+								// client_id contains an oauth client metadata document
+								// https://indieauth.spec.indieweb.org/#client-metadata
+								$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMetadata['redirect_uris']);
+							}
+							if (array_key_exists('rels', $clientIdMetadata) && array_key_exists('redirect_uri', $clientIdMetadata['rels'])) {
+								// client_id is a web page with (optional) link rels for redirect_uri
+								$clientIdRedirectUris = array_merge($clientIdRedirectUris, $clientIdMetadata['rels']['redirect_uri']);
 							}
 							
 							foreach (HeaderParser::parse($clientIdResponse->getHeader('Link')) as $link) {
@@ -739,12 +772,40 @@ class Server {
 						// pass the exception to the authorization form in place of the h-app/null we would pass if the
 						// request succeeded. Leave it up to the authorization form to decide what to do about it.
 						// https://github.com/Taproot/indieauth/issues/14
-						if (is_null($clientIdResponse) || is_null($clientIdEffectiveUrl) || is_null($clientIdMf2)) {
+						if (is_null($clientIdResponse) || is_null($clientIdEffectiveUrl) || is_null($clientIdMetadata)) {
 							try {
 								/** @var ResponseInterface $clientIdResponse */
 								/** @var string $clientIdEffectiveUrl */
 								list($clientIdResponse, $clientIdEffectiveUrl) = call_user_func($this->httpGetWithEffectiveUrl, $queryParams['client_id']);
-								$clientIdMf2 = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+								$contentType = $clientIdResponse->getHeader('content-type')[0] ?? null;
+								if (mb_strpos($contentType, 'application/json') !== false) {
+									// JSON means client_id should contain an oauth client metadata document
+									// https://indieauth.spec.indieweb.org/#client-metadata
+									$clientIdMetadata = json_decode((string) $clientIdResponse->getBody(), true);
+									if ( (! array_key_exists('client_id', $clientIdMetadata))
+										|| ($queryParams['client_id'] !== $clientIdMetadata['client_id'])
+									){
+										$this->logger->error("client_id in JSON oauth client metadata did not match. Returning an error response.", [
+											'client_id' => $queryParams['client_id'],
+											'metadata_client_id' => $clientIdMetadata['client_id'],
+										]);
+
+										throw IndieAuthException::create(IndieAuthException::OAUTH_METADATA_MISMATCH_CLIENT_ID, $request, $e);
+									}
+									if ( (! array_key_exists('client_uri', $clientIdMetadata))
+										|| (mb_strpos($queryParams['client_id'], $clientIdMetadata['client_uri']) === 0)
+									){
+										$this->logger->error("client_uri in JSON oauth client metadata was not a prefix of client_id. Returning an error response.", [
+											'client_id' => $queryParams['client_id'],
+											'metadata_client_uri' => $clientIdMetadata['client_uri'],
+										]);
+
+										throw IndieAuthException::create(IndieAuthException::OAUTH_METADATA_MISMATCH_CLIENT_URI, $request, $e);
+									}
+								} else {
+									// Treat the content at client_id as HTML and look for h-app mf2.
+									$clientIdMetadata = Mf2\parse((string) $clientIdResponse->getBody(), $clientIdEffectiveUrl);
+								}
 							} catch (Exception $e) {
 								$this->logger->error("Caught non-fatal exception while trying to fetch the client_id. Passing exception to the authorization form.", [
 									'client_id' => $queryParams['client_id'],
@@ -755,10 +816,12 @@ class Server {
 							}
 						}
 
-						if (M\isMicroformatCollection($clientIdMf2)) {
+						if (is_array($clientIdMetadata)) {
+							$clientHAppOrException = $clientIdMetadata;
+						} elseif (M\isMicroformatCollection($clientIdMetadata)) {
 							// Search for an h-app or h-x-app with u-url matching the client_id.
 							// TODO: if/when client_id gets normalised, we might have to do a normalised comparison rather than plain string comparison here.
-							$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByCallable($clientIdMf2, function ($mf) {
+							$clientHApps = M\findMicroformatsByProperty(M\findMicroformatsByCallable($clientIdMetadata, function ($mf) {
 								return count(array_intersect($mf['type'], ['h-app', 'h-x-app'])) > 0;
 							}), 'url', $queryParams['client_id']);
 							$clientHAppOrException = empty($clientHApps) ? null : $clientHApps[0];

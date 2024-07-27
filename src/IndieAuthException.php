@@ -23,6 +23,8 @@ class IndieAuthException extends Exception {
 	const INVALID_REQUEST = 13;
 	const INVALID_REQUEST_REDIRECT = 14;
 	const AUTHENTICATION_CALLBACK_INVALID_RETURN_VALUE = 15;
+	const OAUTH_METADATA_MISMATCH_CLIENT_ID = 16;
+	const OAUTH_METADATA_MISMATCH_CLIENT_URI = 17;
 
 	const EXC_INFO = [
 		self::INTERNAL_ERROR => ['statusCode' => 500, 'name' => 'Internal Server Error', 'explanation' => 'An internal server error occurred.'],
@@ -42,6 +44,8 @@ class IndieAuthException extends Exception {
 		self::INVALID_GRANT => ['statusCode' => 400, 'name' => 'The provided credentials were not valid.', 'error' => 'invalid_grant'],
 		self::INVALID_REQUEST => ['statusCode' => 400, 'name' => 'Invalid Request', 'error' => 'invalid_request'],
 		self::INVALID_REQUEST_REDIRECT => ['statusCode' => 302, 'name' => 'Invalid Request', 'error' => 'invalid_request'],
+		self::OAUTH_METADATA_MISMATCH_CLIENT_ID => ['statusCode' => 400, 'name' => 'Invalid Client Identifier URI', 'explanation' => 'client_id in OAuth Client Metadata document did not match.'],
+		self::OAUTH_METADATA_MISMATCH_CLIENT_URI => ['statusCode' => 400, 'name' => 'Invalid Client URI', 'explanation' => 'client_url in OAuth Client Metadata document is not a prefix for client_id.'],
 	];
 
 	/** @var ServerRequestInterface $request */
